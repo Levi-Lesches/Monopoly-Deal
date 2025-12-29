@@ -85,11 +85,12 @@ class Game {
     if (turnsRemaining == 0) nextTurn();
   }
 
-  bool acceptResponse(Response response) {
+  bool handleResponse(Response response) {
     final interruption = interruptions.firstWhereOrNull((other) => other.waitingFor == response.player);
     if (interruption == null) return false;
     switch (response) {
       case JustSayNoResponse(:final justSayNo):
+        if (!response.isValid()) return false;
         response.player.hand.remove(justSayNo);
         discardPile.add(justSayNo);
       case PaymentResponse(:final cards):
@@ -97,14 +98,50 @@ class Game {
           if (!response.isValid(amount)) return false;
           for (final card in cards) {
             response.player.removeFromTable(card);
-            interruption.causedBy.addAsMoney(card);
+            interruption.causedBy.addMoney(card);
           }
         } else {
           return false;
         }
+      case AcceptedResponse():  // do the thing
+        switch (interruption) {
+          case PaymentInterruption(): return false;
+          case StealInterruption(:final toSteal, :final toGive):
+            interruption.waitingFor.removeFromTable(toSteal);
+            final color = promptForColor(currentPlayer, toSteal);
+            if (color != null) {
+              interruption.causedBy.addProperty(toSteal, color);
+            }
+            if (toGive != null) {
+              final color2 = promptForColor(interruption.waitingFor, toGive);
+              interruption.causedBy.removeFromTable(toGive);
+              if (color2 != null) {
+                interruption.waitingFor.addProperty(toGive, color2);
+              }
+            }
+          case StealStackInterruption(:final color):
+            final stack = interruption.waitingFor.getStackWithSet(color)!;
+            interruption.waitingFor.stacks.remove(stack);
+            interruption.causedBy.stacks.add(stack);
+          case ChooseColorInterruption(): return false;
+        }
+      case ColorResponse(:final color):
+        if (interruption is! ChooseColorInterruption) return false;
+        response.player.addProperty(interruption.card, color);
     }
     interruptions.remove(interruption);
     return true;
+  }
+
+  PropertyColor? promptForColor(Player player, Card card) {
+    switch (card) {
+      case PropertyCard(:final color): return color;
+      case WildPropertyCard() || RainbowWildCard():
+        final interruption = ChooseColorInterruption(card: card, causedBy: player);
+        interruptions.add(interruption);
+        return null;
+      case _: return null;
+    }
   }
 
   void printState() {

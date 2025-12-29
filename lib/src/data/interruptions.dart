@@ -53,3 +53,11 @@ class StealStackInterruption extends GameInterruption {
   @override
   String toString() => "Waiting: $causedBy wants to steal the $color set from $waitingFor";
 }
+
+class ChooseColorInterruption extends GameInterruption {
+  final Card card;
+  const ChooseColorInterruption({
+    required this.card,
+    required super.causedBy,
+  }) : super(waitingFor: causedBy);
+}

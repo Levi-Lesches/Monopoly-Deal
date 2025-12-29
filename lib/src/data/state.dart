@@ -9,19 +9,31 @@ extension CardLogic on Game {
     switch (card) {
       case MoneyCard():
         return () => currentPlayer.tableMoney.add(card);
-      case PropertyCard():
-        final stack = currentPlayer.getStack(card.color);
-        return stack.canAdd(card) ? () => stack.add(card) : null;
-      case WildPropertyCard() || RainbowWildCard() || House() || Hotel():
+      case PropertyCard():  // can always be added
+        return () => currentPlayer.addProperty(card, card.color);
+      case WildPropertyCard():
         final color = choice.color;
         if (color == null) return null;
-        final stack = currentPlayer.getStack(color);
+        return () => currentPlayer.addProperty(card, color);
+      case RainbowWildCard():
+        final color = choice.color;
+        if (color == null) return null;
+        // Cannot just use [addProperty] here
+        // Rainbows must be a part of an existing stack
+        final stack = currentPlayer.getStackWithRoom(color);
+        if (stack == null) return null;
+        return () => stack.add(card);
+      case House() || Hotel():
+        final color = choice.color;
+        if (color == null) return null;
+        final stack = currentPlayer.getStackWithSet(color);
+        if (stack == null) return null;
         return stack.canAdd(card) ? () => stack.add(card) : null;
       case RentActionCard(:final color1, :final color2):
         final color = choice.color;
         if (color == null) return null;
         if (color != color1 && color != color2) return null;
-        var rent = currentPlayer.getStack(color).rent;
+        var rent = currentPlayer.rentFor(color);
         if (rent == 0) return null;
         final doubleTheRent = choice.doubleTheRent;
         return () {
@@ -36,7 +48,7 @@ extension CardLogic on Game {
         final color = choice.color;
         final victim = choice.victim;
         if (color == null || victim == null) return null;
-        var rent = currentPlayer.getStack(color).rent;
+        var rent = currentPlayer.rentFor(color);
         if (rent == 0) return null;
         final doubleTheRent = choice.doubleTheRent;
         return () {
@@ -62,8 +74,8 @@ extension CardLogic on Game {
         if (canChooseSet) {
           final color = choice.color;
           if (color == null) return null;
-          final otherStack = victim.getStack(color);
-          if (!otherStack.isSet) return null;
+          final otherStack = victim.getStackWithSet(color);
+          if (otherStack == null) return null;
           final interruption = StealStackInterruption(color: color, waitingFor: victim, causedBy: currentPlayer);
           return () {interruptions = [interruption]; discardPile.add(card); };
         } else {

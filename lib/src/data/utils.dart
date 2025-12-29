@@ -33,6 +33,11 @@ extension ListUtils<E> on List<E> {
   }
 }
 
+extension IterUtils<E> on Iterable<E> {
+  E max(num Function(E) compare) =>
+    reduce((a, b) => compare(a) > compare(b) ? a : b);
+}
+
 Iterable<int> range(int n) sync* {
   for (var i = 0; i < n; i++) {
     yield i;

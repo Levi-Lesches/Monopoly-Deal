@@ -61,3 +61,15 @@ class JustSayNoResponse extends Response {
 
   bool isValid() => player.hasCardsInHand([justSayNo]);
 }
+
+class AcceptedResponse extends Response {
+  const AcceptedResponse({required super.player});
+}
+
+class ColorResponse extends Response {
+  final PropertyColor color;
+  const ColorResponse({
+    required this.color,
+    required super.player,
+  });
+}
