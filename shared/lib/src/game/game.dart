@@ -64,40 +64,19 @@ class Game {
       case JustSayNoResponse(:final justSayNo):
         response.validate();
         discard(response.player, justSayNo);
-      case PaymentResponse(:final cards):
+      case PaymentResponse():
         if (interruption is! PaymentInterruption) throw GameError.wrongResponse;
         response.validate(interruption.amount);
-        for (final card in cards) {
-          response.player.removeFromTable(card);
-          if (card is WildCard) {
-            promptForColor(interruption.causedBy, card);
-          } else {
-            interruption.causedBy.addMoney(card);
-          }
-        }
+        response.handle(this, interruption.causedBy);
       case AcceptedResponse():  // do the thing
         switch (interruption) {
-          case StealInterruption(:final toSteal, :final toGive):
-            interruption.waitingFor.removeFromTable(toSteal);
-            final color = promptForColor(currentPlayer, toSteal);
-            if (color != null) {
-              interruption.causedBy.addProperty(toSteal, color);
-            }
-            if (toGive != null) {
-              final color2 = promptForColor(interruption.waitingFor, toGive);
-              interruption.causedBy.removeFromTable(toGive);
-              if (color2 != null) {
-                interruption.waitingFor.addProperty(toGive, color2);
-              }
-            }
+          case StealInterruption():
+            steal(interruption);
           case StealStackInterruption(:final color):
             final stack = interruption.waitingFor.getStackWithSet(color)!;
             interruption.waitingFor.stacks.remove(stack);
             interruption.causedBy.stacks.add(stack);
-          case ChooseColorInterruption():
-          case DiscardInterruption():
-          case PaymentInterruption():
-            throw GameError.wrongResponse;
+          case _: throw GameError.wrongResponse;
         }
       case ColorResponse(:final color):
         if (interruption is! ChooseColorInterruption) throw GameError.wrongResponse;
@@ -113,6 +92,21 @@ class Game {
         startTurn();
     }
     interruptions.remove(interruption);
+  }
+
+  void steal(StealInterruption details) {
+    final stealer = details.causedBy;
+    final victim = details.waitingFor;
+    final toSteal = details.toSteal;
+    final toGive = details.toGive;
+    victim.removeFromTable(toSteal);
+    final color = promptForColor(stealer, toSteal);
+    if (color != null) stealer.addProperty(toSteal, color);
+    if (toGive != null) {
+      final color2 = promptForColor(victim, toGive);
+      stealer.removeFromTable(toGive);
+      if (color2 != null) victim.addProperty(toGive, color2);
+    }
   }
 
   PropertyColor? promptForColor(Player player, PropertyLike card) {

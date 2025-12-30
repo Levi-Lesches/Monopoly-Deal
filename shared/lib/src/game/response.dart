@@ -1,5 +1,7 @@
 import "package:shared/data.dart";
 
+import "game.dart";
+
 sealed class InterruptionResponse {
   final Player player;
   const InterruptionResponse({required this.player});
@@ -23,6 +25,17 @@ class PaymentResponse extends InterruptionResponse {
       }
     }
     if (cards.any((card) => card.value == 0)) throw PlayerException(.noValue);
+  }
+
+  void handle(Game game, Player otherPlayer) {
+    for (final card in cards) {
+      player.removeFromTable(card);
+      if (card is WildCard) {
+        game.promptForColor(otherPlayer, card);
+      } else {
+        otherPlayer.addMoney(card);
+      }
+    }
   }
 }
 
