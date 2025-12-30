@@ -7,22 +7,26 @@ class GameError implements MDealError {
   GameError(this.message);
 
   static final interruptions = GameError("Resolve interruptions first");
-  static final notInHand = GameError("Player doesn't have that card");
+  static final wrongResponse = GameError("There is no interruption for that response");
+  static final notInHand = GameError("Player doesn't have that card in their hand");
+  static final notOnTable = GameError("Player doesn't have that card on the table");
 }
 
 enum ChoiceExceptionReason {
+  noCardToSteal,
+  noCardToGive,
   noColor,
   noStack,
   noSet,
   noRent,
   noVictim,
-  noCardToSteal,
-  noCardToGive,
   noValue,
   noMoney,
   invalidColor,
   duplicateCardInStack,
   hotelBeforeHouse,
+  notEnoughMoney,
+  tooManyCards,
 }
 
 class PlayerException implements MDealError {

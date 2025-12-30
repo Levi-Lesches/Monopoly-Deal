@@ -13,12 +13,16 @@ class PaymentResponse extends InterruptionResponse {
     required super.player,
   });
 
-  bool isValid(int amount) {
-    if (!player.hasCardsOnTable(cards)) return false;
-    return cards.every((card) => card.value > 0)
-      && player.netWorth < amount
-        ? cards.length == player.cardsWithValue.length
-        : cards.totalValue >= amount;
+  void validate(int amount) {
+    if (!player.hasCardsOnTable(cards)) throw GameError.notOnTable;
+    if (player.netWorth < amount) {
+      if (cards.length < player.cardsWithValue.length) {
+        throw PlayerException(.notEnoughMoney);  // can automate this
+      } else if (cards.totalValue < amount) {
+        throw PlayerException(.notEnoughMoney);
+      }
+    }
+    if (cards.any((card) => card.value == 0)) throw PlayerException(.noValue);
   }
 }
 
@@ -29,7 +33,9 @@ class JustSayNoResponse extends InterruptionResponse {
     required super.player,
   });
 
-  bool isValid() => player.hasCardsInHand([justSayNo]);
+  void validate() {
+    if (!player.hasCardsInHand([justSayNo])) throw GameError.notInHand;
+  }
 }
 
 class AcceptedResponse extends InterruptionResponse {
@@ -43,12 +49,14 @@ class ColorResponse extends InterruptionResponse {
     required super.player,
   });
 
-  bool isValid(Card card) => switch (card) {
-    WildPropertyCard(:final topColor, :final bottomColor) =>
-      color == topColor || color == bottomColor,
-    RainbowWildCard() => player.getStackWithRoom(color) != null,
-    _ => false,
-  };
+  void validate(WildCard card) {
+    switch (card) {
+      case WildPropertyCard(:final topColor, :final bottomColor):
+        if (color != topColor && color != bottomColor) throw PlayerException(.invalidColor);
+      case RainbowWildCard():
+        if (player.getStackWithRoom(color) == null) throw PlayerException(.noStack);
+    }
+  }
 }
 
 class DiscardResponse extends InterruptionResponse {
@@ -58,6 +66,8 @@ class DiscardResponse extends InterruptionResponse {
     required super.player,
   });
 
-  bool isValid(int amount) => player.hasCardsInHand(cards)
-    && cards.length >= amount;
+  void validate(int amount) {
+    if (!player.hasCardsInHand(cards)) throw GameError.notInHand;
+    if (cards.length < amount) throw PlayerException(.tooManyCards);
+  }
 }
