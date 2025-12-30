@@ -1,5 +1,9 @@
 import "package:collection/collection.dart";
-import "package:shared/shared.dart";
+import "package:shared/utils.dart";
+
+import "card.dart";
+import "errors.dart";
+import "player.dart";
 
 class PropertyStack {
   final PropertyColor color;

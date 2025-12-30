@@ -1,44 +1,14 @@
-// printState() at the bottom
-// ignore_for_file: avoid_print
-
 import "package:collection/collection.dart";
+import "package:shared/data.dart";
+import "package:shared/utils.dart";
 
-import "card.dart";
-import "deck.dart";
-import "response.dart";
-import "player.dart";
-import "utils.dart";
 import "interruption.dart";
-import "state.dart";
+import "choice.dart";
+import "response.dart";
 
-sealed class MDealException implements Exception { }
-
-class GameError implements MDealException {
-  // Represents an internal error in game flow.
-  // Is an error -- cannot be fixed without code change
-  final String message;
-  GameError(this.message);
-}
-
-enum ChoiceExceptionReason {
-  noColor,
-  noStack,
-  noSet,
-  noRent,
-  noVictim,
-  noCardToSteal,
-  noCardToGive,
-  invalidColor,
-  duplicateCardInStack,
-  hotelBeforeHouse,
-}
-
-class PlayerException implements MDealException {
-  // Represents a problem with a human choice
-  // Is an exception -- can be fixed by choosing something else
-  final ChoiceExceptionReason reason;
-  PlayerException(this.reason);
-}
+import "";
+export "game_debug.dart";
+export "game_logic.dart";
 
 class Game {
   final List<Player> players;
@@ -48,7 +18,7 @@ class Game {
   int playerIndex = 0;
   Player get currentPlayer => players[playerIndex];
   int turnsRemaining = 0;
-  List<GameInterruption> interruptions = [];
+  List<Interruption> interruptions = [];
 
   Game(this.players) :
     deck = shuffleDeck(),
@@ -100,7 +70,7 @@ class Game {
       currentPlayer.hand.remove(choice.card);
       currentPlayer.tableMoney.add(choice.card);
     } else {
-      handleCard(choice);
+      handleChoice(choice);
       currentPlayer.hand.remove(choice.card);
     }
   }
@@ -110,7 +80,7 @@ class Game {
     if (turnsRemaining == 0) nextTurn();
   }
 
-  bool handleResponse(Response response) {
+  bool handleResponse(InterruptionResponse response) {
     final interruption = interruptions.firstWhereOrNull((other) => other.waitingFor == response.player);
     if (interruption == null) return false;
     switch (response) {
@@ -175,28 +145,6 @@ class Game {
         interruptions.add(interruption);
         return null;
       case _: return null;
-    }
-  }
-
-  void printState() {
-    print("=======================================");
-    print("Game State: $currentPlayer's turn, $turnsRemaining cards left");
-    for (final interruption in interruptions) {
-      print("  - $interruption");
-    }
-    print("  - There are ${deck.length} cards in the deck and ${discardPile.length} cards in the discard pile");
-    print("  - The top card of the discard pile is ${discardPile.lastOrNull}");
-    for (final player in players) {
-      print("  - $player's stats: Net Worth: \$${player.netWorth}");
-      print("    - ${player.hand.length} cards in their hand: ${player.hand}");
-      final properties = [
-        for (final stack in player.stacks)
-          for (final card in stack.cards)
-            if (card is! House && card is! Hotel)
-              card,
-      ];
-      print("    - Properties: $properties");
-      print("    - Money (\$${player.tableMoney.totalValue}): ${player.tableMoney}");
     }
   }
 }

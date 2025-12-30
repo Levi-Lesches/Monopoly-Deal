@@ -1,9 +1,3 @@
-export "src/card.dart";
-export "src/deck.dart";
-export "src/game.dart";
-export "src/interruption.dart";
-export "src/player.dart";
-export "src/response.dart";
-export "src/server.dart";
-export "src/stack.dart";
-export "src/utils.dart";
+export "data.dart";
+export "game.dart";
+export "utils.dart";

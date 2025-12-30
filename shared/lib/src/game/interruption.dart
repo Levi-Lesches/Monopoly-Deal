@@ -1,17 +1,16 @@
-import "player.dart";
-import "card.dart";
+import "package:shared/data.dart";
 
-sealed class GameInterruption {
+sealed class Interruption {
   final Player causedBy;
   final Player waitingFor;
 
-  const GameInterruption({
+  const Interruption({
     required this.causedBy,
     required this.waitingFor,
   });
 }
 
-class PaymentInterruption extends GameInterruption {
+class PaymentInterruption extends Interruption {
   final int amount;
 
   const PaymentInterruption({
@@ -24,7 +23,7 @@ class PaymentInterruption extends GameInterruption {
   String toString() => "Waiting: $waitingFor must pay $causedBy \$$amount";
 }
 
-class StealInterruption extends GameInterruption {
+class StealInterruption extends Interruption {
   final Card toSteal;
   final Card? toGive;
 
@@ -41,7 +40,7 @@ class StealInterruption extends GameInterruption {
     : "Waiting: $causedBy wants to trade with $waitingFor -- $toGive for $toSteal";
 }
 
-class StealStackInterruption extends GameInterruption {
+class StealStackInterruption extends Interruption {
   final PropertyColor color;
 
   const StealStackInterruption({
@@ -54,7 +53,7 @@ class StealStackInterruption extends GameInterruption {
   String toString() => "Waiting: $causedBy wants to steal the $color set from $waitingFor";
 }
 
-class ChooseColorInterruption extends GameInterruption {
+class ChooseColorInterruption extends Interruption {
   final Card card;
   const ChooseColorInterruption({
     required this.card,
@@ -62,7 +61,7 @@ class ChooseColorInterruption extends GameInterruption {
   }) : super(waitingFor: causedBy);
 }
 
-class DiscardInterruption extends GameInterruption {
+class DiscardInterruption extends Interruption {
   final int amount;
   const DiscardInterruption({
     required this.amount,

@@ -1,7 +1,11 @@
-import "package:shared/shared.dart";
+import "package:shared/data.dart";
 
-extension CardLogic on Game {
-  void handleCard(TurnChoice choice) {
+import "game.dart";
+import "interruption.dart";
+import "choice.dart";
+
+extension GameLogic on Game {
+  void handleChoice(TurnChoice choice) {
     final card = choice.card;
     switch (card) {
       case MoneyCard():
@@ -66,7 +70,7 @@ extension CardLogic on Game {
       case StealingActionCard(:final canChooseSet, :final isTrade):
         final victim = choice.victim;
         if (victim == null) throw PlayerException(.noVictim);
-        final GameInterruption interruption;
+        final Interruption interruption;
         if (canChooseSet) {
           final color = choice.color;
           if (color == null) throw PlayerException(.noColor);

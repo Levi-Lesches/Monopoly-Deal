@@ -1,41 +1,11 @@
-import "card.dart";
-import "deck.dart";
-import "player.dart";
+import "package:shared/data.dart";
 
-sealed class Response {
+sealed class InterruptionResponse {
   final Player player;
-  const Response({required this.player});
+  const InterruptionResponse({required this.player});
 }
 
-class TurnChoice {
-  final Player player;
-  final Card card;
-  final bool isBanked;
-  final PropertyColor? color;
-  final Player? victim;
-  final Card? toSteal;
-  final Card? toGive;
-  final DoubleTheRent? doubleTheRent;
-
-  int get cardsUsed => doubleTheRent == null ? 1 : 2;
-
-  const TurnChoice({
-    required this.card,
-    required this.player,
-    this.isBanked = false,
-    this.doubleTheRent,
-    this.color,
-    this.victim,
-    this.toSteal,
-    this.toGive,
-  });
-
-  bool isValid() => player.hasCardsInHand([card])
-    && (toGive != null && player.hasCardsOnTable([toGive!]))
-    && (doubleTheRent != null && player.hasCardsInHand([doubleTheRent!]));
-}
-
-class PaymentResponse extends Response {
+class PaymentResponse extends InterruptionResponse {
   /* TODO: House and hotels become banked */
   final List<Card> cards;
   const PaymentResponse({
@@ -52,7 +22,7 @@ class PaymentResponse extends Response {
   }
 }
 
-class JustSayNoResponse extends Response {
+class JustSayNoResponse extends InterruptionResponse {
   final JustSayNo justSayNo;
   const JustSayNoResponse({
     required this.justSayNo,
@@ -62,11 +32,11 @@ class JustSayNoResponse extends Response {
   bool isValid() => player.hasCardsInHand([justSayNo]);
 }
 
-class AcceptedResponse extends Response {
+class AcceptedResponse extends InterruptionResponse {
   const AcceptedResponse({required super.player});
 }
 
-class ColorResponse extends Response {
+class ColorResponse extends InterruptionResponse {
   final PropertyColor color;
   const ColorResponse({
     required this.color,
@@ -81,7 +51,7 @@ class ColorResponse extends Response {
   };
 }
 
-class DiscardResponse extends Response {
+class DiscardResponse extends InterruptionResponse {
   final List<Card> cards;
   const DiscardResponse({
     required this.cards,
