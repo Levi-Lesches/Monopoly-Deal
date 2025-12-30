@@ -72,4 +72,22 @@ class ColorResponse extends Response {
     required this.color,
     required super.player,
   });
+
+  bool isValid(Card card) => switch (card) {
+    WildPropertyCard(:final topColor, :final bottomColor) =>
+      color == topColor || color == bottomColor,
+    RainbowWildCard() => player.getStackWithRoom(color) != null,
+    _ => false,
+  };
+}
+
+class DiscardResponse extends Response {
+  final List<Card> cards;
+  const DiscardResponse({
+    required this.cards,
+    required super.player,
+  });
+
+  bool isValid(int amount) => player.hasCardsInHand(cards)
+    && cards.length >= amount;
 }

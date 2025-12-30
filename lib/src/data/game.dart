@@ -124,10 +124,19 @@ class Game {
             interruption.waitingFor.stacks.remove(stack);
             interruption.causedBy.stacks.add(stack);
           case ChooseColorInterruption(): return false;
+          case DiscardInterruption(): return false;
         }
       case ColorResponse(:final color):
         if (interruption is! ChooseColorInterruption) return false;
+        if (!response.isValid(interruption.card)) return false;
         response.player.addProperty(interruption.card, color);
+      case DiscardResponse(:final cards):
+        if (interruption is! DiscardInterruption) return false;
+        if (!response.isValid(interruption.amount)) return false;
+        for (final card in cards) {
+          response.player.hand.remove(card);
+          discardPile.add(card);
+        }
     }
     interruptions.remove(interruption);
     return true;

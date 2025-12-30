@@ -61,3 +61,11 @@ class ChooseColorInterruption extends GameInterruption {
     required super.causedBy,
   }) : super(waitingFor: causedBy);
 }
+
+class DiscardInterruption extends GameInterruption {
+  final int amount;
+  const DiscardInterruption({
+    required this.amount,
+    required super.waitingFor,
+  }) : super(causedBy: waitingFor);
+}
