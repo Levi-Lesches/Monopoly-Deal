@@ -3,12 +3,10 @@ import "package:shared/data.dart";
 import "package:shared/utils.dart";
 
 import "interruption.dart";
-import "choice.dart";
+import "action.dart";
 import "response.dart";
 
-import "";
 export "game_debug.dart";
-export "game_logic.dart";
 
 class Game {
   final List<Player> players;
@@ -53,32 +51,11 @@ class Game {
     turnsRemaining = 3;
   }
 
-  void nextTurn() {
-    playerIndex = players.nextIndex(playerIndex);
-  }
-
   void chargePlayers(Player player, int amount, List<Player> players) => interruptions = [
     for (final otherPlayer in players.exceptFor(player))
       if (otherPlayer.netWorth > 0)
         PaymentInterruption(amount: amount, waitingFor: otherPlayer, causedBy: player),
   ];
-
-  void playCard(TurnChoice choice) {
-    if (interruptions.isNotEmpty) throw GameError("Respond to all interruptions before playing a card");
-    if (turnsRemaining < choice.cardsUsed) throw GameError("Too many cards played");
-    if (choice.isBanked) {
-      currentPlayer.hand.remove(choice.card);
-      currentPlayer.tableMoney.add(choice.card);
-    } else {
-      handleChoice(choice);
-      currentPlayer.hand.remove(choice.card);
-    }
-  }
-
-  void nextCard(TurnChoice choice) {
-    turnsRemaining -= choice.cardsUsed;
-    if (turnsRemaining == 0) nextTurn();
-  }
 
   bool handleResponse(InterruptionResponse response) {
     final interruption = interruptions.firstWhereOrNull((other) => other.waitingFor == response.player);
@@ -93,7 +70,11 @@ class Game {
           if (!response.isValid(amount)) return false;
           for (final card in cards) {
             response.player.removeFromTable(card);
-            interruption.causedBy.addMoney(card);
+            if (card is WildCard) {
+              promptForColor(interruption.causedBy, card);
+            } else {
+              interruption.causedBy.addMoney(card);
+            }
           }
         } else {
           return false;
@@ -129,22 +110,45 @@ class Game {
         if (interruption is! DiscardInterruption) return false;
         if (!response.isValid(interruption.amount)) return false;
         for (final card in cards) {
-          response.player.hand.remove(card);
-          discardPile.add(card);
+          discard(currentPlayer, card);
         }
+        playerIndex = players.nextIndex(playerIndex);
+        startTurn();
     }
     interruptions.remove(interruption);
     return true;
   }
 
-  PropertyColor? promptForColor(Player player, Card card) {
+  PropertyColor? promptForColor(Player player, PropertyLike card) {
     switch (card) {
       case PropertyCard(:final color): return color;
-      case WildPropertyCard() || RainbowWildCard():
+      case WildCard():
         final interruption = ChooseColorInterruption(card: card, causedBy: player);
         interruptions.add(interruption);
         return null;
       case _: return null;
     }
+  }
+
+  void endTurn() {
+    if (interruptions.isNotEmpty) throw GameError("Resolve all interruptions first");
+    if (turnsRemaining == 0) return;
+    turnsRemaining = 0;
+    interruptions.add(DiscardInterruption(amount: currentPlayer.hand.length - 7, waitingFor: currentPlayer));
+  }
+
+  void discard(Player player, Card card) {
+    player.hand.remove(card);
+    discardPile.add(card);
+  }
+
+  void handleAction(PlayerAction action) {
+    if (interruptions.isNotEmpty) throw GameError("Respond to all interruptions before playing a card");
+    if (turnsRemaining < action.cardsUsed) throw GameError("Too many cards played");
+    action.prehandle(this);
+    action.handle(this);
+    action.postHandle(this);
+    turnsRemaining -= action.cardsUsed;
+    if (turnsRemaining == 0) endTurn();
   }
 }

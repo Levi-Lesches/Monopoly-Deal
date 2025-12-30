@@ -57,7 +57,7 @@ class Player {
     tableMoney.remove(card);
   }
 
-  void addProperty(Card card, PropertyColor color) {
+  void addProperty(Stackable card, PropertyColor color) {
     final stack = getStackWithRoom(color);
     if (stack == null) {
       final newStack = PropertyStack(color);
@@ -69,8 +69,7 @@ class Player {
   }
 
   void addMoney(Card card) => switch (card) {
-    PropertyCard(:final color) || WildPropertyCard(topColor: final color) =>
-      addProperty(card, color),
+    PropertyCard(:final color) => addProperty(card, color),
     _ => tableMoney.add(card),
   };
 }

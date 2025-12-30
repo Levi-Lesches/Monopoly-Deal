@@ -1,6 +1,19 @@
 import "package:meta/meta.dart";
 import "package:uuid/uuid.dart";
 
+mixin Stackable on Card { }
+// sealed class Stackable extends Card {
+//   Stackable({required super.value});
+// }
+
+mixin PropertyLike on Card implements Stackable { }
+mixin WildCard on Card implements PropertyLike { }
+mixin PropertySetModifier on Card implements Stackable { }
+// mixin Rentable on Card { }
+sealed class Rentable extends Card {
+  Rentable({required super.value});
+}
+
 @immutable
 sealed class Card {
   String get name;
@@ -56,7 +69,7 @@ enum PropertyColor {
   int get setNumber => rents.length;
 }
 
-class PropertyCard extends Card {
+class PropertyCard extends Card with Stackable, PropertyLike {
   @override
   final String name;
   final PropertyColor color;
@@ -68,7 +81,7 @@ class PropertyCard extends Card {
   }) : super(value: value ?? color.value);
 }
 
-class WildPropertyCard extends Card {
+class WildPropertyCard extends Card with WildCard {
   final PropertyColor topColor;
   final PropertyColor bottomColor;
 
@@ -82,14 +95,14 @@ class WildPropertyCard extends Card {
   String get name => "Wild Property ($topColor / $bottomColor)";
 }
 
-class RainbowWildCard extends Card {
+class RainbowWildCard extends Card with WildCard {
   RainbowWildCard() : super(value: 0);
 
   @override
   String get name => "Rainbow Wild Card";
 }
 
-class RentActionCard extends Card {
+class RentActionCard extends Rentable {
   final PropertyColor color1;
   final PropertyColor color2;
 
@@ -102,7 +115,7 @@ class RentActionCard extends Card {
   String get name => "Rent Card ($color1 / $color2)";
 }
 
-class RainbowRentActionCard extends Card {
+class RainbowRentActionCard extends Rentable {
   RainbowRentActionCard() : super(value: 3);
 
   @override
@@ -145,14 +158,14 @@ class PassGo extends Card {
   PassGo() : super(value: 1);
 }
 
-class House extends Card {
+class House extends Card with Stackable, PropertySetModifier {
   @override
   String get name => "House";
 
   House() : super(value: 3);
 }
 
-class Hotel extends Card {
+class Hotel extends Card with Stackable, PropertySetModifier {
   @override
   String get name => "Hotel";
 

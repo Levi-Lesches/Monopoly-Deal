@@ -7,9 +7,9 @@ import "player.dart";
 
 class PropertyStack {
   final PropertyColor color;
-  final List<Card> cards;
-  Card? house;
-  Card? hotel;
+  final List<PropertyLike> cards;
+  House? house;
+  Hotel? hotel;
 
   PropertyStack(this.color) : cards = [];
 
@@ -18,7 +18,7 @@ class PropertyStack {
   bool get isEmpty => cards.isEmpty;
   bool get isNotEmpty => cards.isNotEmpty;
 
-  void add(Card card) {
+  void add(Stackable card) {
     // Errors are thrown here when the game should choose a different stack
     // Exceptions are thrown otherwise
     switch (card) {
@@ -43,7 +43,7 @@ class PropertyStack {
         if (house == null) throw PlayerException(.hotelBeforeHouse);
         if (hotel == null) throw PlayerException(.duplicateCardInStack);
         hotel = card;
-      case _:
+      // case _:
     }
   }
 

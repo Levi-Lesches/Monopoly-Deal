@@ -24,8 +24,8 @@ class PaymentInterruption extends Interruption {
 }
 
 class StealInterruption extends Interruption {
-  final Card toSteal;
-  final Card? toGive;
+  final PropertyLike toSteal;
+  final PropertyLike? toGive;
 
   const StealInterruption({
     required this.toSteal,
@@ -54,7 +54,7 @@ class StealStackInterruption extends Interruption {
 }
 
 class ChooseColorInterruption extends Interruption {
-  final Card card;
+  final WildCard card;
   const ChooseColorInterruption({
     required this.card,
     required super.causedBy,

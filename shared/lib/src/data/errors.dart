@@ -5,6 +5,9 @@ class GameError implements MDealError {
   // Is an error -- cannot be fixed without code change
   final String message;
   GameError(this.message);
+
+  static final interruptions = GameError("Resolve interruptions first");
+  static final notInHand = GameError("Player doesn't have that card");
 }
 
 enum ChoiceExceptionReason {
@@ -15,6 +18,8 @@ enum ChoiceExceptionReason {
   noVictim,
   noCardToSteal,
   noCardToGive,
+  noValue,
+  noMoney,
   invalidColor,
   duplicateCardInStack,
   hotelBeforeHouse,

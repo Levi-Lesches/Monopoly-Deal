@@ -17,11 +17,13 @@ Monopoly Deal is full of many small choices, such as:
 
 These many questions require answers from humans, and it won't make sense to try to fill in the answers automatically. For example, if a player was charged $4, but only has $5, $3, and $2 -- how should they pay? This kind of question leads to deliberate strategy, and so this codebase embraces that.
 
-### The `TurnChoice` class
+### The `PlayerAction` class
 
-A turn starts off with a `TurnChoice` that specifies what the player wants to achieve, eg, "Debt collector on player 2". The game validates this choice in `game.handleChoice()`, checking for basic issues like "no player chosen for a debt collector", but also more complex issues like "trying to charge rent on a yellow set with an orange/pink rent card".
+A turn starts off with a `PlayerAction` that specifies what the player wants to do, eg, "Debt collector on player 2" or "bank this rent card". The game validates this choice in `PlayerAction.handle()`, checking for basic issues like "no player chosen for a debt collector", but also more complex issues like "trying to charge rent on a yellow set with an orange/pink rent card".
 
-If a choice can be successfully completed without human input, it is handled quietly and the game proceeds. For example, if a "Pass Go" is played, the game deals the top two cards to the player and decrements the `turnsRemaining` counter.
+If a choice can be successfully completed without human input, it is handled quietly and the game proceeds. For example, if a "Pass Go" is played, the game deals the top two cards to the player.
+
+After an action is completed, the card is removed from the player's hand, put into the right pile/stack, and the `turnsRemaining` counter is decremented.
 
 ### Interruptions
 
@@ -40,7 +42,7 @@ There are different responses available for each interruption. As another exampl
 After any `Response` is received, its corresponding `Interruption` is removed from the game list. Note that additional interruptions may be issued while processing a response. One example is the case where a user is paid with a wild card: the receiving player needs to choose where to put it before continuing.
 
 Once `game.interruptions` is empty, the game continues:
-- If the current player has cards left, they can submit another choice
+- If the current player has cards left, they can submit another action
 - Otherwise, a `DiscardInterruption` is issued
 - After processing the `DiscardResponse`, the next player's turn begins
 
