@@ -1,99 +1,94 @@
-import "game.dart";
-import "response.dart";
-import "card.dart";
-import "interruption.dart";
+import "package:shared/shared.dart";
 
 extension CardLogic on Game {
-  Callback? handleCard(TurnChoice choice) {
+  void handleCard(TurnChoice choice) {
     final card = choice.card;
     switch (card) {
       case MoneyCard():
-        return () => currentPlayer.tableMoney.add(card);
+        currentPlayer.tableMoney.add(card);
       case PropertyCard():  // can always be added
-        return () => currentPlayer.addProperty(card, card.color);
+        currentPlayer.addProperty(card, card.color);
       case WildPropertyCard():
         final color = choice.color;
-        if (color == null) return null;
-        return () => currentPlayer.addProperty(card, color);
+        if (color == null) throw PlayerException(.noColor);
+        currentPlayer.addProperty(card, color);
       case RainbowWildCard():
         final color = choice.color;
-        if (color == null) return null;
+        if (color == null) throw PlayerException(.noColor);
         // Cannot just use [addProperty] here
         // Rainbows must be a part of an existing stack
         final stack = currentPlayer.getStackWithRoom(color);
-        if (stack == null) return null;
-        return () => stack.add(card);
+        if (stack == null) throw PlayerException(.noStack);
+        stack.add(card);
       case House() || Hotel():
         final color = choice.color;
-        if (color == null) return null;
+        if (color == null) throw PlayerException(.noColor);
         final stack = currentPlayer.getStackWithSet(color);
-        if (stack == null) return null;
-        return stack.canAdd(card) ? () => stack.add(card) : null;
+        if (stack == null) throw PlayerException(.noSet);
+        stack.add(card);
       case RentActionCard(:final color1, :final color2):
         final color = choice.color;
-        if (color == null) return null;
-        if (color != color1 && color != color2) return null;
+        if (color == null) throw PlayerException(.noColor);
+        if (color != color1 && color != color2) PlayerException(.invalidColor);
         var rent = currentPlayer.rentFor(color);
-        if (rent == 0) return null;
+        if (rent == 0) PlayerException(.noRent);
         final doubleTheRent = choice.doubleTheRent;
-        return () {
-          if (doubleTheRent != null) {
-            rent *= 2;
-            discardPile.add(doubleTheRent);
-          }
-          chargePlayers(currentPlayer, rent, players);
-          discardPile.add(card);
-        };
+        if (doubleTheRent != null) {
+          rent *= 2;
+          discardPile.add(doubleTheRent);
+        }
+        chargePlayers(currentPlayer, rent, players);
+        discardPile.add(card);
       case RainbowRentActionCard():
         final color = choice.color;
+        if (color == null) throw PlayerException(.noColor);
         final victim = choice.victim;
-        if (color == null || victim == null) return null;
+        if (victim == null) throw PlayerException(.noVictim);
         var rent = currentPlayer.rentFor(color);
-        if (rent == 0) return null;
+        if (rent == 0) throw PlayerException(.noRent);
         final doubleTheRent = choice.doubleTheRent;
-        return () {
-          if (doubleTheRent != null) {
-            rent *= 2;
-            discardPile.add(doubleTheRent);
-          }
-          chargePlayers(currentPlayer, rent, [victim]);
-          discardPile.add(card);
-        };
+        if (doubleTheRent != null) {
+          rent *= 2;
+          discardPile.add(doubleTheRent);
+        }
+        chargePlayers(currentPlayer, rent, [victim]);
+        discardPile.add(card);
       case PaymentActionCard(:final amountToPay, :final victimType):
-        if (amountToPay == 0) return null;
+        if (amountToPay == 0) throw PlayerException(.noRent);
+        var victims = players;
         if (victimType == VictimType.onePlayer) {
           final victim = choice.victim;
-          if (victim == null) return null;
-          return () {chargePlayers(currentPlayer, amountToPay, [victim]); discardPile.add(card); };
-        } else {
-          return () {chargePlayers(currentPlayer, amountToPay, players); discardPile.add(card); };
+          if (victim == null) throw PlayerException(.noVictim);
+          victims = [victim];
         }
+        chargePlayers(currentPlayer, amountToPay, victims);
+        discardPile.add(card);
       case StealingActionCard(:final canChooseSet, :final isTrade):
         final victim = choice.victim;
-        if (victim == null) return null;
+        if (victim == null) throw PlayerException(.noVictim);
+        final GameInterruption interruption;
         if (canChooseSet) {
           final color = choice.color;
-          if (color == null) return null;
+          if (color == null) throw PlayerException(.noColor);
           final otherStack = victim.getStackWithSet(color);
-          if (otherStack == null) return null;
-          final interruption = StealStackInterruption(color: color, waitingFor: victim, causedBy: currentPlayer);
-          return () {interruptions = [interruption]; discardPile.add(card); };
+          if (otherStack == null) throw PlayerException(.noStack);
+          interruption = StealStackInterruption(color: color, waitingFor: victim, causedBy: currentPlayer);
         } else {
           final toSteal = choice.toSteal;
-          if (toSteal == null) return null;
+          if (toSteal == null) throw PlayerException(.noCardToSteal);
           Card? toGive;
           if (isTrade) {
             toGive = choice.toGive;
-            if (toGive == null) return null;
+            if (toGive == null) throw PlayerException(.noCardToGive);
           }
-          final interruption = StealInterruption(toSteal: toSteal, toGive: toGive, waitingFor: victim, causedBy: currentPlayer);
-          return () {interruptions = [interruption]; discardPile.add(card); };
+          interruption = StealInterruption(toSteal: toSteal, toGive: toGive, waitingFor: victim, causedBy: currentPlayer);
         }
+        interruptions = [interruption];
+        discardPile.add(card);
       case PassGo():
-        return () => dealToPlayer(currentPlayer, 2);
+        dealToPlayer(currentPlayer, 2);
       case JustSayNo() || DoubleTheRent():
         // Must be used as part of a [Response]
-        return null;
     }
   }
 }

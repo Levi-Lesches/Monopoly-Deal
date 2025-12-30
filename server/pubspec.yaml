@@ -9,6 +9,7 @@ environment:
 # Add regular dependencies here.
 resolution: workspace
 dependencies:
+  shared: ^1.0.0
 
 dev_dependencies:
   test: ^1.25.6

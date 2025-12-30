@@ -1,8 +1,5 @@
 import "package:collection/collection.dart";
-
-import "card.dart";
-import "utils.dart";
-import "player.dart";
+import "package:shared/shared.dart";
 
 class PropertyStack {
   final PropertyColor color;
@@ -17,21 +14,34 @@ class PropertyStack {
   bool get isEmpty => cards.isEmpty;
   bool get isNotEmpty => cards.isNotEmpty;
 
-  bool canAdd(Card card) => switch (card) {
-    PropertyCard(:final color) => color == this.color && hasRoom,
-    WildPropertyCard(:final topColor, :final bottomColor) => hasRoom && color == topColor || color == bottomColor,
-    RainbowWildCard() => hasRoom && isNotEmpty,
-    House() => isSet,
-    Hotel() => isSet && cards.any((other) => other is House),
-    _ => false,
-  };
-
-  void add(Card card) => switch (card) {
-    PropertyCard() || WildPropertyCard() || RainbowWildCard() => cards.add(card),
-    House() => house = card,
-    Hotel() => hotel = card,
-    _ => { },
-  };
+  void add(Card card) {
+    // Errors are thrown here when the game should choose a different stack
+    // Exceptions are thrown otherwise
+    switch (card) {
+      case PropertyCard(:final color):
+        if (color != this.color) throw GameError("Property color doesn't match the stack");
+        if (!hasRoom) throw GameError("This stack is full");
+        cards.add(card);
+      case WildPropertyCard(:final topColor, :final bottomColor):
+        if (color != topColor && color != bottomColor) throw GameError("Wild property colors don't match the stack");
+        if (!hasRoom) throw GameError("This stack is full");
+        cards.add(card);
+      case RainbowWildCard():
+        if (!hasRoom) throw GameError("This stack is full");
+        if (isEmpty) throw GameError("Rainbow wild cards must be part of an existing stack");
+        cards.add(card);
+      case House():
+        if (!isSet) throw GameError("This stack is not a set");
+        if (house != null) throw PlayerException(.duplicateCardInStack);
+        house = card;
+      case Hotel():
+        if (!isSet) throw GameError("This stack is not a set");
+        if (house == null) throw PlayerException(.hotelBeforeHouse);
+        if (hotel == null) throw PlayerException(.duplicateCardInStack);
+        hotel = card;
+      case _:
+    }
+  }
 
   int get rent {
     var result = color.rents[cards.length];

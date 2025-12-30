@@ -17,11 +17,13 @@ void main() {
       player: player1,
       victim: player2,
     );
-    final result = game.playCard(choice);
-    if (!result) {
-      stdout.writeln("That did not work");
-    } else {
+    try {
+      game.playCard(choice);
       game.nextCard(choice);
+    } on GameError catch (e) {
+      stdout.writeln("Internal error: $e");
+    } on PlayerException catch (e) {
+      stdout.writeln("Invalid choice: ${e.reason}");
     }
   }
   game.printState();

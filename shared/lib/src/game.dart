@@ -11,7 +11,34 @@ import "utils.dart";
 import "interruption.dart";
 import "state.dart";
 
-typedef Callback = void Function();
+sealed class MDealException implements Exception { }
+
+class GameError implements MDealException {
+  // Represents an internal error in game flow.
+  // Is an error -- cannot be fixed without code change
+  final String message;
+  GameError(this.message);
+}
+
+enum ChoiceExceptionReason {
+  noColor,
+  noStack,
+  noSet,
+  noRent,
+  noVictim,
+  noCardToSteal,
+  noCardToGive,
+  invalidColor,
+  duplicateCardInStack,
+  hotelBeforeHouse,
+}
+
+class PlayerException implements MDealException {
+  // Represents a problem with a human choice
+  // Is an exception -- can be fixed by choosing something else
+  final ChoiceExceptionReason reason;
+  PlayerException(this.reason);
+}
 
 class Game {
   final List<Player> players;
@@ -62,22 +89,20 @@ class Game {
 
   void chargePlayers(Player player, int amount, List<Player> players) => interruptions = [
     for (final otherPlayer in players.exceptFor(player))
-      if (otherPlayer.netWorth >  0)
+      if (otherPlayer.netWorth > 0)
         PaymentInterruption(amount: amount, waitingFor: otherPlayer, causedBy: player),
   ];
 
-  bool playCard(TurnChoice choice) {
-    if (turnsRemaining < choice.cardsUsed) return false;
+  void playCard(TurnChoice choice) {
+    if (interruptions.isNotEmpty) throw GameError("Respond to all interruptions before playing a card");
+    if (turnsRemaining < choice.cardsUsed) throw GameError("Too many cards played");
     if (choice.isBanked) {
       currentPlayer.hand.remove(choice.card);
       currentPlayer.tableMoney.add(choice.card);
     } else {
-      final callback = handleCard(choice);
-      if (callback == null) return false;
+      handleCard(choice);
       currentPlayer.hand.remove(choice.card);
-      callback();
     }
-    return true;
   }
 
   void nextCard(TurnChoice choice) {
