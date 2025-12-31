@@ -1,4 +1,5 @@
 import "package:collection/collection.dart";
+import "package:shared/utils.dart";
 
 import "card.dart";
 import "deck.dart";
@@ -20,6 +21,19 @@ class Player {
 
   @override
   String toString() => name;
+
+  Json toJson() => {
+    "name": name,
+    "handCount": hand.length,
+    "stacks": [
+      for (final stack in stacks)
+        stack.toJson(),
+    ],
+    "money": [
+      for (final card in tableMoney)
+        card.toJson(),
+    ],
+  };
 
   int get netWorth => _onTable.totalValue;
 

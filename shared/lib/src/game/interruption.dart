@@ -1,4 +1,6 @@
+import "package:meta/meta.dart";
 import "package:shared/data.dart";
+import "package:shared/utils.dart";
 
 sealed class Interruption {
   final Player causedBy;
@@ -8,6 +10,13 @@ sealed class Interruption {
     required this.causedBy,
     required this.waitingFor,
   });
+
+  @mustBeOverridden
+  @mustCallSuper
+  Json toJson() => {
+    "causedBy": causedBy,
+    "waitingFor": waitingFor,
+  };
 }
 
 class PaymentInterruption extends Interruption {
@@ -21,6 +30,13 @@ class PaymentInterruption extends Interruption {
 
   @override
   String toString() => "Waiting: $waitingFor must pay $causedBy \$$amount";
+
+  @override
+  Json toJson() => {
+    ...super.toJson(),
+    "type": "payment",
+    "amount": amount,
+  };
 }
 
 class StealInterruption extends Interruption {
@@ -38,6 +54,14 @@ class StealInterruption extends Interruption {
   String toString() => toGive == null
     ? "Waiting: $causedBy wants to steal $toSteal from $waitingFor"
     : "Waiting: $causedBy wants to trade with $waitingFor -- $toGive for $toSteal";
+
+  @override
+  Json toJson() => {
+    ...super.toJson(),
+    "type": "stealOne",
+    "toSteal": toSteal.uuid,
+    "toGive": toGive?.uuid,
+  };
 }
 
 class StealStackInterruption extends Interruption {
@@ -51,6 +75,13 @@ class StealStackInterruption extends Interruption {
 
   @override
   String toString() => "Waiting: $causedBy wants to steal the $color set from $waitingFor";
+
+  @override
+  Json toJson() => {
+    ...super.toJson(),
+    "type": "stealStack",
+    "color": color.name,
+  };
 }
 
 class ChooseColorInterruption extends Interruption {
@@ -59,6 +90,13 @@ class ChooseColorInterruption extends Interruption {
     required this.card,
     required super.causedBy,
   }) : super(waitingFor: causedBy);
+
+  @override
+  Json toJson() => {
+    ...super.toJson(),
+    "type": "color",
+    "card": card.uuid,
+  };
 }
 
 class DiscardInterruption extends Interruption {
@@ -67,4 +105,11 @@ class DiscardInterruption extends Interruption {
     required this.amount,
     required super.waitingFor,
   }) : super(causedBy: waitingFor);
+
+  @override
+  Json toJson() => {
+    "type": "discard",
+    ...super.toJson(),
+    "amount": amount,
+  };
 }

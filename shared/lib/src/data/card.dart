@@ -1,4 +1,9 @@
-import "package:meta/meta.dart";
+// This file uses a trick to avoid a bunch of copyWith() calls
+// The UUID is modifiable *until* the game starts. Once it does,
+// the whole object can be treated as immutable.
+// ignore_for_file: avoid_equals_and_hash_code_on_mutable_classes
+
+import "package:shared/utils.dart";
 import "package:uuid/uuid.dart";
 
 mixin Stackable on Card { }
@@ -14,11 +19,10 @@ sealed class Rentable extends Card {
   Rentable({required super.value});
 }
 
-@immutable
 sealed class Card {
   String get name;
   final int value;
-  final String uuid;
+  String uuid;
 
   Card({required this.value}) :
     uuid = const Uuid().v4();
@@ -32,6 +36,11 @@ sealed class Card {
 
   @override
   String toString() => name;
+
+  Json toJson() => {
+    "name": name,
+    "uuid": uuid,
+  };
 }
 
 class MoneyCard extends Card {

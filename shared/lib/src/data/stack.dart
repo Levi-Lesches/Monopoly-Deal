@@ -13,6 +13,16 @@ class PropertyStack {
 
   PropertyStack(this.color) : cards = [];
 
+  Json toJson() => {
+    "color": color.name,
+    "cards": [
+      for (final card in cards)
+        card.toJson(),
+    ],
+    "house": house?.toJson(),
+    "hotel": hotel?.toJson(),
+  };
+
   bool get isSet => cards.length == color.setNumber;
   bool get hasRoom => cards.length < color.setNumber;
   bool get isEmpty => cards.isEmpty;

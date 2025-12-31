@@ -1,4 +1,5 @@
 import "package:collection/collection.dart";
+import "package:shared/utils.dart";
 
 import "card.dart";
 
@@ -6,6 +7,15 @@ typedef Deck = List<Card>;
 
 List<E> fill<E extends Card>(int n, E Function() builder) =>
   List.generate(n, (_) => builder());
+
+Card cardfromJson(Json json) {
+  final name = json["name"];
+  final deck = buildDeck();
+  final card = deck.firstWhere((other) => other.name == name)
+    ..uuid = json["uuid"];
+  deck.remove(card);
+  return card;
+}
 
 Deck _buildMoneyCards() => [
   ...fill(6, () => MoneyCard(value: 1)),

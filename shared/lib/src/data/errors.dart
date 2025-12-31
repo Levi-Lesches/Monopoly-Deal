@@ -1,43 +1,52 @@
-sealed class MDealError implements Exception { }
+import "package:shared/utils.dart";
 
-class GameError implements MDealError {
+sealed class MDealError implements Exception {
+  final String message;
+  const MDealError(this.message);
+
+  @override
+  String toString() => message;
+
+  Json toJson() => {
+    "type": "error",
+    "message": message,
+  };
+}
+
+class GameError extends MDealError {
   // Represents an internal error in game flow.
   // Is an error -- cannot be fixed without code change
-  final String message;
-  GameError(this.message);
+  GameError(super.message);
 
   static final interruptions = GameError("Resolve interruptions first");
   static final wrongResponse = GameError("There is no interruption for that response");
   static final notInHand = GameError("Player doesn't have that card in their hand");
   static final notOnTable = GameError("Player doesn't have that card on the table");
-
-  @override
-  String toString() => message;
 }
 
-enum ChoiceExceptionReason {
-  noCardToSteal,
-  noCardToGive,
-  noColor,
-  noStack,
-  noSet,
-  noRent,
-  noVictim,
-  noValue,
-  noMoney,
-  invalidColor,
-  duplicateCardInStack,
-  hotelBeforeHouse,
-  notEnoughMoney,
-  tooManyCards,
+enum PlayerExceptionReason {
+  noCardToSteal("Pick a card to steal"),
+  noCardToGive("Pick a card to give"),
+  noColor("Pick a color"),
+  noStack("No properties of that color"),
+  noSet("No set of that color"),
+  noRent("No rent for that color"),
+  noVictim("Pick a player"),
+  noValue("That card has no value"),
+  noMoney("That player has no money"),
+  invalidColor("Can't pick that color"),
+  duplicateCardInStack("This stack already has one of those"),
+  hotelBeforeHouse("Can't put a hotel before a house"),
+  notEnoughMoney("Not enough money"),
+  tooManyCards("Discard more cards");
+
+  final String message;
+  const PlayerExceptionReason(this.message);
 }
 
-class PlayerException implements MDealError {
+class PlayerException extends MDealError {
   // Represents a problem with a human choice
   // Is an exception -- can be fixed by choosing something else
-  final ChoiceExceptionReason reason;
-  PlayerException(this.reason);
-
-  @override
-  String toString() => reason.name;
+  PlayerException(PlayerExceptionReason reason) :
+    super(reason.message);
 }

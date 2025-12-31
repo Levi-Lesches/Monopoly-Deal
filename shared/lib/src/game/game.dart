@@ -26,6 +26,22 @@ class Game {
     startTurn();
   }
 
+  Json toJson() => {
+    // Only reveal information the clients can know about
+    "type": "game",
+    "players": [
+      for (final player in players)
+        player.toJson(),
+    ],
+    "player": currentPlayer.name,
+    "discardCard": discardPile.last,
+    "turnsRemaining": turnsRemaining,
+    "interruptions": [
+      for (final interruption in interruptions)
+        interruption.toJson(),
+    ]
+  };
+
   void dealToPlayer(Player player, int count) {
     for (final _ in range(count)) {
       if (deck.isEmpty) {
