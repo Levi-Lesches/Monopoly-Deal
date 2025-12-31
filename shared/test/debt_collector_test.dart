@@ -27,7 +27,7 @@ void main() => test("Debt collector", () {
   final action = ChargeAction(card: card, player: alice, victim: bob);
 
   // Trick the game by playing a card we don't have
-  expectError<GameError>(() => game.handleAction(action));
+  game.checkBadAction(action);
 
   // Caught! Add the card to the player's hand in order to play it
   alice.hand.add(card);
@@ -48,11 +48,11 @@ void main() => test("Debt collector", () {
   // Try to make up fake money for player 2
   final extraMoney = MoneyCard(value: 5);
   final wrongResponse = PaymentResponse(cards: [extraMoney], player: bob);
-  expectError<GameError>(() => game.handleResponse(wrongResponse));
+  game.checkBadResponse(wrongResponse);
 
   // Caught! Use the money player 2 actually has
   final goodResponse = PaymentResponse(cards: [money2, money3], player: bob);
-  expect(() => game.handleResponse(goodResponse), returnsNormally);
+  game.checkResponse(goodResponse);
   expect(bob.netWorth, 0);
   expect(game.interruptions, isEmpty);
 
@@ -100,5 +100,7 @@ void expectError<T>(void Function() func) => expect(func, throwsA(isA<T>()));
 
 extension on Game {
   void checkAction(PlayerAction action) => expect(() => handleAction(action), returnsNormally);
+  void checkBadAction(PlayerAction action) => expectError<GameError>(() => handleAction(action));
   void checkResponse(InterruptionResponse response) => expect(() => handleResponse(response), returnsNormally);
+  void checkBadResponse(InterruptionResponse response) => expectError<GameError>(() => handleResponse(response));
 }
