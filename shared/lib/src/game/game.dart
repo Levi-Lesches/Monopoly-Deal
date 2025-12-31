@@ -92,6 +92,13 @@ class Game {
         startTurn();
     }
     interruptions.remove(interruption);
+    if (
+      interruptions.isEmpty
+      && turnsRemaining == 0
+      && interruption is! DiscardInterruption
+    ) {
+      endTurn();
+    }
   }
 
   void steal(StealInterruption details) {
@@ -122,7 +129,6 @@ class Game {
 
   void endTurn() {
     if (interruptions.isNotEmpty) throw GameError("Resolve all interruptions first");
-    if (turnsRemaining == 0) return;
     turnsRemaining = 0;
     interruptions.add(DiscardInterruption(amount: currentPlayer.hand.length - 7, waitingFor: currentPlayer));
   }
@@ -139,6 +145,6 @@ class Game {
     action.handle(this);
     action.postHandle(this);
     turnsRemaining -= action.cardsUsed;
-    if (turnsRemaining == 0) endTurn();
+    if (interruptions.isEmpty && turnsRemaining == 0) endTurn();
   }
 }

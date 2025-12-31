@@ -10,6 +10,9 @@ class GameError implements MDealError {
   static final wrongResponse = GameError("There is no interruption for that response");
   static final notInHand = GameError("Player doesn't have that card in their hand");
   static final notOnTable = GameError("Player doesn't have that card on the table");
+
+  @override
+  String toString() => message;
 }
 
 enum ChoiceExceptionReason {
@@ -34,4 +37,7 @@ class PlayerException implements MDealError {
   // Is an exception -- can be fixed by choosing something else
   final ChoiceExceptionReason reason;
   PlayerException(this.reason);
+
+  @override
+  String toString() => reason.name;
 }

@@ -16,7 +16,7 @@ Deck _buildMoneyCards() => [
   ...fill(1, () => MoneyCard(value: 10)),
 ];
 
-Card debtCollector() => PaymentActionCard(
+PaymentActionCard debtCollector() => PaymentActionCard(
   amountToPay: 5,
   name: "Debt Collector",
   victimType: VictimType.onePlayer,
@@ -44,7 +44,7 @@ Card dealBreaker() => StealingActionCard(
   value: 5,
 );
 
-Card itsMyBirthday() => PaymentActionCard(
+PaymentActionCard itsMyBirthday() => PaymentActionCard(
   amountToPay: 2,
   name: "It's My Birthday!",
   victimType: VictimType.allPlayers,
