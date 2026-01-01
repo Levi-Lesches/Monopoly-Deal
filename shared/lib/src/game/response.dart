@@ -1,10 +1,20 @@
 import "package:shared/data.dart";
+import "package:shared/utils.dart";
 
 import "game.dart";
 
 sealed class InterruptionResponse {
   final Player player;
   const InterruptionResponse({required this.player});
+
+  factory InterruptionResponse.fromJson(Game game, Json json) => switch (json["name"] as String) {
+    "payment" => PaymentResponse.fromJson(game, json),
+    "justSayNo" => JustSayNoResponse.fromJson(game, json),
+    "accepted" => AcceptedResponse.fromJson(game, json),
+    "color" => ColorResponse.fromJson(game, json),
+    "discard" => DiscardResponse.fromJson(game, json),
+    _ => throw ArgumentError("Unrecognized response: $json"),
+  };
 }
 
 class PaymentResponse extends InterruptionResponse {
@@ -14,6 +24,14 @@ class PaymentResponse extends InterruptionResponse {
     required this.cards,
     required super.player,
   });
+
+  factory PaymentResponse.fromJson(Game game, Json json) => PaymentResponse(
+    cards: [
+      for (final uuid in json["cards"])
+        game.findCard(uuid),
+    ],
+    player: game.findPlayer(json["player"]),
+  );
 
   void validate(int amount) {
     if (!player.hasCardsOnTable(cards)) throw GameError.notOnTable;
@@ -46,6 +64,11 @@ class JustSayNoResponse extends InterruptionResponse {
     required super.player,
   });
 
+  factory JustSayNoResponse.fromJson(Game game, Json json) => JustSayNoResponse(
+    justSayNo: game.findCard(json["card"]),
+    player: game.findPlayer(json["player"]),
+  );
+
   void validate() {
     if (!player.hasCardsInHand([justSayNo])) throw GameError.notInHand;
   }
@@ -53,6 +76,9 @@ class JustSayNoResponse extends InterruptionResponse {
 
 class AcceptedResponse extends InterruptionResponse {
   const AcceptedResponse({required super.player});
+
+  factory AcceptedResponse.fromJson(Game game, Json json) =>
+    AcceptedResponse(player: game.findPlayer(json["player"]));
 }
 
 class ColorResponse extends InterruptionResponse {
@@ -61,6 +87,11 @@ class ColorResponse extends InterruptionResponse {
     required this.color,
     required super.player,
   });
+
+  factory ColorResponse.fromJson(Game game, Json json) => ColorResponse(
+    color: PropertyColor.fromJson(json["color"]),
+    player: game.findPlayer(json["player"]),
+  );
 
   void validate(WildCard card) {
     switch (card) {
@@ -78,6 +109,14 @@ class DiscardResponse extends InterruptionResponse {
     required this.cards,
     required super.player,
   });
+
+  factory DiscardResponse.fromJson(Game game, Json json) => DiscardResponse(
+    cards: [
+      for (final card in (json["cards"] as List).cast<String>())
+        game.findCard(card),
+    ],
+    player: game.findPlayer(json["player"]),
+  );
 
   void validate(int amount) {
     if (!player.hasCardsInHand(cards)) throw GameError.notInHand;

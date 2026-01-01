@@ -72,6 +72,10 @@ enum PropertyColor {
     this.isNormal = true,
   });
 
+  String toJson() => name;
+
+  factory PropertyColor.fromJson(String name) => values.byName(name);
+
   @override
   String toString() => name;
 

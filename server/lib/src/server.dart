@@ -22,16 +22,15 @@ class Server {
     //  "name": ActionName | ResponseName,
     //  "data": Json,
     // }
-    final type = packet["type"];
-    final name = packet["name"];
-    final data = packet["data"];
+    final type = packet["type"] as String;
+    final data = packet["data"] as Json;
     switch (type) {
       case "action":
-        final PlayerAction action = PlayerAction.fromJson(name, data);
+        final action = PlayerAction.fromJson(game, data);
         if (action.player.name != user.name) return;
         await handleAction(user, action);
       case "response":
-        final InterruptionResponse response = InterruptionResponse.fromJson(name, data);
+        final response = InterruptionResponse.fromJson(game, data);
         if (response.player.name != user.name) return;
         await handleResponse(user, response);
     }

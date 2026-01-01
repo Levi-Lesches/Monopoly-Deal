@@ -43,3 +43,8 @@ Iterable<int> range(int n) sync* {
     yield i;
   }
 }
+
+extension JsonUtils on Json {
+  T? mapNullable<T, V>(String key, T Function(V) func) =>
+    this[key] == null ? null : func(this[key] as V);
+}

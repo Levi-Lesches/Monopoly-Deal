@@ -10,6 +10,7 @@ export "game_debug.dart";
 
 class Game {
   final List<Player> players;
+  List<Card> referenceDeck = [];
   Deck deck;
   Deck discardPile;
 
@@ -22,9 +23,17 @@ class Game {
     deck = shuffleDeck(),
     discardPile = []
   {
+    referenceDeck = List.from(deck);
     dealStartingCards();
     startTurn();
   }
+
+  T findCard<T extends Card>(String uuid) => referenceDeck
+    .firstWhere((card) => card.uuid == uuid)
+    as T;
+
+  Player findPlayer(String name) => players
+    .firstWhere((other) => other.name == name);
 
   Json toJson() => {
     // Only reveal information the clients can know about
