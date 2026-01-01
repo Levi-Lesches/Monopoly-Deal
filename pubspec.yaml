@@ -6,7 +6,6 @@ environment:
 
 workspace:
   - client
-  - server
   - shared
 
 dev_dependencies:

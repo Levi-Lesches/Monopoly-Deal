@@ -46,6 +46,13 @@ Once `game.interruptions` is empty, the game continues:
 - Otherwise, a `DiscardInterruption` is issued
 - After processing the `DiscardResponse`, the next player's turn begins
 
+## Hidden State and serialization
+
+The clients should not have access to all of the game state. Otherwise, this would make cheating quite trivial by just opening DevTools. Instead, the server is careful that all `.toJson()` methods only reveal information that the client can know. The `Player` class has two implementations: `HiddenPlayer`, which can only show the amount of cards in one's hand, and `RevealedPlayer`, which can show the actual cards in the player's hand. The `Game` class has a `GameState` counterpart which replaces the all-revealed `players` list with a list of `otherPlayers` that are all hidden, and one revealed `player`.
+
+Similarly, the client cannot send information it does not know about. Additionally, the server is built assuming that all objects that are equal are also identical. It is not just enough to call `dealToPlayer()` with a player of the same name, as these methods mutate inner state and therefore must work on the same object.
+
+So, while it would be simple to just serialize all actions and responses, care must be taken to pass names and UUIDs only in `toJson()` calls, and find the pre-existing objects in `.fromJson()` to ensure correctness. This means that using libraries like `json_serializable` is viable, and deserializing any object usually requires calling `game.findCard()` and `game.findPlayer()`.
+
 ## TODOs
 - freely move properties / bank houses+hotels on turn
-- end turn without playing all three cards
