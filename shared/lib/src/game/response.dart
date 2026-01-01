@@ -15,6 +15,8 @@ sealed class InterruptionResponse {
     "discard" => DiscardResponse.fromJson(game, json),
     _ => throw ArgumentError("Unrecognized response: $json"),
   };
+
+  Json toJson();
 }
 
 class PaymentResponse extends InterruptionResponse {
@@ -32,6 +34,13 @@ class PaymentResponse extends InterruptionResponse {
     ],
     player: game.findPlayer(json["player"]),
   );
+
+  @override
+  Json toJson() => {
+    "type": "payment",
+    "cards": [for (final card in cards) card.uuid],
+    "player": player.name,
+  };
 
   void validate(int amount) {
     if (!player.hasCardsOnTable(cards)) throw GameError.notOnTable;
@@ -72,6 +81,13 @@ class JustSayNoResponse extends InterruptionResponse {
   void validate() {
     if (!player.hasCardsInHand([justSayNo])) throw GameError.notInHand;
   }
+
+  @override
+  Json toJson() => {
+    "type": "justSayNo",
+    "card": justSayNo.uuid,
+    "player": player.name,
+  };
 }
 
 class AcceptedResponse extends InterruptionResponse {
@@ -79,6 +95,12 @@ class AcceptedResponse extends InterruptionResponse {
 
   factory AcceptedResponse.fromJson(Game game, Json json) =>
     AcceptedResponse(player: game.findPlayer(json["player"]));
+
+  @override
+  Json toJson() => {
+    "type": "accepted",
+    "player": player.name,
+  };
 }
 
 class ColorResponse extends InterruptionResponse {
@@ -101,6 +123,13 @@ class ColorResponse extends InterruptionResponse {
         if (player.getStackWithRoom(color) == null) throw PlayerException(.noStack);
     }
   }
+
+  @override
+  Json toJson() => {
+    "type": "color",
+    "color": color.name,
+    "player": player.name,
+  };
 }
 
 class DiscardResponse extends InterruptionResponse {
@@ -117,6 +146,13 @@ class DiscardResponse extends InterruptionResponse {
     ],
     player: game.findPlayer(json["player"]),
   );
+
+  @override
+  Json toJson() => {
+    "type": "discard",
+    "cards": [for (final card in cards) card.uuid],
+    "player": player.name,
+  };
 
   void validate(int amount) {
     if (!player.hasCardsInHand(cards)) throw GameError.notInHand;

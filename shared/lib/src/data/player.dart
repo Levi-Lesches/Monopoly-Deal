@@ -22,7 +22,7 @@ abstract class Player {
   Player.fromJson(Json json) :
     name = json["name"],
     stacks = json.parseList("stacks", PropertyStack.fromJson),
-    tableMoney = json.parseList("money", cardfromJson);
+    tableMoney = json.parseList("money", cardFromJson);
 
   int get handCount;
 
@@ -133,7 +133,7 @@ class RevealedPlayer extends Player {
   );
 
   RevealedPlayer.fromJson(super.json) :
-    hand = json.parseList("hand", cardfromJson),
+    hand = json.parseList("hand", cardFromJson),
     super.fromJson();
 
   @override

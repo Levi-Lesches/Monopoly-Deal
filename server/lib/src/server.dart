@@ -20,7 +20,6 @@ class Server {
   Future<void> handlePacket(Player player, Packet packet) async {
     // {
     //  "type": "action" | "response",
-    //  "name": ActionName | ResponseName,
     //  "data": Json,
     // }
     final type = packet["type"] as String;

@@ -10,7 +10,7 @@ void main() => test("Card JSON", () {
   ];
   final deck2 = [
     for (final cardJson in deckJson)
-      cardfromJson(cardJson),
+      cardFromJson(cardJson),
   ];
   expect(deck.length, 106);
   expect(deck2.length, 106);

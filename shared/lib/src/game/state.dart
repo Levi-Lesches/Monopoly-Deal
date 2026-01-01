@@ -28,7 +28,7 @@ class GameState {
     interruptions = json.parseList("interruptions", Interruption.parse),
     currentPlayer = json["currentPlayer"],
     turnsRemaining = json["turnsRemaining"],
-    discarded = cardfromJson(json["discarded"]);
+    discarded = cardFromJson(json["discarded"]);
 
   Json toJson() => {
     "type": "game",

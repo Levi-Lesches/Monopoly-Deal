@@ -16,9 +16,9 @@ class PropertyStack {
 
   PropertyStack.fromJson(Json json) :
     color = PropertyColor.fromJson(json["color"]),
-    cards = json.parseList("cards", (json) => cardfromJson(json) as PropertyLike),
-    house = json.mapNullable("house", (Json h) => cardfromJson(h) as House),
-    hotel = json.mapNullable("hotel", (Json h) => cardfromJson(h) as Hotel);
+    cards = json.parseList("cards", (json) => cardFromJson(json) as PropertyLike),
+    house = json.mapNullable("house", (Json h) => cardFromJson(h) as House),
+    hotel = json.mapNullable("hotel", (Json h) => cardFromJson(h) as Hotel);
 
   Json toJson() => {
     "color": color.name,

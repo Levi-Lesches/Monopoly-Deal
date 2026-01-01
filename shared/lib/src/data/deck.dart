@@ -8,7 +8,7 @@ typedef Deck = List<Card>;
 List<E> fill<E extends Card>(int n, E Function() builder) =>
   List.generate(n, (_) => builder());
 
-Card cardfromJson(Json json) {
+Card cardFromJson(Json json) {
   final name = json["name"];
   final deck = buildDeck();
   final card = deck.firstWhere((other) => other.name == name)
@@ -84,7 +84,7 @@ Deck _buildPropertyCards() => [
 
   PropertyCard(name: "St. Charles Place", color: .pink),
   PropertyCard(name: "States Avenue", color: .pink),
-  PropertyCard(name: "Virginia Avenua", color: .pink),
+  PropertyCard(name: "Virginia Avenue", color: .pink),
 
   PropertyCard(name: "St. James Place", color: .orange),
   PropertyCard(name: "Tennessee Avenue", color: .orange),
