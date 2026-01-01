@@ -116,7 +116,7 @@ class ChargeAction extends OneCardAction {
 
   factory ChargeAction.fromJson(Game game, Json json) => ChargeAction(
     card: game.findCard(json["card"]),
-    player: json["player"],
+    player: game.findPlayer(json["player"] as String),
     victim: json.mapNullable("victim", game.findPlayer),
   );
 
@@ -177,7 +177,7 @@ class WildPropertyAction extends OneCardAction {
   factory WildPropertyAction.fromJson(Game game, Json json) => WildPropertyAction(
     card: game.findCard(json["card"]),
     color: PropertyColor.fromJson(json["color"]),
-    player: json["player"],
+    player: game.findPlayer(json["player"] as String),
   );
 
   @override
@@ -206,7 +206,7 @@ class RainbowWildAction extends OneCardAction {
   factory RainbowWildAction.fromJson(Game game, Json json) => RainbowWildAction(
     card: game.findCard(json["card"]),
     color: PropertyColor.fromJson(json["color"]),
-    player: json["player"],
+    player: game.findPlayer(json["player"] as String),
   );
 
   @override
@@ -240,7 +240,7 @@ class SetModifierAction extends OneCardAction {
   factory SetModifierAction.fromJson(Game game, Json json) => SetModifierAction(
     card: game.findCard(json["card"]),
     color: PropertyColor.fromJson(json["color"]),
-    player: json["player"],
+    player: game.findPlayer(json["player"] as String),
   );
 
   @override
@@ -276,7 +276,7 @@ class RentAction extends OneCardAction {
 
   factory RentAction.fromJson(Game game, Json json) => RentAction(
     card: game.findCard(json["card"]),
-    player: json["player"],
+    player: game.findPlayer(json["player"] as String),
     color: PropertyColor.fromJson(json["color"]),
     doubleTheRent: json.mapNullable("doubleTheRent", game.findCard),
     victim: json.mapNullable("victim", game.findPlayer),
@@ -338,7 +338,7 @@ class StealAction extends OneCardAction {
 
   factory StealAction.fromJson(Game game, Json json) => StealAction(
     card: game.findCard(json["card"]),
-    player: json["player"],
+    player: game.findPlayer(json["player"] as String),
     victim: json["victim"],
     toSteal: json.mapNullable("toSteal", game.findCard),
     color: json.mapNullable("color", PropertyColor.fromJson),

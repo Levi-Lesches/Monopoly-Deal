@@ -1,3 +1,5 @@
+import "dart:async";
+
 import "package:shared/shared.dart";
 
 typedef Packet = Json;
@@ -5,8 +7,8 @@ typedef Packet = Json;
 abstract class ServerSocket {
   Future<void> init();
   Future<void> dispose();
-  Future<void> send(Player user, Packet payload);
-  void listen(void Function(Player, Packet) func);
+  Future<void> send(User user, Packet payload);
+  void listen(void Function(User, Packet) func);
 }
 
 abstract class ClientSocket {

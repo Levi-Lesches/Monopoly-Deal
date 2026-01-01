@@ -7,7 +7,7 @@ sealed class InterruptionResponse {
   final RevealedPlayer player;
   const InterruptionResponse({required this.player});
 
-  factory InterruptionResponse.fromJson(Game game, Json json) => switch (json["name"] as String) {
+  factory InterruptionResponse.fromJson(Game game, Json json) => switch (json["type"] as String) {
     "payment" => PaymentResponse.fromJson(game, json),
     "justSayNo" => JustSayNoResponse.fromJson(game, json),
     "accepted" => AcceptedResponse.fromJson(game, json),

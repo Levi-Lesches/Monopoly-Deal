@@ -26,6 +26,7 @@ class GameError extends MDealError {
   static final wrongResponse = GameError("There is no interruption for that response");
   static final notInHand = GameError("Player doesn't have that card in their hand");
   static final notOnTable = GameError("Player doesn't have that card on the table");
+  static final wrongPassword = GameError("Invalid password");
 }
 
 enum PlayerExceptionReason {

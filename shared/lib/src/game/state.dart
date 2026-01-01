@@ -10,7 +10,7 @@ class GameState {
   final String currentPlayer;
   final int turnsRemaining;
 
-  final Card discarded;
+  final Card? discarded;
   final List<Interruption> interruptions;
 
   GameState({
@@ -28,7 +28,7 @@ class GameState {
     interruptions = json.parseList("interruptions", Interruption.parse),
     currentPlayer = json["currentPlayer"],
     turnsRemaining = json["turnsRemaining"],
-    discarded = cardFromJson(json["discarded"]);
+    discarded = json.mapNullable("discarded", cardFromJson);
 
   Json toJson() => {
     "type": "game",
@@ -39,7 +39,7 @@ class GameState {
     ],
     "currentPlayer": currentPlayer,
     "turnsRemaining": turnsRemaining,
-    "discarded": discarded.toJson(),
+    "discarded": discarded?.toJson(),
     "interruptions": [
       for (final interruption in interruptions)
         interruption.toJson(),

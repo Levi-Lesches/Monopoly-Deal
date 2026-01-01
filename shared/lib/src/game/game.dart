@@ -43,7 +43,7 @@ class Game {
     ],
     currentPlayer: currentPlayer.name,
     interruptions: interruptions,
-    discarded: discardPile.last,
+    discarded: discardPile.lastOrNull,
     turnsRemaining: turnsRemaining,
   );
 

@@ -1,3 +1,5 @@
+import "dart:async";
+
 import "package:shared/shared.dart";
 
 import "socket.dart";
@@ -17,40 +19,46 @@ class Server {
     await broadcastToAll();
   }
 
-  Future<void> handlePacket(Player player, Packet packet) async {
+  Future<void> handlePacket(User user, Packet packet) async {
     // {
     //  "type": "action" | "response",
     //  "data": Json,
+    //  "password": string,
     // }
     final type = packet["type"] as String;
     final data = packet["data"] as Json;
+    final password = packet["password"] as String;
+    if (password != user.password) {
+      await sendError(user, GameError.wrongPassword);
+      return;
+    }
     switch (type) {
       case "action":
         final action = PlayerAction.fromJson(game, data);
-        if (action.player.name != player.name) return;
-        await handleAction(player, action);
+        if (action.player.name != user.name) return;
+        await handleAction(user, action);
       case "response":
         final response = InterruptionResponse.fromJson(game, data);
-        if (response.player.name != player.name) return;
-        await handleResponse(player, response);
+        if (response.player.name != user.name) return;
+        await handleResponse(user, response);
     }
   }
 
-  Future<void> handleAction(Player player, PlayerAction action) async {
+  Future<void> handleAction(User user, PlayerAction action) async {
     try {
       game.handleAction(action);
       await broadcastToAll();
     } on MDealError catch (error) {
-      await sendError(player, error);
+      await sendError(user, error);
     }
   }
 
-  Future<void> handleResponse(Player player, InterruptionResponse response) async {
+  Future<void> handleResponse(User user, InterruptionResponse response) async {
     try {
       game.handleResponse(response);
       await broadcastToAll();
     } on MDealError catch (error) {
-      await sendError(player, error);
+      await sendError(user, error);
     }
   }
 
@@ -59,11 +67,17 @@ class Server {
   }
 
   Future<void> broadcastToAll() =>
-    Future.wait(players.map(broadcastTo));
+    Future.wait(users.map(broadcastTo));
 
-  Future<void> broadcastTo(RevealedPlayer player) =>
-    socket.send(player, game.getStateFor(player).toJson());
+  Future<void> broadcastTo(User user) async {
+    final player = game.findPlayer(user.name);
+    final body = {
+      "type": "game",
+      "data": game.getStateFor(player).toJson(),
+    };
+    await socket.send(user, body);
+  }
 
-  Future<void> sendError(Player player, MDealError error) =>
-    socket.send(player, error.toJson());
+  Future<void> sendError(User user, MDealError error) =>
+    socket.send(user, error.toJson());
 }

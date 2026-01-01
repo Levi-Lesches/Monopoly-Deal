@@ -1,6 +1,7 @@
 // This file prints debug info
 // ignore_for_file: avoid_print
 
+import "package:meta/meta.dart";
 import "package:shared/data.dart";
 
 import "game.dart";
@@ -26,5 +27,17 @@ extension GameDebugUtils on Game {
       print("    - Properties: $properties");
       print("    - Money (\$${player.tableMoney.totalValue}): ${player.tableMoney}");
     }
+  }
+
+  @visibleForTesting
+  void debugAddToHand(RevealedPlayer player, Card card) {
+    referenceDeck.add(card);
+    player.hand.add(card);
+  }
+
+  @visibleForTesting
+  void debugAddMoney(RevealedPlayer player, Card card) {
+    referenceDeck.add(card);
+    player.addMoney(card);
   }
 }

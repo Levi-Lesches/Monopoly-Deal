@@ -6,4 +6,7 @@ class User {
 
   User(this.name) :
     password = const Uuid().v4();
+
+  @override
+  String toString() => name;
 }
