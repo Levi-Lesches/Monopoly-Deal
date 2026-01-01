@@ -2,6 +2,7 @@ import "package:collection/collection.dart";
 import "package:shared/utils.dart";
 
 import "card.dart";
+import "deck.dart";
 import "errors.dart";
 import "player.dart";
 
@@ -12,6 +13,12 @@ class PropertyStack {
   Hotel? hotel;
 
   PropertyStack(this.color) : cards = [];
+
+  PropertyStack.fromJson(Json json) :
+    color = PropertyColor.fromJson(json["color"]),
+    cards = json.parseList("cards", (json) => cardfromJson(json) as PropertyLike),
+    house = json.mapNullable("house", (Json h) => cardfromJson(h) as House),
+    hotel = json.mapNullable("hotel", (Json h) => cardfromJson(h) as Hotel);
 
   Json toJson() => {
     "color": color.name,

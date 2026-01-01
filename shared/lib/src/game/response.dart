@@ -4,7 +4,7 @@ import "package:shared/utils.dart";
 import "game.dart";
 
 sealed class InterruptionResponse {
-  final Player player;
+  final RevealedPlayer player;
   const InterruptionResponse({required this.player});
 
   factory InterruptionResponse.fromJson(Game game, Json json) => switch (json["name"] as String) {

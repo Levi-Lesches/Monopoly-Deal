@@ -3,19 +3,19 @@ import "package:shared/data.dart";
 import "package:shared/utils.dart";
 
 import "interruption.dart";
-import "action.dart";
-import "response.dart";
+import "state.dart";
 
 export "game_debug.dart";
+export "game_handlers.dart";
 
 class Game {
-  final List<Player> players;
+  final List<RevealedPlayer> players;
   List<Card> referenceDeck = [];
   Deck deck;
   Deck discardPile;
 
   int playerIndex = 0;
-  Player get currentPlayer => players[playerIndex];
+  RevealedPlayer get currentPlayer => players[playerIndex];
   int turnsRemaining = 0;
   List<Interruption> interruptions = [];
 
@@ -32,26 +32,22 @@ class Game {
     .firstWhere((card) => card.uuid == uuid)
     as T;
 
-  Player findPlayer(String name) => players
+  RevealedPlayer findPlayer(String name) => players
     .firstWhere((other) => other.name == name);
 
-  Json toJson() => {
-    // Only reveal information the clients can know about
-    "type": "game",
-    "players": [
-      for (final player in players)
-        player.toJson(),
+  GameState getStateFor(RevealedPlayer player) => GameState(
+    player: player,
+    otherPlayers: [
+      for (final other in players.exceptFor(player))
+        other.hidden,
     ],
-    "player": currentPlayer.name,
-    "discardCard": discardPile.last,
-    "turnsRemaining": turnsRemaining,
-    "interruptions": [
-      for (final interruption in interruptions)
-        interruption.toJson(),
-    ]
-  };
+    currentPlayer: currentPlayer.name,
+    interruptions: interruptions,
+    discarded: discardPile.last,
+    turnsRemaining: turnsRemaining,
+  );
 
-  void dealToPlayer(Player player, int count) {
+  void dealToPlayer(RevealedPlayer player, int count) {
     for (final _ in range(count)) {
       if (deck.isEmpty) {
         deck = discardPile.shuffled();
@@ -82,55 +78,11 @@ class Game {
         PaymentInterruption(amount: amount, waitingFor: otherPlayer, causedBy: player),
   ];
 
-  void handleResponse(InterruptionResponse response) {
-    final interruption = interruptions.firstWhereOrNull((other) => other.waitingFor == response.player);
-    if (interruption == null) throw GameError.wrongResponse;
-    switch (response) {
-      case JustSayNoResponse(:final justSayNo):
-        response.validate();
-        discard(response.player, justSayNo);
-      case PaymentResponse():
-        if (interruption is! PaymentInterruption) throw GameError.wrongResponse;
-        response.validate(interruption.amount);
-        response.handle(this, interruption.causedBy);
-      case AcceptedResponse():  // do the thing
-        switch (interruption) {
-          case StealInterruption():
-            steal(interruption);
-          case StealStackInterruption(:final color):
-            final stack = interruption.waitingFor.getStackWithSet(color)!;
-            interruption.waitingFor.stacks.remove(stack);
-            interruption.causedBy.stacks.add(stack);
-          case _: throw GameError.wrongResponse;
-        }
-      case ColorResponse(:final color):
-        if (interruption is! ChooseColorInterruption) throw GameError.wrongResponse;
-        response.validate(interruption.card);
-        response.player.addProperty(interruption.card, color);
-      case DiscardResponse(:final cards):
-        if (interruption is! DiscardInterruption) throw GameError.wrongResponse;
-        response.validate(interruption.amount);
-        for (final card in cards) {
-          discard(currentPlayer, card);
-        }
-        playerIndex = players.nextIndex(playerIndex);
-        startTurn();
-    }
-    interruptions.remove(interruption);
-    if (
-      interruptions.isEmpty
-      && turnsRemaining == 0
-      && interruption is! DiscardInterruption
-    ) {
-      endTurn();
-    }
-  }
-
   void steal(StealInterruption details) {
-    final stealer = details.causedBy;
-    final victim = details.waitingFor;
-    final toSteal = details.toSteal;
-    final toGive = details.toGive;
+    final stealer = findPlayer(details.causedBy);
+    final victim = findPlayer(details.waitingFor);
+    final toSteal = findCard(details.toSteal) as PropertyLike;
+    final toGive = details.toGive.map(findCard) as PropertyLike?;
     victim.removeFromTable(toSteal);
     final color = promptForColor(stealer, toSteal);
     if (color != null) stealer.addProperty(toSteal, color);
@@ -158,18 +110,8 @@ class Game {
     interruptions.add(DiscardInterruption(amount: currentPlayer.hand.length - 7, waitingFor: currentPlayer));
   }
 
-  void discard(Player player, Card card) {
+  void discard(RevealedPlayer player, Card card) {
     player.hand.remove(card);
     discardPile.add(card);
-  }
-
-  void handleAction(PlayerAction action) {
-    if (interruptions.isNotEmpty) throw GameError("Respond to all interruptions before playing a card");
-    if (turnsRemaining < action.cardsUsed) throw GameError("Too many cards played");
-    action.prehandle(this);
-    action.handle(this);
-    action.postHandle(this);
-    turnsRemaining -= action.cardsUsed;
-    if (interruptions.isEmpty && turnsRemaining == 0) endTurn();
   }
 }

@@ -1,15 +1,31 @@
+// In this file, the super parameters are explicitly passed to the super constructors
+// ignore_for_file: use_super_parameters
+
 import "package:meta/meta.dart";
 import "package:shared/data.dart";
 import "package:shared/utils.dart";
 
 sealed class Interruption {
-  final Player causedBy;
-  final Player waitingFor;
+  final String causedBy;
+  final String waitingFor;
 
-  const Interruption({
-    required this.causedBy,
-    required this.waitingFor,
-  });
+  Interruption({
+    required Player causedBy,
+    required Player waitingFor,
+  }) : causedBy = causedBy.name, waitingFor = waitingFor.name;
+
+  factory Interruption.parse(Json json) => switch(json["type"]) {
+    "payment" => PaymentInterruption.fromJson(json),
+    "stealOne" => StealInterruption.fromJson(json),
+    "stealStack" => StealStackInterruption.fromJson(json),
+    "color" => ChooseColorInterruption.fromJson(json),
+    "discard" => DiscardInterruption.fromJson(json),
+    _ => throw ArgumentError("Unrecognized interruption: $json"),
+  };
+
+  Interruption.fromJson(Json json) :
+    causedBy = json["causedBy"],
+    waitingFor = json["waitingFor"];
 
   @mustBeOverridden
   @mustCallSuper
@@ -22,11 +38,15 @@ sealed class Interruption {
 class PaymentInterruption extends Interruption {
   final int amount;
 
-  const PaymentInterruption({
+  PaymentInterruption({
     required this.amount,
     required super.waitingFor,
     required super.causedBy,
   });
+
+  PaymentInterruption.fromJson(Json json) :
+    amount = json["amount"],
+    super.fromJson(json);
 
   @override
   String toString() => "Waiting: $waitingFor must pay $causedBy \$$amount";
@@ -40,15 +60,21 @@ class PaymentInterruption extends Interruption {
 }
 
 class StealInterruption extends Interruption {
-  final PropertyLike toSteal;
-  final PropertyLike? toGive;
+  // UUIDs of cards instead of the card objects themselves
+  final String toSteal;
+  final String? toGive;
 
-  const StealInterruption({
-    required this.toSteal,
-    required this.toGive,
+  StealInterruption({
+    required PropertyLike toSteal,
+    required PropertyLike? toGive,
     required super.waitingFor,
     required super.causedBy,
-  });
+  }) : toSteal = toSteal.uuid, toGive = toGive?.uuid;
+
+  StealInterruption.fromJson(Json json) :
+    toSteal = json["toSteal"],
+    toGive = json["toGive"],
+    super.fromJson(json);
 
   @override
   String toString() => toGive == null
@@ -59,19 +85,23 @@ class StealInterruption extends Interruption {
   Json toJson() => {
     ...super.toJson(),
     "type": "stealOne",
-    "toSteal": toSteal.uuid,
-    "toGive": toGive?.uuid,
+    "toSteal": toSteal,
+    "toGive": toGive,
   };
 }
 
 class StealStackInterruption extends Interruption {
   final PropertyColor color;
 
-  const StealStackInterruption({
+  StealStackInterruption({
     required this.color,
     required super.waitingFor,
     required super.causedBy,
   });
+
+  StealStackInterruption.fromJson(Json json) :
+    color = PropertyColor.fromJson(json["color"]),
+    super.fromJson(json);
 
   @override
   String toString() => "Waiting: $causedBy wants to steal the $color set from $waitingFor";
@@ -85,26 +115,34 @@ class StealStackInterruption extends Interruption {
 }
 
 class ChooseColorInterruption extends Interruption {
-  final WildCard card;
-  const ChooseColorInterruption({
-    required this.card,
+  final String card;  // uuid
+  ChooseColorInterruption({
+    required WildCard card,
     required super.causedBy,
-  }) : super(waitingFor: causedBy);
+  }) : card = card.uuid, super(waitingFor: causedBy);
+
+  ChooseColorInterruption.fromJson(Json json) :
+    card = json["card"],
+    super.fromJson(json);
 
   @override
   Json toJson() => {
     ...super.toJson(),
     "type": "color",
-    "card": card.uuid,
+    "card": card,
   };
 }
 
 class DiscardInterruption extends Interruption {
   final int amount;
-  const DiscardInterruption({
+  DiscardInterruption({
     required this.amount,
     required super.waitingFor,
   }) : super(causedBy: waitingFor);
+
+  DiscardInterruption.fromJson(Json json) :
+    amount = json["amount"],
+    super.fromJson(json);
 
   @override
   Json toJson() => {

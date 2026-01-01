@@ -2,25 +2,43 @@
 // ignore_for_file: avoid_equals_and_hash_code_on_mutable_classes
 
 import "package:collection/collection.dart";
+import "package:meta/meta.dart";
 import "package:shared/utils.dart";
 
 import "card.dart";
 import "deck.dart";
 import "stack.dart";
 
-class Player {
+abstract class Player {
   final String name;
-  final Deck hand;
   final List<PropertyStack> stacks;
   final Deck tableMoney;
+  const Player({
+    required this.name,
+    required this.stacks,
+    required this.tableMoney,
+  });
 
-  Player(this.name) :
-    hand = [],
-    tableMoney = [],
-    stacks = [
-      for (final color in PropertyColor.values)
-        PropertyStack(color),
-    ];
+  Player.fromJson(Json json) :
+    name = json["name"],
+    stacks = json.parseList("stacks", PropertyStack.fromJson),
+    tableMoney = json.parseList("money", cardfromJson);
+
+  int get handCount;
+
+  @mustCallSuper
+  @mustBeOverridden
+  Json toJson() => {
+    "name": name,
+    "stacks": [
+      for (final stack in stacks)
+        stack.toJson(),
+    ],
+    "money": [
+      for (final card in tableMoney)
+        card.toJson(),
+    ],
+  };
 
   @override
   String toString() => name;
@@ -32,19 +50,6 @@ class Player {
   @override
   int get hashCode => name.hashCode;
 
-  Json toJson() => {
-    "name": name,
-    "handCount": hand.length,
-    "stacks": [
-      for (final stack in stacks)
-        stack.toJson(),
-    ],
-    "money": [
-      for (final card in tableMoney)
-        card.toJson(),
-    ],
-  };
-
   int get netWorth => _onTable.totalValue;
 
   Deck get _onTable => [
@@ -55,31 +60,11 @@ class Player {
   Iterable<Card> get cardsWithValue =>
     _onTable.where((card) => card.value > 0);
 
-  void dealCard(Card cards) => hand.add(cards);
-
   PropertyStack? getStackWithSet(PropertyColor color) => stacks
     .firstWhereOrNull((stack) => stack.color == color && stack.isSet);
 
   PropertyStack? getStackWithRoom(PropertyColor color) => stacks
     .firstWhereOrNull((stack) => stack.color == color && stack.hasRoom);
-
-  int rentFor(PropertyColor color) => stacks
-    .where((stack) => stack.color == color)
-    .map((stack) => stack.rent)
-    .max;
-
-  bool hasCardsOnTable(List<Card> cards) =>
-    cards.every(_onTable.contains);
-
-  bool hasCardsInHand(List<Card> cards) =>
-    cards.every(hand.contains);
-
-  void removeFromTable(Card card) {
-    for (final stack in stacks) {
-      if (stack.remove(this, card)) return;
-    }
-    tableMoney.remove(card);
-  }
 
   void addProperty(Stackable card, PropertyColor color) {
     final stack = getStackWithRoom(color);
@@ -96,4 +81,82 @@ class Player {
     PropertyCard(:final color) => addProperty(card, color),
     _ => tableMoney.add(card),
   };
+
+  bool hasCardsOnTable(List<Card> cards) =>
+    cards.every(_onTable.contains);
+
+  void removeFromTable(Card card) {
+    for (final stack in stacks) {
+      if (stack.remove(this, card)) return;
+    }
+    tableMoney.remove(card);
+  }
+
+  int rentFor(PropertyColor color) => stacks
+    .where((stack) => stack.color == color)
+    .map((stack) => stack.rent)
+    .max;
+}
+
+class HiddenPlayer extends Player {
+  @override
+  final int handCount;
+
+  HiddenPlayer({
+    required this.handCount,
+    required super.name,
+    required super.stacks,
+    required super.tableMoney,
+  });
+
+  HiddenPlayer.fromJson(super.json) :
+    handCount = json["handCount"],
+    super.fromJson();
+
+  @override
+  Json toJson() => {
+    ...super.toJson(),
+    "handCount": handCount,
+  };
+}
+
+class RevealedPlayer extends Player {
+  final Deck hand;
+
+  RevealedPlayer(String name) : hand = [], super(
+    name: name,
+    tableMoney: [],
+    stacks: [
+      for (final color in PropertyColor.values)
+        PropertyStack(color),
+    ],
+  );
+
+  RevealedPlayer.fromJson(super.json) :
+    hand = json.parseList("hand", cardfromJson),
+    super.fromJson();
+
+  @override
+  int get handCount => hand.length;
+
+  @override
+  Json toJson() => {
+    ...super.toJson(),
+    "hand": [
+      for (final card in hand)
+        card.toJson(),
+    ],
+  };
+
+  HiddenPlayer get hidden => HiddenPlayer(
+    name: name,
+    handCount: hand.length,
+    stacks: stacks,
+    tableMoney: tableMoney,
+  );
+
+  void dealCard(Card cards) => hand.add(cards);
+
+  bool hasCardsInHand(List<Card> cards) =>
+    cards.every(hand.contains);
 }

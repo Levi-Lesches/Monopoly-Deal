@@ -47,4 +47,16 @@ Iterable<int> range(int n) sync* {
 extension JsonUtils on Json {
   T? mapNullable<T, V>(String key, T Function(V) func) =>
     this[key] == null ? null : func(this[key] as V);
+
+  List<T> parseList<T>(String key, T Function(Json) fromJson) => [
+    for (final innerJson in (this[key] as List).cast<Json>())
+      fromJson(innerJson),
+  ];
+}
+
+extension NullableUtils<T> on T? {
+  R? map<R>(R Function(T) func) {
+    final self = this;
+    return self == null ? null : func(self);
+  }
 }

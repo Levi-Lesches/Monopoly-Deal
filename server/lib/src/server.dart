@@ -4,11 +4,12 @@ import "socket.dart";
 
 class Server {
   final Game game;
-  final MDealSocket socket;
-  final List<Player> players;
+  final ServerSocket socket;
+  final List<User> users;
+  List<RevealedPlayer> get players => game.players;
 
-  Server(this.players, this.socket) :
-    game = Game(players);
+  Server(this.users, this.socket) :
+    game = Game([for (final user in users) RevealedPlayer(user.name)]);
 
   Future<void> init() async {
     await socket.init();
@@ -61,8 +62,8 @@ class Server {
   Future<void> broadcastToAll() =>
     Future.wait(players.map(broadcastTo));
 
-  Future<void> broadcastTo(Player player) =>
-    socket.send(player, game.toJson());
+  Future<void> broadcastTo(RevealedPlayer player) =>
+    socket.send(player, game.getStateFor(player).toJson());
 
   Future<void> sendError(Player player, MDealError error) =>
     socket.send(player, error.toJson());

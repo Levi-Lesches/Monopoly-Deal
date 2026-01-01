@@ -9,8 +9,12 @@ sealed class MDealError implements Exception {
 
   Json toJson() => {
     "type": "error",
+    "isInternal": this is GameError,
     "message": message,
   };
+
+  factory MDealError.fromJson(Json json) => (json["isInternal"] as bool)
+    ? GameError(json["message"]) : PlayerException.fromJson(json["message"]);
 }
 
 class GameError extends MDealError {
@@ -49,4 +53,6 @@ class PlayerException extends MDealError {
   // Is an exception -- can be fixed by choosing something else
   PlayerException(PlayerExceptionReason reason) :
     super(reason.message);
+
+  PlayerException.fromJson(super.message);
 }

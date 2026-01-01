@@ -3,8 +3,8 @@ import "package:shared/shared.dart";
 
 void main() => test("Debt collector", () {
   // Alice uses a debt collector on Bob, and he pays with a $3 and $2
-  final alice = Player("Alice");
-  final bob = Player("Bob");
+  final alice = RevealedPlayer("Alice");
+  final bob = RevealedPlayer("Bob");
   final game = Game([alice, bob]);
 
   // Check the game was set up normally
@@ -24,7 +24,7 @@ void main() => test("Debt collector", () {
 
   // Make a debt collector against player 2
   final card = debtCollector();
-  final action = ChargeAction(card: card, player: alice, victim: bob);
+  final action = ChargeAction(card: card, playerName: alice.name, victim: bob);
 
   // Trick the game by playing a card we don't have
   game.checkBadAction(action);
@@ -60,7 +60,7 @@ void main() => test("Debt collector", () {
   final birthday = itsMyBirthday();
   alice.hand.add(birthday);
   expect(alice.hand.length, 8);
-  final birthdayAction = ChargeAction(card: birthday, player: alice);
+  final birthdayAction = ChargeAction(card: birthday, playerName: alice.name);
   game.checkAction(birthdayAction);
   expect(alice.hand.length, 7);
   expect(game.turnsRemaining, 1);
@@ -72,7 +72,7 @@ void main() => test("Debt collector", () {
   final passGo = PassGo();
   alice.hand.add(passGo);
   expect(alice.hand.length, 8);
-  final passGoAction = PassGoAction(card: passGo, player: alice);
+  final passGoAction = PassGoAction(card: passGo, playerName: alice.name);
   game.checkAction(passGoAction);
   expect(alice.hand.length, 9);  // 8 - 1 + 2 = 9
   expect(game.turnsRemaining, 0);

@@ -1,3 +1,4 @@
+import "package:meta/meta.dart";
 import "package:shared/data.dart";
 import "package:shared/utils.dart";
 
@@ -5,31 +6,33 @@ import "game.dart";
 import "interruption.dart";
 
 sealed class PlayerAction {
-  final Player player;
-  const PlayerAction({required this.player});
+  late final RevealedPlayer player;
+  final String playerName;
+  PlayerAction({required this.playerName});
 
   factory PlayerAction.fromJson(Game game, Json json) {
-    final player = game.findPlayer(json["player"]);
     final name = json["name"] as String;
-    if (name == "end_turn") return EndTurnAction(player: player);
+    final playerName = json["player"];
+    if (name == "end_turn") return EndTurnAction(playerName: playerName);
     final card = game.findCard(json["card"]);
     return switch (name) {
-      "bank" => BankAction(player: player, card: card),
+      "bank" => BankAction(playerName: playerName, card: card),
       "charge" => ChargeAction.fromJson(game, json),
-      "property" => PropertyAction(player: player, card: card as PropertyCard),
+      "property" => PropertyAction(playerName: playerName, card: card as PropertyCard),
       "wild_property" => WildPropertyAction.fromJson(game, json),
       "rainbow_wild" => RainbowWildAction.fromJson(game, json),
       "set_modifier" => SetModifierAction.fromJson(game, json),
       "rent" => RentAction.fromJson(game, json),
       "steal" => StealAction.fromJson(game, json),
-      "pass_go" => PassGoAction(card: card as PassGo, player: player),
+      "pass_go" => PassGoAction(card: card as PassGo, playerName: playerName),
       _ => throw ArgumentError("Invalid name: $name"),
     };
   }
 
   int get cardsUsed;
 
-  void prehandle(Game game) { }
+  @mustCallSuper
+  void prehandle(Game game) { player = game.findPlayer(playerName); }
   void handle(Game game);
   void postHandle(Game game) { }
 }
@@ -37,13 +40,14 @@ sealed class PlayerAction {
 sealed class OneCardAction extends PlayerAction {
   Card get card;
   final bool shouldDiscard;
-  const OneCardAction({required super.player, required this.shouldDiscard});
+  OneCardAction({required super.playerName, required this.shouldDiscard});
 
   @override
   int get cardsUsed => 1;
 
   @override
   void prehandle(Game game) {
+    super.prehandle(game);
     if (!player.hasCardsInHand([card])) throw GameError.notInHand;
   }
 
@@ -58,7 +62,7 @@ class EndTurnAction extends PlayerAction {
   @override
   int get cardsUsed => 0;
 
-  const EndTurnAction({required super.player});
+  EndTurnAction({required super.playerName});
 
   @override
   void handle(Game game) {
@@ -70,9 +74,9 @@ class EndTurnAction extends PlayerAction {
 class BankAction extends OneCardAction {
   @override
   final Card card;
-  const BankAction({
+  BankAction({
     required this.card,
-    required super.player,
+    required super.playerName,
   }) : super(shouldDiscard: false);
 
   @override
@@ -88,19 +92,19 @@ class ChargeAction extends OneCardAction {
   final Player? victim;
   ChargeAction({
     required this.card,
-    required super.player,
+    required super.playerName,
     this.victim,
   }) : super(shouldDiscard: true);
 
   factory ChargeAction.fromJson(Game game, Json json) => ChargeAction(
     card: game.findCard(json["card"]),
-    player: game.findPlayer(json["player"]),
+    playerName: json["player"],
   );
 
   @override
   void handle(Game game) {
     if (card.amountToPay < 0) throw PlayerException(.noRent);
-    var victims = game.players;
+    List<Player> victims = game.players;
     if (card.victimType == VictimType.onePlayer) {
       final victim = this.victim;
       if (victim == null) throw PlayerException(.noVictim);
@@ -114,9 +118,9 @@ class ChargeAction extends OneCardAction {
 class PropertyAction extends OneCardAction {
   @override
   final PropertyCard card;
-  const PropertyAction({
+  PropertyAction({
     required this.card,
-    required super.player,
+    required super.playerName,
   }) : super(shouldDiscard: false);
 
   @override
@@ -129,16 +133,16 @@ class WildPropertyAction extends OneCardAction {
   @override
   final WildPropertyCard card;
   final PropertyColor color;
-  const WildPropertyAction({
+  WildPropertyAction({
     required this.card,
     required this.color,
-    required super.player,
+    required super.playerName,
   }) : super(shouldDiscard: false);
 
   factory WildPropertyAction.fromJson(Game game, Json json) => WildPropertyAction(
     card: game.findCard(json["card"]),
     color: PropertyColor.fromJson(json["color"]),
-    player: game.findPlayer(json["player"]),
+    playerName: json["player"],
   );
 
   @override
@@ -152,16 +156,16 @@ class RainbowWildAction extends OneCardAction {
   @override
   final RainbowWildCard card;
   final PropertyColor color;
-  const RainbowWildAction({
+  RainbowWildAction({
     required this.card,
     required this.color,
-    required super.player,
+    required super.playerName,
   }) : super(shouldDiscard: false);
 
   factory RainbowWildAction.fromJson(Game game, Json json) => RainbowWildAction(
     card: game.findCard(json["card"]),
     color: PropertyColor.fromJson(json["color"]),
-    player: game.findPlayer(json["player"]),
+    playerName: json["player"],
   );
 
   @override
@@ -177,16 +181,16 @@ class SetModifierAction extends OneCardAction {
   @override
   final PropertySetModifier card;
   final PropertyColor color;
-  const SetModifierAction({
+  SetModifierAction({
     required this.card,
     required this.color,
-    required super.player,
+    required super.playerName,
   }) : super(shouldDiscard: false);
 
   factory SetModifierAction.fromJson(Game game, Json json) => SetModifierAction(
     card: game.findCard(json["card"]),
     color: PropertyColor.fromJson(json["color"]),
-    player: game.findPlayer(json["player"]),
+    playerName: json["player"],
   );
 
   @override
@@ -203,10 +207,10 @@ class RentAction extends OneCardAction {
   final PropertyColor color;
   final Player? victim;
   final DoubleTheRent? doubleTheRent;
-  const RentAction({
+  RentAction({
     required this.card,
     required this.color,
-    required super.player,
+    required super.playerName,
     this.victim,
     this.doubleTheRent,
   }) : super(shouldDiscard: true);
@@ -214,7 +218,7 @@ class RentAction extends OneCardAction {
   factory RentAction.fromJson(Game game, Json json) => RentAction(
     card: game.findCard(json["card"]),
     color: PropertyColor.fromJson(json["color"]),
-    player: game.findPlayer(json["player"]),
+    playerName: json["player"],
   );
 
   @override
@@ -222,7 +226,7 @@ class RentAction extends OneCardAction {
 
   @override
   void handle(Game game) {
-    var victims = game.players;
+    List<Player> victims = game.players;
     switch (card) {
       case RentActionCard(:final color1, :final color2):
         if (color != color1 && color != color2) throw PlayerException(.invalidColor);
@@ -247,23 +251,23 @@ class RentAction extends OneCardAction {
 class StealAction extends OneCardAction {
   @override
   final StealingActionCard card;
-  final Player victim;
+  final String victimName;
   final PropertyLike? toSteal;
   final PropertyLike? toGive;
   final PropertyColor? color;
-  const StealAction({
+  StealAction({
     required this.card,
-    required this.victim,
+    required this.victimName,
     required this.toSteal,
-    required super.player,
+    required super.playerName,
     this.color,
     this.toGive,
   }) : super(shouldDiscard: true);
 
   factory StealAction.fromJson(Game game, Json json) => StealAction(
     card: game.findCard(json["card"]),
-    victim: game.findPlayer(json["victim"]),
-    player: game.findPlayer(json["player"]),
+    victimName: json["victim"],
+    playerName: json["player"],
     toSteal: json.mapNullable("toSteal", game.findCard),
     color: json.mapNullable("color", PropertyColor.fromJson),
     toGive: json.mapNullable("toGive", game.findCard)
@@ -271,6 +275,7 @@ class StealAction extends OneCardAction {
 
   @override
   void handle(Game game) {
+    final victim = game.findPlayer(victimName);
     if (card.canChooseSet) {
       final color = this.color;
       if (color == null) throw PlayerException(.noColor);
@@ -284,7 +289,7 @@ class StealAction extends OneCardAction {
       if (!victim.hasCardsOnTable([toSteal])) throw GameError("Victim does not have that card");
       PropertyLike? toGive;
       if (card.isTrade) {
-        final toGive = this.toGive;
+        toGive = this.toGive;
         if (toGive == null) throw PlayerException(.noCardToGive);
         if (!player.hasCardsOnTable([toGive])) throw GameError("Player does not have that card");
       }
@@ -297,9 +302,9 @@ class StealAction extends OneCardAction {
 class PassGoAction extends OneCardAction {
   @override
   final PassGo card;
-  const PassGoAction({
+  PassGoAction({
     required this.card,
-    required super.player,
+    required super.playerName,
   }) : super(shouldDiscard: true);
 
   @override
