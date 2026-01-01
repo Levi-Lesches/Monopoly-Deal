@@ -1,6 +1,8 @@
 import "dart:async";
 
-import "package:shared/shared.dart";
+import "package:shared/data.dart";
+import "package:shared/game.dart";
+import "package:shared/utils.dart";
 
 import "socket.dart";
 
