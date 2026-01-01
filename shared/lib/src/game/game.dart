@@ -10,7 +10,7 @@ export "game_handlers.dart";
 
 class Game {
   final List<RevealedPlayer> players;
-  List<Card> referenceDeck = [];
+  List<MCard> referenceDeck = [];
   Deck deck;
   Deck discardPile;
 
@@ -28,7 +28,7 @@ class Game {
     startTurn();
   }
 
-  T findCard<T extends Card>(String uuid) => referenceDeck
+  T findCard<T extends MCard>(String uuid) => referenceDeck
     .firstWhere((card) => card.uuid == uuid)
     as T;
 
@@ -110,7 +110,7 @@ class Game {
     interruptions.add(DiscardInterruption(amount: currentPlayer.hand.length - 7, waitingFor: currentPlayer));
   }
 
-  void discard(RevealedPlayer player, Card card) {
+  void discard(RevealedPlayer player, MCard card) {
     player.hand.remove(card);
     discardPile.add(card);
   }

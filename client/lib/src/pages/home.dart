@@ -12,16 +12,7 @@ class HomePage extends ReactiveWidget<HomeModel> {
   Widget build(BuildContext context, HomeModel model) => Scaffold(
     appBar: AppBar(title: const Text("Counter")),
     body: Center(
-      child: Column(
-        children: [
-          const Text("You have pressed the button this many times"),
-          Text(model.count.toString()),
-        ],
-      ),
-    ),
-    floatingActionButton: FloatingActionButton(
-      onPressed: model.increment,
-      child: const Icon(Icons.add),
+      child: GameWidget(model.game),
     ),
   );
 }

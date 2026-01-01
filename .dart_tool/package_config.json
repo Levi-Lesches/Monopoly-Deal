@@ -392,12 +392,6 @@
       "languageVersion": "3.10"
     },
     {
-      "name": "server",
-      "rootUri": "../server",
-      "packageUri": "lib/",
-      "languageVersion": "3.10"
-    },
-    {
       "name": "shared",
       "rootUri": "../shared",
       "packageUri": "lib/",

@@ -6,29 +6,29 @@
 import "package:shared/utils.dart";
 import "package:uuid/uuid.dart";
 
-mixin Stackable on Card { }
+mixin Stackable on MCard { }
 // sealed class Stackable extends Card {
 //   Stackable({required super.value});
 // }
 
-mixin PropertyLike on Card implements Stackable { }
-mixin WildCard on Card implements PropertyLike { }
-mixin PropertySetModifier on Card implements Stackable { }
+mixin PropertyLike on MCard implements Stackable { }
+mixin WildCard on MCard implements PropertyLike { }
+mixin PropertySetModifier on MCard implements Stackable { }
 // mixin Rentable on Card { }
-sealed class Rentable extends Card {
+sealed class Rentable extends MCard {
   Rentable({required super.value});
 }
 
-sealed class Card {
+sealed class MCard {
   String get name;
   final int value;
   String uuid;
 
-  Card({required this.value}) :
+  MCard({required this.value}) :
     uuid = const Uuid().v4();
 
   @override
-  bool operator ==(Object other) => other is Card
+  bool operator ==(Object other) => other is MCard
     && uuid == other.uuid;
 
   @override
@@ -43,7 +43,7 @@ sealed class Card {
   };
 }
 
-class MoneyCard extends Card {
+class MoneyCard extends MCard {
   @override
   String get name => "\$$value";
 
@@ -82,7 +82,7 @@ enum PropertyColor {
   int get setNumber => rents.length;
 }
 
-class PropertyCard extends Card with Stackable, PropertyLike {
+class PropertyCard extends MCard with Stackable, PropertyLike {
   @override
   final String name;
   final PropertyColor color;
@@ -94,7 +94,7 @@ class PropertyCard extends Card with Stackable, PropertyLike {
   }) : super(value: value ?? color.value);
 }
 
-class WildPropertyCard extends Card with WildCard {
+class WildPropertyCard extends MCard with WildCard {
   final PropertyColor topColor;
   final PropertyColor bottomColor;
 
@@ -108,7 +108,7 @@ class WildPropertyCard extends Card with WildCard {
   String get name => "Wild Property ($topColor / $bottomColor)";
 }
 
-class RainbowWildCard extends Card with WildCard {
+class RainbowWildCard extends MCard with WildCard {
   RainbowWildCard() : super(value: 0);
 
   @override
@@ -135,7 +135,7 @@ class RainbowRentActionCard extends Rentable {
   String get name => "Rainbow Rent Card";
 }
 
-class PaymentActionCard extends Card {
+class PaymentActionCard extends MCard {
   // Eg, birthday, debt collector
   @override
   final String name;
@@ -150,7 +150,7 @@ class PaymentActionCard extends Card {
   });
 }
 
-class StealingActionCard extends Card {
+class StealingActionCard extends MCard {
   @override
   final String name;
   final bool canChooseSet;
@@ -164,35 +164,35 @@ class StealingActionCard extends Card {
   });
 }
 
-class PassGo extends Card {
+class PassGo extends MCard {
   @override
   String get name => "Pass Go";
 
   PassGo() : super(value: 1);
 }
 
-class House extends Card with Stackable, PropertySetModifier {
+class House extends MCard with Stackable, PropertySetModifier {
   @override
   String get name => "House";
 
   House() : super(value: 3);
 }
 
-class Hotel extends Card with Stackable, PropertySetModifier {
+class Hotel extends MCard with Stackable, PropertySetModifier {
   @override
   String get name => "Hotel";
 
   Hotel() : super(value: 4);
 }
 
-class JustSayNo extends Card {
+class JustSayNo extends MCard {
   @override
   String get name => "Just Say No";
 
   JustSayNo() : super(value: 4);
 }
 
-class DoubleTheRent extends Card {
+class DoubleTheRent extends MCard {
   @override
   String get name => "Double the Rent";
 

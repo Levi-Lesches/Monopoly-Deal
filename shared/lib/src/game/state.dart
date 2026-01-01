@@ -10,7 +10,7 @@ class GameState {
   final String currentPlayer;
   final int turnsRemaining;
 
-  final Card? discarded;
+  final MCard? discarded;
   final List<Interruption> interruptions;
 
   GameState({

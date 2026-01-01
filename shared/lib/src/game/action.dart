@@ -45,7 +45,7 @@ sealed class PlayerAction {
 }
 
 sealed class OneCardAction extends PlayerAction {
-  Card get card;
+  MCard get card;
   final bool shouldDiscard;
   OneCardAction({required super.player, required this.shouldDiscard});
 
@@ -90,7 +90,7 @@ class BankAction extends OneCardAction {
   String get type => "bank";
 
   @override
-  final Card card;
+  final MCard card;
 
   BankAction({
     required this.card,

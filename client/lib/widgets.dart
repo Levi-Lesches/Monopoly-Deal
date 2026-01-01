@@ -3,6 +3,10 @@ import "package:flutter/material.dart";
 export "package:go_router/go_router.dart";
 
 export "src/widgets/generic/reactive_widget.dart";
+export "src/widgets/atomic/card.dart";
+export "src/widgets/atomic/game.dart";
+export "src/widgets/atomic/player.dart";
+export "src/widgets/atomic/stack.dart";
 
 /// Helpful methods on [BuildContext].
 extension ContextUtils on BuildContext {

@@ -2,7 +2,6 @@
   "roots": [
     "mdeal",
     "mdeal_workspace",
-    "server",
     "shared"
   ],
   "packages": [
@@ -24,16 +23,6 @@
       ],
       "devDependencies": [
         "flutter_test"
-      ]
-    },
-    {
-      "name": "server",
-      "version": "1.0.0",
-      "dependencies": [
-        "shared"
-      ],
-      "devDependencies": [
-        "test"
       ]
     },
     {

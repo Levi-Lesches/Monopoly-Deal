@@ -12,6 +12,8 @@ class PropertyStack {
   House? house;
   Hotel? hotel;
 
+  List<MCard> get allCards => [...cards, ?house, ?hotel];
+
   PropertyStack(this.color) : cards = [];
 
   PropertyStack.fromJson(Json json) :
@@ -71,7 +73,7 @@ class PropertyStack {
     return result;
   }
 
-  bool remove(Player player, Card card) {
+  bool remove(Player player, MCard card) {
     final wasSet = isSet;
     if (!cards.remove(card)) return false;
     if (wasSet && !isSet) {  // Set was broken

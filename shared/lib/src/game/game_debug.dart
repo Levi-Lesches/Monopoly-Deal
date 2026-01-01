@@ -30,13 +30,13 @@ extension GameDebugUtils on Game {
   }
 
   @visibleForTesting
-  void debugAddToHand(RevealedPlayer player, Card card) {
+  void debugAddToHand(RevealedPlayer player, MCard card) {
     referenceDeck.add(card);
     player.hand.add(card);
   }
 
   @visibleForTesting
-  void debugAddMoney(RevealedPlayer player, Card card) {
+  void debugAddMoney(RevealedPlayer player, MCard card) {
     referenceDeck.add(card);
     player.addMoney(card);
   }

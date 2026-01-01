@@ -57,7 +57,7 @@ abstract class Player {
     for (final stack in stacks) ...stack.cards,
   ];
 
-  Iterable<Card> get cardsWithValue =>
+  Iterable<MCard> get cardsWithValue =>
     _onTable.where((card) => card.value > 0);
 
   PropertyStack? getStackWithSet(PropertyColor color) => stacks
@@ -77,15 +77,15 @@ abstract class Player {
     }
   }
 
-  void addMoney(Card card) => switch (card) {
+  void addMoney(MCard card) => switch (card) {
     PropertyCard(:final color) => addProperty(card, color),
     _ => tableMoney.add(card),
   };
 
-  bool hasCardsOnTable(List<Card> cards) =>
+  bool hasCardsOnTable(List<MCard> cards) =>
     cards.every(_onTable.contains);
 
-  void removeFromTable(Card card) {
+  void removeFromTable(MCard card) {
     for (final stack in stacks) {
       if (stack.remove(this, card)) return;
     }
@@ -155,8 +155,8 @@ class RevealedPlayer extends Player {
     tableMoney: tableMoney,
   );
 
-  void dealCard(Card cards) => hand.add(cards);
+  void dealCard(MCard cards) => hand.add(cards);
 
-  bool hasCardsInHand(List<Card> cards) =>
+  bool hasCardsInHand(List<MCard> cards) =>
     cards.every(hand.contains);
 }

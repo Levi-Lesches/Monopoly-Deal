@@ -21,7 +21,7 @@ sealed class InterruptionResponse {
 
 class PaymentResponse extends InterruptionResponse {
   /* TODO: House and hotels become banked */
-  final List<Card> cards;
+  final List<MCard> cards;
   const PaymentResponse({
     required this.cards,
     required super.player,
@@ -133,7 +133,7 @@ class ColorResponse extends InterruptionResponse {
 }
 
 class DiscardResponse extends InterruptionResponse {
-  final List<Card> cards;
+  final List<MCard> cards;
   const DiscardResponse({
     required this.cards,
     required super.player,

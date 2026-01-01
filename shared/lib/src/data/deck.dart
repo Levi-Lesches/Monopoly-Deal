@@ -3,12 +3,12 @@ import "package:shared/utils.dart";
 
 import "card.dart";
 
-typedef Deck = List<Card>;
+typedef Deck = List<MCard>;
 
-List<E> fill<E extends Card>(int n, E Function() builder) =>
+List<E> fill<E extends MCard>(int n, E Function() builder) =>
   List.generate(n, (_) => builder());
 
-Card cardFromJson(Json json) {
+MCard cardFromJson(Json json) {
   final name = json["name"];
   final deck = buildDeck();
   final card = deck.firstWhere((other) => other.name == name)
@@ -33,21 +33,21 @@ PaymentActionCard debtCollector() => PaymentActionCard(
   value: 3,
 );
 
-Card slyDeal() => StealingActionCard(
+MCard slyDeal() => StealingActionCard(
   name: "Sly Deal",
   canChooseSet: false,
   isTrade: false,
   value: 3,
 );
 
-Card forcedDeal() => StealingActionCard(
+MCard forcedDeal() => StealingActionCard(
   name: "Forced Deal",
   canChooseSet: false,
   isTrade: true,
   value: 3,
 );
 
-Card dealBreaker() => StealingActionCard(
+MCard dealBreaker() => StealingActionCard(
   name: "Deal Breaker",
   canChooseSet: true,
   isTrade: false,
