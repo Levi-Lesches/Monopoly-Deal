@@ -1,3 +1,6 @@
+// Players are considered equal if they share a name
+// ignore_for_file: avoid_equals_and_hash_code_on_mutable_classes
+
 import "package:collection/collection.dart";
 import "package:shared/utils.dart";
 
@@ -21,6 +24,13 @@ class Player {
 
   @override
   String toString() => name;
+
+  @override
+  bool operator ==(Object other) => other is Player
+    && name == other.name;
+
+  @override
+  int get hashCode => name.hashCode;
 
   Json toJson() => {
     "name": name,

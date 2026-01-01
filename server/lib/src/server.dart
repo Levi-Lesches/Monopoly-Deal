@@ -5,10 +5,10 @@ import "socket.dart";
 class Server {
   final Game game;
   final MDealSocket socket;
-  final List<User> users;
+  final List<Player> players;
 
-  Server(this.users, this.socket) :
-    game = Game([for (final user in users) Player(user.name)]);
+  Server(this.players, this.socket) :
+    game = Game(players);
 
   Future<void> init() async {
     await socket.init();
@@ -16,7 +16,7 @@ class Server {
     await broadcastToAll();
   }
 
-  Future<void> handlePacket(User user, Packet packet) async {
+  Future<void> handlePacket(Player player, Packet packet) async {
     // {
     //  "type": "action" | "response",
     //  "name": ActionName | ResponseName,
@@ -27,30 +27,30 @@ class Server {
     switch (type) {
       case "action":
         final action = PlayerAction.fromJson(game, data);
-        if (action.player.name != user.name) return;
-        await handleAction(user, action);
+        if (action.player.name != player.name) return;
+        await handleAction(player, action);
       case "response":
         final response = InterruptionResponse.fromJson(game, data);
-        if (response.player.name != user.name) return;
-        await handleResponse(user, response);
+        if (response.player.name != player.name) return;
+        await handleResponse(player, response);
     }
   }
 
-  Future<void> handleAction(User user, PlayerAction action) async {
+  Future<void> handleAction(Player player, PlayerAction action) async {
     try {
       game.handleAction(action);
       await broadcastToAll();
     } on MDealError catch (error) {
-      await sendError(user, error);
+      await sendError(player, error);
     }
   }
 
-  Future<void> handleResponse(User user, InterruptionResponse response) async {
+  Future<void> handleResponse(Player player, InterruptionResponse response) async {
     try {
       game.handleResponse(response);
       await broadcastToAll();
     } on MDealError catch (error) {
-      await sendError(user, error);
+      await sendError(player, error);
     }
   }
 
@@ -59,11 +59,11 @@ class Server {
   }
 
   Future<void> broadcastToAll() =>
-    Future.wait(users.map(broadcastTo));
+    Future.wait(players.map(broadcastTo));
 
-  Future<void> broadcastTo(User user) =>
-    socket.send(user, game.toJson());
+  Future<void> broadcastTo(Player player) =>
+    socket.send(player, game.toJson());
 
-  Future<void> sendError(User user, MDealError error) =>
-    socket.send(user, error.toJson());
+  Future<void> sendError(Player player, MDealError error) =>
+    socket.send(player, error.toJson());
 }
