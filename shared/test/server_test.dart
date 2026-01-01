@@ -1,4 +1,14 @@
 // Like turn_test.dart, but with a server
+//
+// The code at this stage assumes that packets are coming from
+// a legitimate client. If not, the server will just spit out errors
+// without helpful messages. Since I don't plan on releasing more
+// than one client, this won't change.
+//
+// Therefore, all the "sneaky" tests from turn_test.dart, like using
+// cards the server isn't aware of, have been removed, under the
+// assumption that the client I'm writing won't behave maliciously.
+// These weren't generating useful results anyway, just parsing errors.
 import "dart:async";
 
 import "package:shared/shared.dart";
