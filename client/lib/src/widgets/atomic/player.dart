@@ -48,14 +48,18 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
           style: player.handCount > 7 ? const TextStyle(color: Colors.red) : null,
         ),
         const Spacer(),
-        if (turnsRemaining != null)
-          if (turnsRemaining! > 0)
-            Text("Turns Left: $turnsRemaining / 3")
-          else if (isPlayer)
-            FilledButton(
-              onPressed: canEndTurn ? models.game.endTurn : null,
-              child: const Text("End Turn"),
-            )
+        if (turnsRemaining != null && turnsRemaining! > 0)
+          Text("Turns Left: $turnsRemaining / 3"),
+        const Spacer(),
+        if (isPlayer && isTurn)
+          if (model.toDiscard.isEmpty) FilledButton(
+            onPressed: canEndTurn ? models.game.endTurn : null,
+            child: const Text("End Turn"),
+          ) else FilledButton(
+            onPressed: canEndTurn ? models.game.endTurn : null,
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text("Discard"),
+          )
         else if (model.choice == Choice.player && !isPlayer)
           FilledButton(
             onPressed: () => model.players.choose(player),
@@ -63,6 +67,7 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
           ),
         const SizedBox(width: 12),
       ],),
+      const SizedBox(height: 12),
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

@@ -72,15 +72,21 @@ class HomeModel extends DataModel {
 
   bool get canEndTurn {
     final discard = this.discard;
-    if (discard == null) return false;
+    if (discard == null) return true;
     return toDiscard.length >= discard.amount;
   }
 
   Future<void> endTurn() async {
-    _game.handleResponse(DiscardResponse(cards: toDiscard.toList(), player: player));
-    toDiscard = {};
-    await discardSub?.cancel();
-    update();
+    cards.cancel();
+    final discard = this.discard;
+    if (discard != null) {
+      _game.handleResponse(DiscardResponse(cards: toDiscard.toList(), player: player));
+      toDiscard = {};
+      await discardSub?.cancel();
+      update();
+    } else {
+      playAction(EndTurnAction(player: player));
+    }
   }
 
   void playAction(PlayerAction action) {
