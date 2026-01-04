@@ -22,7 +22,7 @@ class CardWidget extends ReusableReactiveWidget<HomeModel> {
 
   final MCard card;
   final VoidCallback? onSelected;
-  CardWidget(this.card, {this.onSelected}) : super(models.game);
+  CardWidget(this.card, {this.onSelected}) : super(models.game, key: ValueKey(card.uuid));
 
   Border get border => models.game.choice == Choice.card
     ? models.game.toDiscard.contains(card)

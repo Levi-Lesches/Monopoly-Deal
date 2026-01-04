@@ -22,6 +22,7 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
   bool get isTurn => turnsRemaining != null;
   int? get turnsRemaining => models.game.turnsFor(player);
   bool get canEndTurn => models.game.canEndTurn;
+  bool get isPlayer => player.name == models.game.player.name;
 
   @override
   Widget build(BuildContext context, HomeModel model) => Column(
@@ -50,12 +51,12 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
         if (turnsRemaining != null)
           if (turnsRemaining! > 0)
             Text("Turns Left: $turnsRemaining / 3")
-          else
+          else if (isPlayer)
             FilledButton(
               onPressed: canEndTurn ? models.game.endTurn : null,
               child: const Text("End Turn"),
             )
-        else if (model.choice == Choice.player)
+        else if (model.choice == Choice.player && !isPlayer)
           FilledButton(
             onPressed: () => model.players.choose(player),
             child: const Text("Choose"),
@@ -65,10 +66,30 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (player.tableMoney.lastOrNull case final MCard card)
-            CardWidget(card)
-          else
-            EmptyCardWidget(),
+          const SizedBox(width: 12),
+          Stack(children: [
+            if (player.tableMoney.lastOrNull case final MCard card)
+              CardWidget(card)
+            else
+              EmptyCardWidget(),
+            if (isPlayer && model.game.turnsRemaining > 0)
+              Positioned.fill(
+                child: InkWell(
+                  onTap: model.toggleBank,
+                  child: Container(
+                    color: Colors.blueGrey.withAlpha(model.isBanking ? 255 : 100),
+                    alignment: Alignment.bottomCenter,
+                    child: const Text("BANK", style: TextStyle(color: Colors.white)),
+                  ),
+                ),
+              ),
+          ],),
+          const SizedBox(width: 8),
+          const SizedBox(
+            height: CardWidget.height,
+            child: VerticalDivider(),
+          ),
+          const SizedBox(width: 8),
           for (final stack in player.stacks)
             if (stack.isNotEmpty)
               StackWidget(stack),

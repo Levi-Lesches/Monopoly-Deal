@@ -18,22 +18,28 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (model.errorMessage case final String error)
-            Text(error, style: const TextStyle(color: Colors.red)),
-          for (final interruption in model.game.interruptions)
-            Text(interruption.toString()),
-          for (final (index, otherPlayer) in model.game.otherPlayers.indexed) ...[
-            PlayerWidget(
-              player: otherPlayer,
-              playerIndex: index + 1,
+          Expanded(
+            child: ListView(
+              children: [
+                if (model.errorMessage case final String error)
+                  Text(error, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
+                for (final interruption in model.game.interruptions)
+                  Text(interruption.toString(), textAlign: TextAlign.center),
+                const Divider(),
+                for (final (index, otherPlayer) in model.game.otherPlayers.indexed) ...[
+                  PlayerWidget(
+                    player: otherPlayer,
+                    playerIndex: index + 1,
+                  ),
+                  const Divider(),
+                ],
+                PlayerWidget(
+                  player: model.player.hidden,
+                  playerIndex: 0,
+                ),
+              ],
             ),
-            const Divider(),
-          ],
-          PlayerWidget(
-            player: model.player.hidden,
-            playerIndex: 0,
           ),
-          const Spacer(),
           const Divider(),
           SizedBox(
             height: CardWidget.height,

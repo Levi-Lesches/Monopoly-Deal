@@ -100,6 +100,12 @@ class HomeModel extends DataModel {
 
   Future<void> playCard(MCard card) async {
     final PlayerAction action;
+    if (isBanking) {
+      isBanking = false;
+      notifyListeners();
+      playAction(BankAction(card: card, player: player));
+      return;
+    }
     switch (card) {
       case MoneyCard():
         action = BankAction(card: card, player: player);
@@ -203,4 +209,10 @@ class HomeModel extends DataModel {
   final colors = Chooser<PropertyColor>();
   final properties = Chooser<PropertyLike>();
   final players = Chooser<Player>();
+
+  bool isBanking = false;
+  void toggleBank() {
+    isBanking = !isBanking;
+    notifyListeners();
+  }
 }
