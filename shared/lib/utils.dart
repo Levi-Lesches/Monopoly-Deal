@@ -60,3 +60,7 @@ extension NullableUtils<T> on T? {
     return self == null ? null : func(self);
   }
 }
+
+extension SetUtils<E> on Set<E> {
+  void toggle(E element) => contains(element) ? remove(element) : add(element);
+}

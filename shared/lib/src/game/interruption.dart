@@ -33,6 +33,10 @@ sealed class Interruption {
     "causedBy": causedBy,
     "waitingFor": waitingFor,
   };
+
+  @mustBeOverridden
+  @override
+  String toString();
 }
 
 class PaymentInterruption extends Interruption {
@@ -131,6 +135,9 @@ class ChooseColorInterruption extends Interruption {
     "type": "color",
     "card": card,
   };
+
+  @override
+  String toString() => "Waiting for $waitingFor to choose a color";
 }
 
 class DiscardInterruption extends Interruption {
@@ -150,4 +157,7 @@ class DiscardInterruption extends Interruption {
     ...super.toJson(),
     "amount": amount,
   };
+
+  @override
+  String toString() => "Waiting for $waitingFor to discard $amount cards";
 }

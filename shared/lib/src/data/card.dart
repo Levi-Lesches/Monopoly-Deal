@@ -41,6 +41,12 @@ sealed class MCard {
     "name": name,
     "uuid": uuid,
   };
+
+  String get filename => name
+    .replaceAll("(", "")
+    .replaceAll(")", "")
+    .replaceAll(r"$", "")
+    .replaceAll("/", "");
 }
 
 class MoneyCard extends MCard {

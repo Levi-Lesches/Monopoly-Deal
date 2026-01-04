@@ -107,7 +107,9 @@ class Game {
   void endTurn() {
     if (interruptions.isNotEmpty) throw GameError("Resolve all interruptions first");
     turnsRemaining = 0;
-    interruptions.add(DiscardInterruption(amount: currentPlayer.hand.length - 7, waitingFor: currentPlayer));
+    var amountToDiscard = currentPlayer.handCount - 7;
+    if (amountToDiscard < 0) amountToDiscard = 0;
+    interruptions.add(DiscardInterruption(amount: amountToDiscard, waitingFor: currentPlayer));
   }
 
   void discard(RevealedPlayer player, MCard card) {

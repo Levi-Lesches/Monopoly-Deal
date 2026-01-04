@@ -10,13 +10,17 @@ class StackWidget extends StatelessWidget {
   const StackWidget(this.stack);
 
   @override
-  Widget build(BuildContext context) => Stack(
-    children: [
-      for (final (index, card) in stack.allCards.indexed)
-        Positioned(
-          top: index * verticalSpacing,
-          child: CardWidget(card),
-        ),
-    ],
+  Widget build(BuildContext context) => SizedBox(
+    width: CardWidget.width + 16,
+    height: CardWidget.height + (verticalSpacing * stack.allCards.length),
+    child: Stack(
+      children: [
+        for (final (index, card) in stack.allCards.indexed)
+          Positioned(
+            top: index * verticalSpacing,
+            child: CardWidget(card),
+          ),
+      ],
+    ),
   );
 }

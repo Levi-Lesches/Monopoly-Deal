@@ -99,7 +99,7 @@ class BankAction extends OneCardAction {
 
   @override
   void handle(Game game) {
-    if (card.value > 0) throw PlayerException(.noValue);
+    if (card.value == 0) throw PlayerException(.noValue);
     player.addMoney(card);
   }
 }
@@ -330,8 +330,8 @@ class StealAction extends OneCardAction {
   StealAction({
     required this.card,
     required this.victim,
-    required this.toSteal,
     required super.player,
+    this.toSteal,
     this.color,
     this.toGive,
   }) : super(shouldDiscard: true);
