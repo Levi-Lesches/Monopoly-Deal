@@ -1,3 +1,4 @@
+import "package:collection/collection.dart";
 import "package:flutter/material.dart";
 import "package:mdeal/data.dart";
 import "package:mdeal/models.dart";
@@ -23,6 +24,7 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
   int? get turnsRemaining => models.game.turnsFor(player);
   bool get canEndTurn => models.game.canEndTurn;
   bool get isPlayer => player.name == models.game.player.name;
+  bool get canBank => isPlayer && isTurn && turnsRemaining! > 0;
 
   @override
   Widget build(BuildContext context, HomeModel model) => Column(
@@ -60,7 +62,7 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             child: const Text("Discard"),
           )
-        else if (model.choice == Choice.player && !isPlayer)
+        else if (model.choice2 is PlayerChoice && !isPlayer)
           FilledButton(
             onPressed: () => model.players.choose(player),
             child: const Text("Choose"),
@@ -68,37 +70,42 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
         const SizedBox(width: 12),
       ],),
       const SizedBox(height: 12),
-      Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(width: 12),
-          Stack(children: [
-            if (player.tableMoney.lastOrNull case final MCard card)
-              CardWidget(card)
-            else
-              EmptyCardWidget(),
-            if (isPlayer && model.game.turnsRemaining > 0)
+      Align(
+        alignment: Alignment.centerLeft,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(children: [
+            const SizedBox(width: 12),
+            Stack(children: [
+              if (player.tableMoney.lastOrNull case final MCard card)
+                CardWidget(card)
+              else
+                EmptyCardWidget(),
               Positioned.fill(
                 child: InkWell(
-                  onTap: model.toggleBank,
+                  onTap: canBank ? model.toggleBank : null,
                   child: Container(
-                    color: Colors.blueGrey.withAlpha(model.isBanking ? 255 : 100),
+                    color: Colors.blueGrey
+                      .withAlpha(isPlayer && model.isBanking ? 255 : 100),
                     alignment: Alignment.bottomCenter,
                     child: const Text("BANK", style: TextStyle(color: Colors.white)),
                   ),
                 ),
-              ),
-          ],),
-          const SizedBox(width: 8),
-          const SizedBox(
-            height: CardWidget.height,
-            child: VerticalDivider(),
-          ),
-          const SizedBox(width: 8),
-          for (final stack in player.stacks)
-            if (stack.isNotEmpty)
-              StackWidget(stack),
-        ],
+                ),
+            ],),
+            const SizedBox(width: 8),
+            const SizedBox(
+              height: CardWidget.height,
+              child: VerticalDivider(),
+            ),
+            const SizedBox(width: 8),
+            for (final stack in player.stacks)
+              if (stack.isNotEmpty)
+                // StackWidget(stack),
+                for (final card in stack.cards)
+                  CardWidget(card),
+          ],
+        ),),
       ),
     ],
   );

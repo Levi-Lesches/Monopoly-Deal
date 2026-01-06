@@ -21,14 +21,33 @@ class CardWidget extends ReusableReactiveWidget<HomeModel> {
     : card.value == 10 ? Colors.red : colors[card.value];
 
   final MCard card;
-  final VoidCallback? onSelected;
-  CardWidget(this.card, {this.onSelected}) : super(models.game, key: ValueKey(card.uuid));
+  // final VoidCallback? onSelected;
+  bool get isChoosing => models.game.choice2 is CardChoice;
+  CardWidget(this.card) : super(models.game, key: ValueKey(card.uuid));
 
-  Border get border => models.game.choice == Choice.card
-    ? models.game.toDiscard.contains(card)
-      ? Border.all(width: 3, color: Colors.red)
-      : Border.all(width: 3)
-    : Border.all();
+  bool get canChoose {
+    if (models.game.choice2 case CardChoice(:final choices)) {
+      return choices.contains(card);
+    } else if (models.game.choice2 case PropertyChoice(:final choices)) {
+      if (card is PropertyLike && choices.contains(card)) return true;
+    }
+    return false;
+  }
+
+  Border get border {
+    if (models.game.choice2 case CardChoice(:final choices)) {
+      if (models.game.toDiscard.contains(card)) {
+        return Border.all(width: 3, color: Colors.red);
+      } else if (choices.contains(card)) {
+        return Border.all(width: 3);
+      }
+    }
+    return Border.all();
+  }
+
+  Widget get child => Center(
+    child: Text(card.name, textAlign: TextAlign.center),
+  );
 
   @override
   Widget build(BuildContext context, HomeModel model) => Padding(
@@ -37,14 +56,12 @@ class CardWidget extends ReusableReactiveWidget<HomeModel> {
       height: height,
       width: width,
       child: Material(
-        elevation: onSelected == null ? 16 : 24,
+        elevation: canChoose ? 16 : 24,
         color: color,
         shape: border,
         child: InkWell(
-          onTap: onSelected,
-          child: Center(
-            child: Text(card.name, textAlign: TextAlign.center),
-          ),
+          onTap: canChoose ? () => models.game.cards.choose(card) : null,
+          child: child,
         ),
       ),
     ),
@@ -53,19 +70,11 @@ class CardWidget extends ReusableReactiveWidget<HomeModel> {
 
 class EmptyCardWidget extends StatelessWidget {
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+  Widget build(BuildContext context) => const Padding(
+    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
     child: SizedBox(
       height: CardWidget.height,
       width: CardWidget.width,
-      child: Material(
-        elevation: 24,
-        color: Colors.blueGrey,
-        shape: Border.all(),
-        child: const Center(
-          child: Text("Money", textAlign: TextAlign.center),
-        ),
-      ),
     ),
   );
 }

@@ -40,4 +40,10 @@ extension GameDebugUtils on Game {
     referenceDeck.add(card);
     player.addMoney(card);
   }
+
+  @visibleForTesting
+  void debugAddProperty(RevealedPlayer player, PropertyCard card) {
+    referenceDeck.add(card);
+    player.addProperty(card, card.color);
+  }
 }

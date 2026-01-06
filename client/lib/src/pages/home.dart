@@ -49,9 +49,8 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
                 for (final card in model.game.player.hand)
                   CardWidget(
                     card,
-                    onSelected: model.choice == Choice.card
-                      // ? () => model.playCard(card) : null,
-                      ? () => model.cards.choose(card) : null,
+                    // onSelected: model.choice2 is CardChoice
+                      // ? () => model.cards.choose(card) : null,
                   ),
               ],
             ),

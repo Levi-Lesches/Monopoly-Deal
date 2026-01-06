@@ -17,6 +17,7 @@
       "name": "mdeal",
       "version": "0.1.0+1",
       "dependencies": [
+        "collection",
         "flutter",
         "go_router",
         "shared"

@@ -51,11 +51,21 @@ abstract class Player {
   int get hashCode => name.hashCode;
 
   int get netWorth => _onTable.totalValue;
+  bool get hasMoney => netWorth > 0;
 
   Deck get _onTable => [
     ...tableMoney,
     for (final stack in stacks) ...stack.cards,
   ];
+
+  bool get hasAProperty => stacks
+    .any((stack) => stack.isNotEmpty);
+
+  bool get hasSet => stacks
+    .any((stack) => stack.isSet);
+
+  bool get hasPropertyToSteal => stacks
+    .any((stack) => stack.isNotEmpty && !stack.isSet);
 
   Iterable<MCard> get cardsWithValue =>
     _onTable.where((card) => card.value > 0);
@@ -95,7 +105,7 @@ abstract class Player {
   int rentFor(PropertyColor color) => stacks
     .where((stack) => stack.color == color)
     .map((stack) => stack.rent)
-    .max;
+    .maxOrNull ?? 0;
 }
 
 class HiddenPlayer extends Player {

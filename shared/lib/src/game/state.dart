@@ -45,4 +45,33 @@ class GameState {
         interruption.toJson(),
     ],
   };
+
+  bool get canPlayWildCard => player.stacks
+    .any((stack) => stack.isNotEmpty && stack.hasRoom);
+
+  bool get othersHaveMoney => otherPlayers
+    .any((player) => player.hasMoney);
+
+  bool canPlay(MCard card) => switch(card) {
+    MoneyCard() => true,
+    PropertyCard() => true,
+    WildPropertyCard() => true,
+    RainbowWildCard() => canPlayWildCard,
+    PaymentActionCard(:final victimType) => switch (victimType) {
+      VictimType.allPlayers => otherPlayers.every((player) => player.hasMoney),
+      VictimType.onePlayer => othersHaveMoney,
+    },
+    StealingActionCard(canChooseSet: true) => otherPlayers.any((player) => player.hasSet),
+    StealingActionCard(:final isTrade) => otherPlayers.any((p) => p.hasPropertyToSteal)
+      && (!isTrade || player.hasAProperty),
+    PassGo() => true,
+    House() => player.hasSet,
+    Hotel() => player.stacks.any((s) => s.isSet && s.house != null),
+    JustSayNo() => false,
+    DoubleTheRent() => false,
+    Stackable() => false,  // covered in previous cases
+    RentActionCard(:final color1, :final color2) => othersHaveMoney
+      && (player.rentFor(color1) > 0 || player.rentFor(color2) > 0),
+    RainbowRentActionCard() => player.hasAProperty,
+  };
 }
