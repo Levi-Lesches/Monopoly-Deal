@@ -74,38 +74,44 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
         alignment: Alignment.centerLeft,
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          child: Row(children: [
-            const SizedBox(width: 12),
-            Stack(children: [
-              if (player.tableMoney.lastOrNull case final MCard card)
-                CardWidget(card)
-              else
-                EmptyCardWidget(),
-              Positioned.fill(
-                child: InkWell(
-                  onTap: canBank ? model.toggleBank : null,
-                  child: Container(
-                    color: Colors.blueGrey
-                      .withAlpha(isPlayer && model.isBanking ? 255 : 100),
-                    alignment: Alignment.bottomCenter,
-                    child: const Text("BANK", style: TextStyle(color: Colors.white)),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(width: 12),
+              Stack(children: [
+                if (player.tableMoney.lastOrNull case final MCard card)
+                  CardWidget(card)
+                else
+                  EmptyCardWidget(),
+                Positioned.fill(
+                  child: InkWell(
+                    onTap: canBank ? model.toggleBank : null,
+                    child: Container(
+                      color: Colors.blueGrey
+                        .withAlpha(isPlayer && model.isBanking ? 255 : 100),
+                      alignment: Alignment.bottomCenter,
+                      child: Text(
+                        "BANK: \$${player.tableMoney.totalValue}",
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
                   ),
                 ),
-                ),
-            ],),
-            const SizedBox(width: 8),
-            const SizedBox(
-              height: CardWidget.height,
-              child: VerticalDivider(),
-            ),
-            const SizedBox(width: 8),
-            for (final stack in player.stacks)
-              if (stack.isNotEmpty)
-                // StackWidget(stack),
-                for (final card in stack.cards)
-                  CardWidget(card),
-          ],
-        ),),
+              ],),
+              const SizedBox(width: 8),
+              const SizedBox(
+                height: CardWidget.height,
+                child: VerticalDivider(),
+              ),
+              const SizedBox(width: 8),
+              for (final stack in player.stacks)
+                if (stack.isNotEmpty)
+                  StackWidget(stack),
+                  // for (final card in stack.cards)
+                  //   CardWidget(card),
+            ],
+          ),
+        ),
       ),
     ],
   );

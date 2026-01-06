@@ -34,6 +34,7 @@ class HomeModel extends DataModel {
     _game = Game([levi, david]);
     _game.debugAddMoney(david, MoneyCard(value: 5));
     _game.debugAddProperty(david, PropertyCard(name: "Boardwalk", color: PropertyColor.darkBlue));
+    _game.debugAddProperty(david, PropertyCard(name: "Park Place", color: PropertyColor.darkBlue));
     update();
   }
 
