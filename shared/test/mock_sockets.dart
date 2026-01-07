@@ -42,8 +42,7 @@ class MockServerSocket extends ServerSocket {
 }
 
 class MockClientSocket extends ClientSocket {
-  final User user;
-  MockClientSocket(this.user);
+  MockClientSocket(super.user);
 
   @override Future<void> init() async { }
   @override Future<void> dispose() async =>
