@@ -1,5 +1,4 @@
-import "package:shared/network.dart";
-import "package:shared/online.dart";
+import "package:mdeal/data.dart";
 
 import "";
 export "src/models/home.dart";
@@ -11,13 +10,20 @@ class Models extends DataModel {
 	Models._();
 
   // List your models here
-  HomeModel game = HomeModel(MDealClient(UdpClientSocket(User("test"), port: 9000)));
+  late HomeModel game;
 
 	/// A list of all models to manage.
 	List<DataModel> get models => [game];
 
 	@override
 	Future<void> init() async {
+    final user = User("test");
+    final socket = UdpClientSocket(user, port: 9000);
+    final player = RevealedPlayer("test");
+    final game = Game([player]);
+    final state = game.getStateFor(player);
+    this.game = HomeModel(MDealClient(socket), state);
+
 		for (final model in models) {
       await model.init();
     }
@@ -31,7 +37,9 @@ class Models extends DataModel {
   }
 
   Future<void> startGame(MDealClient client) async {
-    game = HomeModel(client);
+    await client.requestState();
+    final state = await client.gameUpdates.first;
+    game = HomeModel(client, state);
     await game.init();
   }
 }

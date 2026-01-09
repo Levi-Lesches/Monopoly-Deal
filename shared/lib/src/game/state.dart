@@ -35,7 +35,7 @@ class GameState {
     currentPlayer = json["currentPlayer"],
     turnsRemaining = json["turnsRemaining"],
     discarded = json.mapNullable("discarded", cardFromJson),
-    log = json["log"];
+    log = (json["log"] as List).cast<String>();
 
   Json toJson() => {
     "player": player.toJson(),

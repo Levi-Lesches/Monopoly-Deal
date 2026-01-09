@@ -18,7 +18,6 @@ class Server {
 
   Future<void> init() async {
     socket.listen(handlePacket);
-    await broadcastToAll();
   }
 
   Future<void> handlePacket(User user, Packet packet) async {

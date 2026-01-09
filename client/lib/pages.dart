@@ -13,7 +13,7 @@ class Routes {
 
 /// The router for the app.
 final router = GoRouter(
-  initialLocation: Routes.game,
+  initialLocation: Routes.lobby,
   routes: [
     GoRoute(
       path: Routes.lobby,

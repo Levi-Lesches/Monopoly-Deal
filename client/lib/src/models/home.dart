@@ -1,5 +1,3 @@
-// ignore_for_file: invalid_use_of_visible_for_testing_member
-
 import "dart:async";
 
 import "package:collection/collection.dart";
@@ -12,40 +10,24 @@ import "model.dart";
 /// The view model for the home page.
 class HomeModel extends DataModel {
   final MDealClient client;
-  HomeModel(this.client);
+  late GameState game;
+  HomeModel(this.client, this.game);
 
   RevealedPlayer get player => game.player;
-  late RevealedPlayer levi;
-  late RevealedPlayer david;
-  late Game _game;
-  late GameState game;
-
   Choice<dynamic>? choice;
 
   @override
   Future<void> init() async {
-    restart();
+    await client.requestState();
+    client.gameUpdates.listen(update);
     cards.addListener(notifyListeners);
-  }
-
-  void restart() {
-    levi = RevealedPlayer("Levi");
-    david = RevealedPlayer("David");
-    _game = Game([levi, david]);
-    _game.debugAddMoney(levi, MoneyCard(value: 5));
-    _game.debugAddProperty(levi, PropertyCard(name: "Boardwalk", color: PropertyColor.darkBlue));
-    _game.debugAddProperty(levi, PropertyCard(name: "Park Place", color: PropertyColor.darkBlue));
-    _game.debugAddProperty(david, PropertyCard(name: "Reading Railroad", color: PropertyColor.railroads));
-    _game.debugAddProperty(david, PropertyCard(name: "B&O Railroad", color: PropertyColor.railroads));
-    _game.interrupt(PaymentInterruption(amount: 10, causedBy: david, waitingFor: levi));
-    update();
   }
 
   int? turnsFor(Player player) => player.name == game.currentPlayer
     ? game.turnsRemaining : null;
 
-  void update() {
-    game = _game.getStateFor(levi);
+  void update(GameState state) {
+    game = state;
     choice = null;
     notifyListeners();
     if (game.currentPlayer != player.name) return;
@@ -124,8 +106,8 @@ class HomeModel extends DataModel {
     }
   }
 
-  void sendAction(PlayerAction action) => safely(() => _game.handleAction(action));
-  void sendResponse(InterruptionResponse response) => safely(() => _game.handleResponse(response));
+  void sendAction(PlayerAction action) => safely(() => client.sendAction(action));
+  void sendResponse(InterruptionResponse response) => safely(() => client.sendResponse(response));
 
   void safely(VoidCallback func) {
     try {
@@ -139,7 +121,6 @@ class HomeModel extends DataModel {
       errorMessage = "Error: ${error.message}";
       notifyListeners();
     }
-    update();
   }
 
   Future<void> playCard(MCard card) async {
@@ -205,12 +186,10 @@ class HomeModel extends DataModel {
       case JustSayNo():
         errorMessage = "Cannot play a Just Say No";
         notifyListeners();
-        update();
         return;
       case DoubleTheRent():
         errorMessage = "Cannot play a Double the Rent";
         notifyListeners();
-        update();
         return;
       case RentActionCard(:final color1, :final color2):
         choice = StackChoice.rent(game, colors: [color1, color2]);
