@@ -200,6 +200,9 @@ class ChargeAction extends OneCardAction {
       if (victim == null) throw PlayerException(.noVictim);
       if (victim.netWorth == 0) throw PlayerException(.noMoney);
       victims = [victim];
+      game.log("$player paid a $card against $victim");
+    } else {
+      game.log("$player paid a $card");
     }
     game.chargePlayers(player, card.amountToPay, victims);
   }

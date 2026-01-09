@@ -18,7 +18,7 @@ class HomeModel extends DataModel {
 
   @override
   Future<void> init() async {
-    // client.gameUpdates.listen(update, onError: setError);
+    client.gameUpdates.listen(update);
     await client.requestState();
     cards.addListener(notifyListeners);
   }
@@ -229,7 +229,10 @@ class HomeModel extends DataModel {
     for (final chooser in choosers) {
       chooser.cancel();
     }
-    if (playCard) update(game);
+    if (playCard) {
+      unawaited(client.requestState());
+      update(game);
+    }
   }
 
   Future<void> organize() async {

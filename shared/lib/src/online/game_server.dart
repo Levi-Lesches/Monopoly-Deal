@@ -42,6 +42,7 @@ class Server {
       game.handleAction(action);
       await broadcastToAll();
     } on MDealError catch (error) {
+      print("Error: $error");
       await sendError(user, error);
     }
   }
@@ -51,6 +52,7 @@ class Server {
       game.handleResponse(response);
       await broadcastToAll();
     } on MDealError catch (error) {
+      print("Error: $error");
       await sendError(user, error);
     }
   }
