@@ -18,9 +18,14 @@ class HomeModel extends DataModel {
 
   @override
   Future<void> init() async {
-    client.gameUpdates.listen(update);
+    client.gameUpdates.listen(update, onError: setError);
     await client.requestState();
     cards.addListener(notifyListeners);
+  }
+
+  void setError(Object error) {
+    errorMessage = error.toString();
+    notifyListeners();
   }
 
   int? turnsFor(Player player) => player.name == game.currentPlayer
@@ -185,13 +190,13 @@ class HomeModel extends DataModel {
         notifyListeners();
         return;
       case RentActionCard(:final color1, :final color2):
-        choice = StackChoice.rent(game, colors: [color1, color2]);
+        choice = StackChoice.self(game, colors: [color1, color2]);
         notifyListeners();
         final stack = await stacks.next;
         final doubler = await promptForCard<DoubleTheRent>("Use a double the rent?", forcePrompt: false);
         action = RentAction(card: card, color: stack.color, player: player, doubleTheRent: doubler);
       case RainbowRentActionCard():
-        choice = StackChoice.rent(game);
+        choice = StackChoice.self(game);
         notifyListeners();
         final stack = await stacks.next;
         choice = PlayerChoice(game);
@@ -215,12 +220,74 @@ class HomeModel extends DataModel {
     return confirmation ? inHand : null;
   }
 
+  bool get canOrganize =>
+    game.currentPlayer == player.name
+    && game.interruptions.isEmpty
+    && game.player.hasAProperty;
+
+  void cancelChoice({bool playCard = true}) {
+    for (final chooser in choosers) {
+      chooser.cancel();
+    }
+    if (playCard) update(game);
+  }
+
+  Future<void> organize() async {
+    cancelChoice(playCard: false);
+    choice = StackChoice.self(game);
+    notifyListeners();
+    final stack = await stacks.next;
+    choice = ConfirmCard([
+      for (final card in stack.allCards)
+        if (card is! PropertyCard)
+          card,
+    ], stack.color);
+    notifyListeners();
+    final card = await cards.next;
+    switch (card) {
+      case WildPropertyCard(:final bottomColor, :final topColor):
+        choice = ColorChoice("Choose a color", [topColor, bottomColor]);
+        notifyListeners();
+        final color = await colors.next;
+        if (color == stack.color) return cancelChoice();
+        final action = MoveAction(card: card, color: color, player: player);
+        sendAction(action);
+      case RainbowWildCard():
+        choice = StackChoice.rainbowWild(game);
+        notifyListeners();
+        final stack2 = await stacks.next;
+        final color = stack2.color;
+        if (color == stack.color) return cancelChoice();
+        final action = MoveAction(card: card, color: color, player: player);
+        sendAction(action);
+      case House():
+        choice = StackChoice.selfSets(game);
+        final stack2 = await stacks.next;
+        final color = stack2.color;
+        if (color == stack.color) return cancelChoice();
+        final action = MoveAction(card: card, color: color, player: player);
+        sendAction(action);
+      case Hotel():
+        choice = StackChoice.selfSets(game, withHouse: true);
+        final stack2 = await stacks.next;
+        final color = stack2.color;
+        if (color == stack.color) return cancelChoice();
+        final action = MoveAction(card: card, color: color, player: player);
+        sendAction(action);
+      case _:
+    }
+    // update(game);
+  }
+
   String? errorMessage;
   final cards = Chooser<MCard>();
   final colors = Chooser<PropertyColor>();
   final players = Chooser<Player>();
   final stacks = Chooser<PropertyStack>();
   final confirmations = Chooser<bool>();
+  List<Chooser<void>> get choosers => [
+    cards, colors, players, stacks, confirmations,
+  ];
 
   bool isBanking = false;
   void toggleBank() {

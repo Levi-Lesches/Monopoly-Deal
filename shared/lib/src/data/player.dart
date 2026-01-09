@@ -76,6 +76,9 @@ abstract class Player {
   PropertyStack? getStackWithRoom(PropertyColor color) => stacks
     .firstWhereOrNull((stack) => stack.color == color && stack.hasRoom);
 
+  PropertyStack getStackWithCard(Stackable card) => stacks
+    .firstWhere((s) => s.allCards.contains(card));
+
   void addProperty(Stackable card, PropertyColor color) {
     final stack = getStackWithRoom(color);
     if (stack == null) {
@@ -107,11 +110,13 @@ abstract class Player {
     .map((stack) => stack.rent)
     .maxOrNull ?? 0;
 
-  bool get isWinner => {
+  int get numSets => {
     for (final stack in stacks)
       if (stack.isSet)
         stack.color,
-  }.length >= 3;
+  }.length;
+
+  bool get isWinner => numSets >= 3;
 }
 
 class HiddenPlayer extends Player {

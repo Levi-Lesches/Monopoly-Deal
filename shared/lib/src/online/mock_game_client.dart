@@ -18,17 +18,7 @@ class MockGameClient implements MDealClient {
 
   @override
   Future<void> init() async {
-    final cards = [
-      PropertyCard(color: .darkBlue, name: "Park Place", value: 4),
-      PropertyCard(color: .darkBlue, name: "Boardwalk", value: 4),
-      PropertyCard(color: .yellow, name: "One", value: 4),
-      PropertyCard(color: .yellow, name: "Two", value: 4),
-      PropertyCard(color: .brown, name: "Three", value: 4),
-      PropertyCard(color: .brown, name: "Four", value: 4),
-    ];
-    for (final card in cards) {
-      _game.debugAddProperty(_other, card);
-    }
+
   }
 
   @override
@@ -46,13 +36,21 @@ class MockGameClient implements MDealClient {
 
   @override
   Future<void> sendAction(PlayerAction action) async {
-    _game.handleAction(action);
+    try {
+      _game.handleAction(action);
+    } catch (error) {
+      _gameController.addError(error);
+    }
     update();
   }
 
   @override
   Future<void> sendResponse(InterruptionResponse response) async {
+    try {
     _game.handleResponse(response);
+    } catch (error) {
+      _gameController.addError(error);
+    }
     update();
   }
 

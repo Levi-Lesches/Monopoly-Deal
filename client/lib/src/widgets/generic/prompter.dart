@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:mdeal/models.dart";
 import "package:mdeal/widgets.dart";
 
 typedef ItemBuilder<T> = Widget Function(T item);
@@ -7,12 +8,16 @@ class Prompter<T> extends StatelessWidget {
   final List<T> choices;
   final ItemBuilder<T> builder;
   final ValueChanged<T> onSelected;
+  final Size size;
+  final bool canCancel;
 
   const Prompter({
     required this.title,
     required this.choices,
     required this.onSelected,
     required this.builder,
+    this.size = const Size(100, 100),
+    this.canCancel = false,
   });
 
   @override
@@ -33,12 +38,18 @@ class Prompter<T> extends StatelessWidget {
             for (final item in choices)
               InkWell(
                 onTap: () => onSelected(item),
-                child: SizedBox(
-                  width: 100, height: 100,
+                child: SizedBox.fromSize(
+                  size: size,
                   child: builder(item),
                 ),
               ),
-          ],)
+          ],),
+          const SizedBox(height: 24),
+          if (canCancel)
+            OutlinedButton(
+              onPressed: models.game.cancelChoice,
+              child: const Text("Cancel", style: TextStyle(color: Colors.white)),
+            ),
         ],
       ),
     ),

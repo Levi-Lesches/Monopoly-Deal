@@ -6,12 +6,10 @@ import "package:shared/utils.dart";
 class Chooser<T> with ChangeNotifier {
   final _controller = StreamController<T>.broadcast();
   Future<T> get next => _controller.stream.first;
-  Future<List<T>> waitFor(int n) => _controller.stream.take(n).toList();
-  // StreamSubscription<T> listen(void Function(T) func) => _controller.stream.listen(func);
-  void cancel() => _controller.addError("Cancelled");
 
   Completer<List<T>>? _listCompleter;
   List<T> values = [];
+
   Future<List<T>> waitForList() {
     if (_listCompleter != null) throw StateError("Already waiting");
     values.clear();
@@ -32,5 +30,12 @@ class Chooser<T> with ChangeNotifier {
     _listCompleter?.complete(values.toList());
     values.clear();
     _listCompleter = null;
+  }
+
+  void cancel() {
+    _controller.addError("Cancelled");
+    _listCompleter?.completeError("Cancelled");
+    _listCompleter = null;
+    notifyListeners();
   }
 }

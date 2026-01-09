@@ -87,6 +87,8 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
         const Spacer(),
         Text("Net Worth: \$${player.netWorth}"),
         const Spacer(),
+        Text("Sets: ${player.numSets}"),
+        const Spacer(),
         Text(
           "Cards: ${player.handCount}",
           style: player.handCount > 7 ? const TextStyle(color: Colors.red) : null,

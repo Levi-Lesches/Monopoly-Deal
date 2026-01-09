@@ -76,24 +76,34 @@ class PropertyStack {
   bool remove(Player player, MCard card) {
     final wasSet = isSet;
     if (!cards.remove(card)) return false;
-    if (wasSet && !isSet) {  // Set was broken
-      final oldHouse = house;
-      if (oldHouse != null) {
-        player.tableMoney.add(oldHouse);
-        house = null;
-      }
+    if (card is House) {
       final oldHotel = hotel;
       if (oldHotel != null) {
         player.tableMoney.add(oldHotel);
         hotel = null;
       }
-      final otherStack = player.stacks.exceptFor(this).firstWhereOrNull((other) => other.color == color);
+    }
+    if (wasSet && !isSet) {  // Set was broken
+      final otherStack = player.stacks.exceptFor(this).firstWhereOrNull((other) => other.color == color && other.isNotEmpty);
       if (otherStack != null && !otherStack.isSet) {
         // Consolidate stacks
         final topCard = otherStack.cards.last;
         otherStack.remove(player, topCard);
         if (otherStack.isEmpty) player.stacks.remove(otherStack);
         cards.add(topCard);
+      }
+      if (!isSet) {
+        // Even after consolidating, this is still not a set
+        final oldHouse = house;
+        if (oldHouse != null) {
+          player.tableMoney.add(oldHouse);
+          house = null;
+        }
+        final oldHotel = hotel;
+        if (oldHotel != null) {
+          player.tableMoney.add(oldHotel);
+          hotel = null;
+        }
       }
     }
     return true;

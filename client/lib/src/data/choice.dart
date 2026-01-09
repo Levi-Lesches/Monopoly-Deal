@@ -2,7 +2,8 @@ import "package:mdeal/data.dart";
 
 sealed class Choice<T> {
   final List<T> choices;
-  Choice(this.choices);
+  final bool canCancel;
+  Choice(this.choices, {this.canCancel = false});
 }
 
 class CardChoice extends Choice<MCard> {
@@ -36,15 +37,15 @@ class PropertyChoice extends Choice<PropertyLike> {
 }
 
 class StackChoice extends Choice<PropertyStack> {
-  StackChoice.rent(GameState game, {List<PropertyColor>? colors}) : super([
+  StackChoice.self(GameState game, {List<PropertyColor>? colors}) : super([
     for (final stack in game.player.stacks)
     if (stack.isNotEmpty && (colors == null || colors.contains(stack.color)))
         stack,
   ]);
 
-  StackChoice.selfSets(GameState game) : super([
+  StackChoice.selfSets(GameState game, {bool withHouse = false}) : super([
     for (final stack in game.player.stacks)
-      if (stack.isSet)
+      if (stack.isSet && (!withHouse || stack.house != null))
         stack,
   ]);
 
@@ -68,7 +69,7 @@ class PlayerChoice extends Choice<Player> {
 
 class ColorChoice extends Choice<PropertyColor> {
   final String message;
-  ColorChoice(this.message, super.choices);
+  ColorChoice(this.message, super.choices, {super.canCancel = true});
 }
 
 class BoolChoice extends Choice<bool> {
@@ -78,4 +79,9 @@ class BoolChoice extends Choice<bool> {
 
 class MoneyChoice extends Choice<MCard> {
   MoneyChoice(GameState game) : super(game.player.cardsWithValue.toList());
+}
+
+class ConfirmCard extends Choice<MCard> {
+  final PropertyColor color;
+  ConfirmCard(super.choices, this.color);
 }

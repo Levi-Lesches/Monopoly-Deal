@@ -7,13 +7,16 @@ import "interruption.dart";
 
 sealed class PlayerAction {
   final RevealedPlayer player;
-  // final String player;
   PlayerAction({required this.player});
 
   factory PlayerAction.fromJson(Game game, Json json) {
     final name = json["name"] as String;
     final player = game.findPlayer(json["player"] as String);
-    if (name == "end_turn") return EndTurnAction(player: player);
+    if (name == "end_turn") {
+      return EndTurnAction(player: player);
+    } else if (name == "move") {
+      return MoveAction.fromJson(game, json);
+    }
     final card = game.findCard(json["card"]);
     return switch (name) {
       "bank" => BankAction(player: player, card: card),
@@ -84,6 +87,59 @@ class EndTurnAction extends PlayerAction {
     game.endTurn();
   }
 }
+
+class MoveAction extends PlayerAction {
+  @override int get cardsUsed => 0;
+  @override String get type => "move";
+
+  final Stackable card;
+  final PropertyColor color;
+  MoveAction({
+    required this.card,
+    required this.color,
+    required super.player,
+  });
+
+  factory MoveAction.fromJson(Game game, Json json) => MoveAction(
+    card: game.findCard(json["card"]),
+    color: PropertyColor.fromJson(json["color"]),
+    player: game.findPlayer(json["player"]),
+  );
+
+  @override
+  Json toJson() => {
+    ...super.toJson(),
+    "card": card.uuid,
+    "color": color.name,
+  };
+
+  @override
+  void handle(Game game) {
+    final fromStack = player.getStackWithCard(card);
+    switch (card) {
+      case WildPropertyCard() || RainbowWildCard():
+        if (fromStack.cards.exceptFor(card as PropertyLike).every((c) => c is RainbowWildCard)) {
+          throw GameError("That would leave only rainbow cards on ${fromStack.color}");
+        }
+        fromStack.remove(player, card);
+        player.addProperty(card, color);
+      case House():
+        fromStack.house = null;
+        final toStack = player.getStackWithSet(color)!;
+        toStack.add(card);
+        final hotel = fromStack.hotel;
+        if (hotel != null) {
+          fromStack.hotel = null;
+          toStack.hotel = hotel;
+        }
+      case Hotel():
+        fromStack.hotel = null;
+        final toStack = player.getStackWithSet(color)!;
+        toStack.add(card);
+    }
+  }
+}
+
 
 class BankAction extends OneCardAction {
   @override

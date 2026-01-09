@@ -11,6 +11,10 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
   @override
   Widget build(BuildContext context, HomeModel model) => Scaffold(
     appBar: AppBar(title: Text("${model.player}'s Game")),
+    floatingActionButton: FloatingActionButton(
+      child: const Text("Cancel"),
+      onPressed: () => model.cancelChoice(),
+    ),
     body: Stack(
       children: [
         Center(
@@ -21,7 +25,7 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
                 child: ListView(
                   children: [
                     if (model.errorMessage case final String error)
-                      Text(error, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
+                      Text(error, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center, overflow: TextOverflow.ellipsis),
                     SizedBox(
                       height: 100,
                       child: ListView(
@@ -43,6 +47,16 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
                 ),
               ),
               const Divider(),
+              if (model.player.name == model.game.currentPlayer)
+              Row(children: [
+                const Spacer(),
+                if (model.canOrganize)
+                  OutlinedButton(
+                    onPressed: model.organize,
+                    child: const Text("Re-arrange properties"),
+                  ),
+                const Spacer(),
+              ],),
               SizedBox(
                 height: CardWidget.height,
                 child: ListView(
@@ -85,6 +99,17 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
               onSelected: (_) { },
             ),
           )
+        else if (model.choice case ConfirmCard(:final choices, :final color))
+          Positioned.fill(
+            child: Prompter(
+              size: const Size(CardWidget.width, CardWidget.height),
+              title: "Choose a card",
+              canCancel: true,
+              builder: (item) => CardWidget(item, fallbackColor: color),
+              choices: choices,
+              onSelected: model.cards.choose,
+            ),
+          ),
       ],
     ),
   );

@@ -38,7 +38,7 @@ class StackWidget extends StatelessWidget {
           Positioned.fill(
             child: InkWell(
               onTap: () => models.game.stacks.choose(stack),
-              child: ColoredBox(color: Colors.blueGrey.withAlpha(75)),
+              child: ColoredBox(color: Colors.blueGrey.withAlpha(100)),
             ),
           ),
         Positioned(

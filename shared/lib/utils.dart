@@ -81,8 +81,6 @@ extension StringUtils on String {
 T? safely<T>(T Function() func) {
   try {
     return func();
-  // Intended to be a catch all
-  // ignore: avoid_catches_without_on_clauses
   } catch (error) {
     return null;
   }
