@@ -9,12 +9,6 @@ import "socket.dart";
 import "socket_info.dart";
 import "user.dart";
 
-final serverInfo = SocketInfo(
-  // address: InternetAddress("192.168.1.210"),
-  address: InternetAddress.loopbackIPv4,
-  port: 8000,
-);
-
 class UdpServerPacket {
   final Packet packet;
   const UdpServerPacket(this.packet);
@@ -44,7 +38,8 @@ class UdpClientPacket {
 
 class UdpClientSocket extends ClientSocket {
   final UdpSocket _udp;
-  UdpClientSocket(super.user, {required int port}) :
+  final SocketInfo serverInfo;
+  UdpClientSocket(super.user, {required int port, required this.serverInfo}) :
     _udp = UdpSocket(port: port);
 
   StreamSubscription<Datagram>? _udpSub;

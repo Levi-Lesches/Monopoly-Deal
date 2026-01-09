@@ -68,22 +68,31 @@ class StealInterruption extends Interruption {
   final String toSteal;
   final String? toGive;
 
+  final String toStealName;
+  final String? toGiveName;
+
   StealInterruption({
     required PropertyLike toSteal,
     required PropertyLike? toGive,
     required super.waitingFor,
     required super.causedBy,
-  }) : toSteal = toSteal.name, toGive = toGive?.name;
+  }) :
+    toSteal = toSteal.uuid,
+    toStealName = toSteal.name,
+    toGive = toGive?.uuid,
+    toGiveName = toGive?.name;
 
   StealInterruption.fromJson(Json json) :
     toSteal = json["toSteal"],
     toGive = json["toGive"],
+    toStealName = json["toStealName"],
+    toGiveName = json["toGiveName"],
     super.fromJson(json);
 
   @override
   String toString() => toGive == null
-    ? "Waiting: $causedBy wants to steal $toSteal from $waitingFor"
-    : "Waiting: $causedBy wants to trade with $waitingFor -- $toGive for $toSteal";
+    ? "Waiting: $causedBy wants to steal $toStealName from $waitingFor"
+    : "Waiting: $causedBy wants to trade with $waitingFor -- $toGiveName for $toStealName";
 
   @override
   Json toJson() => {
@@ -91,6 +100,8 @@ class StealInterruption extends Interruption {
     "type": "stealOne",
     "toSteal": toSteal,
     "toGive": toGive,
+    "toStealName": toStealName,
+    "toGiveName": toGiveName,
   };
 }
 

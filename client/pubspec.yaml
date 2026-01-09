@@ -1,10 +1,17 @@
 name: mdeal
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 0.1.0+1
+version: 1.0.0+5
 
 environment:
   sdk: ^3.10.0
+
+msix_config:
+  display_name: Monopoly Deal
+  publisher_display_name: Levi Lesches
+  identity_name: com.levi.monopoly-deal
+  msix_version: 1.0.0.5
+  logo_path: icon.png
 
 resolution: workspace
 dependencies:
@@ -15,8 +22,7 @@ dependencies:
   shared: ^1.0.0
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
+  msix: ^3.16.12
 
 flutter:
   uses-material-design: true

@@ -1,4 +1,5 @@
 import "dart:async";
+import "dart:io";
 
 import "package:flutter/widgets.dart";
 import "package:mdeal/models.dart";
@@ -10,10 +11,22 @@ import "package:shared/utils.dart";
 import "view_model.dart";
 
 class LobbyViewModel extends ViewModel {
+  static final addresses = <InternetAddress>[
+    InternetAddress("192.168.1.210"),
+    InternetAddress.loopbackIPv4,
+  ];
+
   final nameController = TextEditingController();
   Map<String, bool> users = <String, bool>{};
   UdpClientSocket? socket;
   LobbyClient? client;
+  InternetAddress address = addresses.first;
+
+  void updateAddress(InternetAddress? value) {
+    if (value == null) return;
+    address = value;
+    notifyListeners();
+  }
 
   @override
   Future<void> init() async {
@@ -32,7 +45,8 @@ class LobbyViewModel extends ViewModel {
     if (name == null) return;
     final user = User(name);
     isLoading = true;
-    socket = UdpClientSocket(user, port: 0);
+    final info = SocketInfo(address: address, port: 8010);
+    socket = UdpClientSocket(user, port: 0, serverInfo: info);
     await socket!.init();
     client = LobbyClient(socket!);
     await client!.init();

@@ -1,3 +1,5 @@
+import "dart:io";
+
 import "package:flutter/material.dart";
 import "package:mdeal/view_models.dart";
 import "package:mdeal/widgets.dart";
@@ -14,11 +16,28 @@ class LobbyPage extends ReactiveWidget<LobbyViewModel> {
       padding: const EdgeInsets.all(8),
       child: Column(
         children: [
-          TextField(
-            controller: model.nameController,
-            decoration: const InputDecoration(
-              label: Text("Username"),
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: model.nameController,
+                  decoration: const InputDecoration(
+                    label: Text("Username"),
+                  ),
+                ),
+              ),
+              DropdownButton<InternetAddress>(
+                items: [
+                  for (final item in LobbyViewModel.addresses)
+                    DropdownMenuItem(
+                      value: item,
+                      child: Text(item.address),
+                    ),
+                ],
+                value: model.address,
+                onChanged: (item) => model.updateAddress(item),
+              )
+            ],
           ),
           const SizedBox(height: 12),
           if (model.hasJoined)

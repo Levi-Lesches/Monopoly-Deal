@@ -18,7 +18,7 @@ class HomeModel extends DataModel {
 
   @override
   Future<void> init() async {
-    client.gameUpdates.listen(update, onError: setError);
+    // client.gameUpdates.listen(update, onError: setError);
     await client.requestState();
     cards.addListener(notifyListeners);
   }
@@ -65,10 +65,10 @@ class HomeModel extends DataModel {
         final toDiscard = await cards.waitForList();
         final response = DiscardResponse(cards: toDiscard, player: player);
         sendResponse(response);
-      case StealInterruption(:final causedBy, :final toSteal, :final toGive):
-        final message = toGive == null
-          ? "$causedBy wants to steal $toSteal"
-          : "$causedBy wants to trade $toSteal for $toGive";
+      case StealInterruption(:final causedBy, :final toStealName, :final toGiveName):
+        final message = toGiveName == null
+          ? "$causedBy wants to steal $toStealName"
+          : "$causedBy wants to trade $toStealName for $toGiveName";
         final jsn = await promptJustSayNo(message);
         final response = jsn == null
           ? AcceptedResponse(player: player)

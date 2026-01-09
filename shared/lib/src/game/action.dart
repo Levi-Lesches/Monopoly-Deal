@@ -137,9 +137,9 @@ class MoveAction extends PlayerAction {
         final toStack = player.getStackWithSet(color)!;
         toStack.add(card);
     }
+    game.log("$player moved $card to $color");
   }
 }
-
 
 class BankAction extends OneCardAction {
   @override

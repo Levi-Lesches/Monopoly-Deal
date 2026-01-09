@@ -18,7 +18,12 @@ class MockGameClient implements MDealClient {
 
   @override
   Future<void> init() async {
-
+    _game.debugAddProperty(player, PropertyCard(color: .brown, name: "Baltic Avenue", value: 1));
+    _game.debugAddProperty(player, WildPropertyCard(topColor: .brown, bottomColor: .lightBlue, value: 1));
+    final house = House();
+    final hotel = Hotel();
+    _game.debugAddToHand(player, house);
+    _game.debugAddToHand(player, hotel);
   }
 
   @override
