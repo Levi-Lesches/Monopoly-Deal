@@ -73,7 +73,7 @@ class StealInterruption extends Interruption {
     required PropertyLike? toGive,
     required super.waitingFor,
     required super.causedBy,
-  }) : toSteal = toSteal.uuid, toGive = toGive?.uuid;
+  }) : toSteal = toSteal.name, toGive = toGive?.name;
 
   StealInterruption.fromJson(Json json) :
     toSteal = json["toSteal"],

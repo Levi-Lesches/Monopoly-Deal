@@ -38,6 +38,9 @@ class HomeModel extends DataModel {
     _game.debugAddMoney(david, MoneyCard(value: 5));
     _game.debugAddProperty(david, PropertyCard(name: "Boardwalk", color: PropertyColor.darkBlue));
     _game.debugAddProperty(david, PropertyCard(name: "Park Place", color: PropertyColor.darkBlue));
+    _game.debugAddProperty(david, PropertyCard(name: "Reading Railroad", color: PropertyColor.railroads));
+    _game.debugAddProperty(david, PropertyCard(name: "B&O Railroad", color: PropertyColor.railroads));
+    _game.debugAddToHand(levi, slyDeal());
     update();
   }
 
@@ -46,7 +49,7 @@ class HomeModel extends DataModel {
   int? turnsFor(Player player) => player.name == game.currentPlayer
     ? game.turnsRemaining : null;
 
-  void update() {
+  Future<void> update() async {
     game = _game.getStateFor(levi);
     // choice = null;
     choice2 = null;
@@ -62,6 +65,14 @@ class HomeModel extends DataModel {
       choice2 = CardChoice.discard(game);
       notifyListeners();
       discardSub = cards.listen(toggleDiscard);
+    } else if (game.interruptions.first is StealInterruption) {
+      // TODO: Accept
+      await Future<void>.delayed((Duration(seconds: 1)));
+      final jsn = JustSayNo();
+      _game.debugAddToHand(david, jsn);
+      final response = JustSayNoResponse(player: david, justSayNo: jsn);
+      _game.handleResponse(response);
+      update();
     }
   }
 
@@ -160,9 +171,11 @@ class HomeModel extends DataModel {
         action = ChargeAction(card: card, player: player, victim: victim);
       case StealingActionCard(:final canChooseSet, :final isTrade):
         // choice = Choice.player;
+        print("Stealing cards");
         choice2 = PlayerChoice(game);
         notifyListeners();
         final victim = await players.next;
+        print("Chose player: $victim");
         if (canChooseSet) {
           // choice = Choice.otherSet;
           choice2 = StackChoice.others(game);
@@ -173,7 +186,9 @@ class HomeModel extends DataModel {
           // choice = Choice.otherProperty;
           choice2 = PropertyChoice.others(game);
           notifyListeners();
-          final toSteal = await properties.next;
+          print("Waiting for steal choice");
+          final toSteal = await cards.next as PropertyLike;
+          print("Stealing: $toSteal");
           PropertyLike? toGive;
           if (isTrade) {
             // choice = Choice.ownProperty;

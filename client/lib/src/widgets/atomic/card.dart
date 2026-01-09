@@ -35,14 +35,16 @@ class CardWidget extends ReusableReactiveWidget<HomeModel> {
   }
 
   Border get border {
-    if (models.game.choice2 case CardChoice(:final choices)) {
-      if (models.game.toDiscard.contains(card)) {
-        return Border.all(width: 3, color: Colors.red);
-      } else if (choices.contains(card)) {
+    if (models.game.toDiscard.contains(card)) {
+      return Border.all(width: 3, color: Colors.red);
+    } else if (canChoose) {
+    // if (models.game.choice2 case CardChoice(:final choices)) {
+      // } else if (choices.contains(card)) {
         return Border.all(width: 3);
-      }
+      // }
+    } else {
+      return Border.all();
     }
-    return Border.all();
   }
 
   Widget get child => Center(

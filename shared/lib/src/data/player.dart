@@ -70,6 +70,9 @@ abstract class Player {
   Iterable<MCard> get cardsWithValue =>
     _onTable.where((card) => card.value > 0);
 
+  Iterable<PropertyStack> get tableStacks => stacks
+    .where((s) => s.isNotEmpty);
+
   PropertyStack? getStackWithSet(PropertyColor color) => stacks
     .firstWhereOrNull((stack) => stack.color == color && stack.isSet);
 

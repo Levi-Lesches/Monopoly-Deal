@@ -32,6 +32,10 @@ class Game {
     .firstWhere((card) => card.uuid == uuid)
     as T;
 
+  T findCardByName<T extends MCard>(String name) => referenceDeck
+    .firstWhere((card) => card.name == name)
+    as T;
+
   RevealedPlayer findPlayer(String name) => players
     .firstWhere((other) => other.name == name);
 
@@ -81,8 +85,8 @@ class Game {
   void steal(StealInterruption details) {
     final stealer = findPlayer(details.causedBy);
     final victim = findPlayer(details.waitingFor);
-    final toSteal = findCard(details.toSteal) as PropertyLike;
-    final toGive = details.toGive.map(findCard) as PropertyLike?;
+    final toSteal = findCardByName(details.toSteal) as PropertyLike;
+    final toGive = details.toGive.map(findCardByName) as PropertyLike?;
     victim.removeFromTable(toSteal);
     final color = promptForColor(stealer, toSteal);
     if (color != null) stealer.addProperty(toSteal, color);

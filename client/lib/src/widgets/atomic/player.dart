@@ -104,15 +104,34 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
                 child: VerticalDivider(),
               ),
               const SizedBox(width: 8),
-              for (final stack in player.stacks)
-                if (stack.isNotEmpty)
-                  StackWidget(stack),
-                  // for (final card in stack.cards)
-                  //   CardWidget(card),
+              ...buildStacks(model),
             ],
           ),
         ),
       ),
     ],
   );
+
+  List<Widget> buildStacks(HomeModel model) {
+    final choice = model.choice2;
+    return switch (choice) {
+      PlayerChoice() || CardChoice() || StackChoice() || null => [
+        for (final stack in player.tableStacks)
+          StackWidget(stack),
+      ],
+      PropertyChoice() => [
+        for (final stack in player.tableStacks)
+          if (stack.isSet)
+            StackWidget(stack)
+          else
+            for (final card in stack.cards)
+              CardWidget(card),
+      ],
+    };
+  }
+
+  // bool canChooseProperty(HomeModel model) => switch(model.choice2) {
+  //   null => false,
+  //   PropertyChoice() =>
+  // }
 }
