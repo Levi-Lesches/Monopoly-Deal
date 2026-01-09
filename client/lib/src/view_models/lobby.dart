@@ -11,6 +11,7 @@ import "view_model.dart";
 
 class LobbyViewModel extends ViewModel {
   final nameController = TextEditingController();
+  Map<String, bool> users = <String, bool>{};
   UdpClientSocket? socket;
   LobbyClient? client;
 
@@ -35,9 +36,15 @@ class LobbyViewModel extends ViewModel {
     await socket!.init();
     client = LobbyClient(socket!);
     await client!.init();
+    client!.lobbyUsers.listen(updateUsers);
     hasJoined = await client!.join();
     unawaited(client!.gameStarted.then((_) => startGame()));
     isLoading = false;
+    notifyListeners();
+  }
+
+  void updateUsers(Map<String, bool> value) {
+    users = value;
     notifyListeners();
   }
 

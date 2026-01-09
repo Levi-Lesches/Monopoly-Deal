@@ -3,30 +3,34 @@ import "dart:async";
 import "package:shared/data.dart";
 import "package:shared/game.dart";
 import "package:shared/network.dart";
+import "package:shared/utils.dart";
 
 import "game_packets.dart";
 
 class MDealClient {
   final User user;
-  final ClientSocket socket;
-  MDealClient(this.socket) :
-    user = socket.user;
+  final ClientSocket _socket;
+  MDealClient(this._socket) :
+    user = _socket.user;
 
   final _gameController = StreamController<GameState>.broadcast();
   Stream<GameState> get gameUpdates => _gameController.stream;
 
   Future<void> init() async {
-    await socket.init();
-    socket.listen(handlePacket);
+    await _socket.init();
+    _socket.listen(_handlePacket);
   }
 
   Future<void> dispose() async {
-    await socket.dispose();
+    await _socket.dispose();
     await _gameController.close();
   }
 
-  Future<void> handlePacket(Packet packet) async {
-    final serverPacket = GamePacket.fromJson(packet, GameServerPacketType.fromJson);
+  Future<void> _handlePacket(Packet packet) async {
+    final serverPacket = safely<GamePacket<GameServerPacketType>>(
+      () => GamePacket.fromJson(packet, GameServerPacketType.fromJson),
+    );
+    if (serverPacket == null) return;
     switch (serverPacket.type) {
       case .error:
         final error = MDealError.fromJson(serverPacket.data);
@@ -39,16 +43,16 @@ class MDealClient {
 
   Future<void> sendResponse(InterruptionResponse response) async {
     final body = GamePacket(type: GameClientPacketType.response, data: response.toJson());
-    await socket.send(body.toJson());
+    await _socket.send(body.toJson());
   }
 
   Future<void> sendAction(PlayerAction action) async {
     final body = GamePacket(type: GameClientPacketType.action, data: action.toJson());
-    await socket.send(body.toJson());
+    await _socket.send(body.toJson());
   }
 
   Future<void> requestState() async {
     const body = GamePacket(type: GameClientPacketType.game, data: {});
-    await socket.send(body.toJson());
+    await _socket.send(body.toJson());
   }
 }

@@ -1,6 +1,7 @@
 import "package:flutter/material.dart";
 import "package:mdeal/view_models.dart";
 import "package:mdeal/widgets.dart";
+import "package:shared/utils.dart";
 
 class LobbyPage extends ReactiveWidget<LobbyViewModel> {
   @override
@@ -22,6 +23,14 @@ class LobbyPage extends ReactiveWidget<LobbyViewModel> {
           const SizedBox(height: 12),
           if (model.hasJoined)
             Text(model.isReady ? "Ready" : "Not Ready"),
+          const Divider(),
+          for (final (user, isReady) in model.users.records)
+            ListTile(
+              title: Text(user),
+              trailing: isReady
+                ? const Icon(Icons.check_circle, color: Colors.green)
+                : const Icon(Icons.pending),
+            ),
           const Spacer(),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,

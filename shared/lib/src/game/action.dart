@@ -351,14 +351,14 @@ class StealAction extends OneCardAction {
   factory StealAction.fromJson(Game game, Json json) => StealAction(
     card: game.findCard(json["card"]),
     player: game.findPlayer(json["player"] as String),
-    victim: json["victim"],
+    victim: game.findPlayer(json["victim"]),
     toSteal: json.mapNullable("toSteal", game.findCard),
     color: json.mapNullable("color", PropertyColor.fromJson),
     toGive: json.mapNullable("toGive", game.findCard)
   );
 
   @override
-  String get type => "rent";
+  String get type => "steal";
 
   @override
   Json toJson() => {

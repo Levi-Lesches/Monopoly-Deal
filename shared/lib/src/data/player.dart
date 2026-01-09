@@ -106,6 +106,12 @@ abstract class Player {
     .where((stack) => stack.color == color)
     .map((stack) => stack.rent)
     .maxOrNull ?? 0;
+
+  bool get isWinner => {
+    for (final stack in stacks)
+      if (stack.isSet)
+        stack.color,
+  }.length >= 3;
 }
 
 class HiddenPlayer extends Player {

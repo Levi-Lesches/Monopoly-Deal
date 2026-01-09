@@ -7,6 +7,15 @@ import "interruption.dart";
 class GameState {
   final RevealedPlayer player;
   final List<HiddenPlayer> otherPlayers;
+  final List<String> playerOrder;
+
+  List<Player> get allPlayers => [
+    for (final name in playerOrder)
+      if (player.name == name)
+        player
+      else
+        otherPlayers.firstWhere((p) => p.name == name),
+  ];
 
   final String currentPlayer;
   final int turnsRemaining;
@@ -18,6 +27,7 @@ class GameState {
   GameState({
     required this.player,
     required this.otherPlayers,
+    required this.playerOrder,
     required this.currentPlayer,
     required this.turnsRemaining,
     required this.discarded,
@@ -31,6 +41,7 @@ class GameState {
   GameState.fromJson(Json json) :
     player = RevealedPlayer.fromJson(json["player"]),
     otherPlayers = json.parseList("otherPlayers", HiddenPlayer.fromJson),
+    playerOrder = (json["playerOrder"] as List).cast<String>(),
     interruptions = json.parseList("interruptions", Interruption.parse),
     currentPlayer = json["currentPlayer"],
     turnsRemaining = json["turnsRemaining"],
@@ -43,6 +54,7 @@ class GameState {
       for (final other in otherPlayers)
         other.toJson(),
     ],
+    "playerOrder": playerOrder,
     "currentPlayer": currentPlayer,
     "turnsRemaining": turnsRemaining,
     "discarded": discarded?.toJson(),
@@ -64,6 +76,9 @@ class GameState {
 
   Player playerWithProperty(PropertyLike card) => otherPlayers
     .firstWhere((player) => player.hasCardsOnTable([card]));
+
+  Player? get winner => allPlayers
+    .firstWhereOrNull((p) => p.isWinner);
 
   bool canPlay(MCard card) => switch(card) {
     MoneyCard() => true,

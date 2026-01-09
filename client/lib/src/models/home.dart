@@ -18,8 +18,8 @@ class HomeModel extends DataModel {
 
   @override
   Future<void> init() async {
-    await client.requestState();
     client.gameUpdates.listen(update);
+    await client.requestState();
     cards.addListener(notifyListeners);
   }
 
@@ -30,8 +30,9 @@ class HomeModel extends DataModel {
     game = state;
     choice = null;
     notifyListeners();
-    if (game.currentPlayer != player.name) return;
     unawaited(handleInterruption(game.interruption));
+    if (game.winner != null) return;
+    if (game.currentPlayer != player.name) return;
     if (game.interruptions.isEmpty && game.turnsRemaining > 0) {
       choice = CardChoice.play(game);
       notifyListeners();
@@ -48,8 +49,8 @@ class HomeModel extends DataModel {
           sendResponse(JustSayNoResponse(justSayNo: jsn, player: player));
           return;
         }
-        notifyListeners();
         choice = MoneyChoice(game);
+        notifyListeners();
         final payment = await cards.waitForList();
         final response = PaymentResponse(cards: payment, player: player);
         sendResponse(response);
@@ -95,14 +96,6 @@ class HomeModel extends DataModel {
       return true;
     } on MDealError {
       return false;
-    }
-  }
-
-  bool get canEndTurn {
-    if (game.interruption case DiscardInterruption(:final amount)) {
-      return cards.values.length >= amount;
-    } else {
-      return true;
     }
   }
 

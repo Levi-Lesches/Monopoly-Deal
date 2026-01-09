@@ -1,3 +1,4 @@
+import "package:flutter/foundation.dart";
 import "package:go_router/go_router.dart";
 export "package:go_router/go_router.dart";
 
@@ -13,7 +14,7 @@ class Routes {
 
 /// The router for the app.
 final router = GoRouter(
-  initialLocation: Routes.lobby,
+  initialLocation: kDebugMode ? Routes.game : Routes.lobby,
   routes: [
     GoRoute(
       path: Routes.lobby,

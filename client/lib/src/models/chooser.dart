@@ -31,5 +31,6 @@ class Chooser<T> with ChangeNotifier {
   void confirmList() {
     _listCompleter?.complete(values.toList());
     values.clear();
+    _listCompleter = null;
   }
 }

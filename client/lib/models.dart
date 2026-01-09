@@ -17,12 +17,10 @@ class Models extends DataModel {
 
 	@override
 	Future<void> init() async {
-    final user = User("test");
-    final socket = UdpClientSocket(user, port: 9000);
-    final player = RevealedPlayer("test");
-    final game = Game([player]);
-    final state = game.getStateFor(player);
-    this.game = HomeModel(MDealClient(socket), state);
+    final user = User("test1");
+    final mockClient = MockGameClient(user);
+    await mockClient.init();
+    game = HomeModel(mockClient, mockClient.state);
 
 		for (final model in models) {
       await model.init();

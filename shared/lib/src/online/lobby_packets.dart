@@ -15,6 +15,7 @@ sealed class LobbyServerPacket {
   factory LobbyServerPacket.fromJson(Json json) => switch (json["type"]) {
     "accept" => LobbyAcceptPacket.fromJson(json),
     "start" => LobbyStartPacket(),
+    "details" => LobbyDetailsPacket.fromJson(json),
     _ => throw ArgumentError("Invalid packet: $json"),
   };
 }
@@ -31,4 +32,14 @@ class LobbyAcceptPacket extends LobbyServerPacket {
 
 class LobbyStartPacket extends LobbyServerPacket {
   Json toJson() => {"type": "start"};
+}
+
+class LobbyDetailsPacket extends LobbyServerPacket {
+  final Map<String, bool> players;
+  LobbyDetailsPacket(this.players);
+
+  LobbyDetailsPacket.fromJson(Json json) :
+    players = (json["players"] as Map).cast<String, bool>();
+
+  Json toJson() => {"type": "details", "players": players};
 }

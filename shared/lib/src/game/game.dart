@@ -49,6 +49,10 @@ class Game {
       for (final other in players.exceptFor(player))
         other.hidden,
     ],
+    playerOrder: [
+      for (final anyPlayer in players)
+        anyPlayer.name,
+    ],
     currentPlayer: currentPlayer.name,
     interruptions: interruptions,
     discarded: discardPile.lastOrNull,

@@ -1,17 +1,21 @@
 import "dart:async";
 
 import "package:shared/network.dart";
+import "package:shared/utils.dart";
 
 import "lobby_packets.dart";
 
 class LobbyClient {
   final ClientSocket socket;
   final _startCompleter = Completer<void>();
+  final _playersController = StreamController<Map<String, bool>>.broadcast();
   final User user;
   LobbyClient(this.socket) :
     user = socket.user;
 
   Future<void> get gameStarted => _startCompleter.future;
+  Stream<Map<String, bool>> get lobbyUsers => _playersController.stream;
+
   Completer<bool>? _joinCompleter;
   StreamSubscription<void>? _sub;
 
@@ -27,6 +31,7 @@ class LobbyClient {
       _joinCompleter?.completeError(TimeoutException("Lobby client was disposed"));
     }
     _joinCompleter = null;
+    await _playersController.close();
     await _sub?.cancel();
   }
 
@@ -53,6 +58,8 @@ class LobbyClient {
         _joinCompleter?.complete(isAccepted);
       case LobbyStartPacket():
         _startCompleter.complete();
+      case LobbyDetailsPacket(:final players):
+        _playersController.add(players);
     }
   }
 }
@@ -100,6 +107,13 @@ class LobbyServer {
       if (users.length > 1 && isReady) {
         await start();
       }
+    }
+    final details = LobbyDetailsPacket({
+      for (final (user, isReady) in users.records)
+        user.name: isReady,
+    });
+    for (final user in users.keys) {
+      await socket.send(user, details.toJson());
     }
   }
 }

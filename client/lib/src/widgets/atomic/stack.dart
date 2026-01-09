@@ -25,6 +25,10 @@ class StackWidget extends StatelessWidget {
     height: CardWidget.height + (verticalSpacing * stack.allCards.length),
     child: Stack(
       children: [
+        if (stack.isSet)
+          Positioned.fill(
+            child: ColoredBox(color: Colors.green.withAlpha(150)),
+          ),
         for (final (index, card) in stack.allCards.indexed)
           Positioned(
             top: index * verticalSpacing,
@@ -37,6 +41,17 @@ class StackWidget extends StatelessWidget {
               child: ColoredBox(color: Colors.blueGrey.withAlpha(75)),
             ),
           ),
+        Positioned(
+          bottom: 10,
+          left: 8,
+          child: Container(
+            alignment: Alignment.bottomCenter,
+            color: Colors.black.withAlpha(100),
+            height: 22,
+            width: CardWidget.width,
+            child: Text("RENT: \$${stack.rent}", style: const TextStyle(color: Colors.white)),
+          ),
+        ),
       ],
     ),
   );

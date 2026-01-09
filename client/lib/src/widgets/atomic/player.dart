@@ -14,7 +14,7 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
   ];
 
   final int playerIndex;
-  final HiddenPlayer player;
+  final Player player;
   PlayerWidget({
     required this.player,
     required this.playerIndex,
@@ -22,9 +22,51 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
 
   bool get isTurn => turnsRemaining != null;
   int? get turnsRemaining => models.game.turnsFor(player);
-  bool get canEndTurn => models.game.canEndTurn;
   bool get isPlayer => player.name == models.game.player.name;
   bool get canBank => isPlayer && isTurn && turnsRemaining! > 0 && models.game.choice is CardChoice;
+
+  Widget? getTrailingButton(BuildContext context, HomeModel model) {
+    if (isPlayer) {
+      if (!isTurn) return null;
+      final interruption = model.game.interruption;
+      return FilledButton(
+        onPressed: interruption == null ? models.game.endTurn : null,
+        child: const Text("End Turn"),
+      );
+    } else if (model.choice is PlayerChoice) {
+      return FilledButton(
+        onPressed: () => model.players.choose(player),
+        child: const Text("Choose"),
+      );
+    } else {
+      return null;
+    }
+  }
+
+  Widget? buildInterruptionTile(HomeModel model) => switch (model.game.interruption) {
+    PaymentInterruption(:final amount, :final causedBy) => ListTile(
+      leading: const Icon(Icons.info, size: 36),
+      title: Text("Pay $causedBy \$$amount"),
+      subtitle: Text("Current value: ${model.cardChoices.totalValue}"),
+      trailing: FilledButton(
+        onPressed: model.canPay ? () => model.cards.confirmList() : null,
+        child: const Text("Pay"),
+      )
+    ),
+    DiscardInterruption(:final amount) => ListTile(
+      leading: const Icon(Icons.info, size: 36),
+      title: Text("Discard $amount cards"),
+      subtitle: Text("Discarding: ${model.cards.values}"),
+      trailing: FilledButton(
+        onPressed: model.cards.values.length >= amount ? models.game.cards.confirmList : null,
+        style: model.cards.values.isEmpty ? null : FilledButton.styleFrom(backgroundColor: Colors.red),
+        child: model.cards.values.isEmpty ? const Text("End Turn") : const Text("Discard"),
+      ),
+    ),
+    StealInterruption() || StealStackInterruption() || ChooseColorInterruption() => null,
+    null => null,
+    // _ => null,
+  };
 
   @override
   Widget build(BuildContext context, HomeModel model) => Column(
@@ -53,32 +95,11 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
         if (turnsRemaining != null && turnsRemaining! > 0)
           Text("Turns Left: $turnsRemaining / 3"),
         const Spacer(),
-        if (isPlayer && isTurn)
-          if (model.game.interruptions.isEmpty) FilledButton(
-            onPressed: canEndTurn ? models.game.endTurn : null,
-            child: const Text("End Turn"),
-          ) else if (model.game.interruption case DiscardInterruption()) FilledButton(
-            onPressed: canEndTurn ? models.game.cards.confirmList : null,
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text("Discard"),
-          )
-        else if (model.choice is PlayerChoice && !isPlayer)
-          FilledButton(
-            onPressed: () => model.players.choose(player),
-            child: const Text("Choose"),
-          ),
+        ?getTrailingButton(context, model),
         const SizedBox(width: 12),
       ],),
       if (isPlayer)
-        if (model.game.interruption case PaymentInterruption(:final amount, :final causedBy))
-        ListTile(
-            title: Text("Pay $causedBy \$$amount"),
-            subtitle: Text("Current value: ${model.cardChoices.totalValue}"),
-            trailing: FilledButton(
-              onPressed: model.canPay ? () => model.cards.confirmList() : null,
-              child: const Text("Pay"),
-            )
-          ),
+        ?buildInterruptionTile(model),
       const SizedBox(height: 12),
       Align(
         alignment: Alignment.centerLeft,

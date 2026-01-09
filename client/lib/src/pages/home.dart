@@ -10,7 +10,7 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
 
   @override
   Widget build(BuildContext context, HomeModel model) => Scaffold(
-    appBar: AppBar(title: const Text("Counter")),
+    appBar: AppBar(title: Text("${model.player}'s Game")),
     body: Stack(
       children: [
         Center(
@@ -32,17 +32,13 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
                       ),
                     ),
                     const Divider(),
-                    for (final (index, otherPlayer) in model.game.otherPlayers.indexed) ...[
+                    for (final (index, player) in model.game.allPlayers.indexed) ...[
                       PlayerWidget(
-                        player: otherPlayer,
-                        playerIndex: index + 1,
+                        player: player,
+                        playerIndex: index,
                       ),
                       const Divider(),
                     ],
-                    PlayerWidget(
-                      player: model.player.hidden,
-                      playerIndex: 0,
-                    ),
                   ],
                 ),
               ),
@@ -79,7 +75,16 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
                 ? const Icon(Icons.check_box, size: 64, color: Colors.green)
                 : const Icon(Icons.cancel, size: 64, color: Colors.red),
             ),
-          ),
+          )
+        else if (model.game.winner case final Player player)
+          Positioned.fill(
+            child: Prompter(
+              title: "$player won!",
+              builder: (item) => Container(),
+              choices: const [],
+              onSelected: (_) { },
+            ),
+          )
       ],
     ),
   );
