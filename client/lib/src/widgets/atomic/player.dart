@@ -54,11 +54,11 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
           Text("Turns Left: $turnsRemaining / 3"),
         const Spacer(),
         if (isPlayer && isTurn)
-          if (model.discard == null) FilledButton(
+          if (model.game.interruptions.isEmpty) FilledButton(
             onPressed: canEndTurn ? models.game.endTurn : null,
             child: const Text("End Turn"),
-          ) else FilledButton(
-            onPressed: canEndTurn ? models.game.endTurn : null,
+          ) else if (model.game.interruption case DiscardInterruption()) FilledButton(
+            onPressed: canEndTurn ? models.game.cards.confirmList : null,
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             child: const Text("Discard"),
           )
@@ -69,6 +69,16 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
           ),
         const SizedBox(width: 12),
       ],),
+      if (isPlayer)
+        if (model.game.interruption case PaymentInterruption(:final amount, :final causedBy))
+        ListTile(
+            title: Text("Pay $causedBy \$$amount"),
+            subtitle: Text("Current value: ${model.cardChoices.totalValue}"),
+            trailing: FilledButton(
+              onPressed: model.canPay ? () => model.cards.confirmList() : null,
+              child: const Text("Pay"),
+            )
+          ),
       const SizedBox(height: 12),
       Align(
         alignment: Alignment.centerLeft,
@@ -114,6 +124,11 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
   List<Widget> buildStacks(HomeModel model) {
     final choice = model.choice;
     return switch (choice) {
+      PropertyChoice() when isPlayer => [
+        for (final stack in player.tableStacks)
+          for (final card in stack.cards)
+              CardWidget(card),
+      ],
       PropertyChoice() => [
         for (final stack in player.tableStacks)
           if (stack.isSet)
@@ -121,6 +136,10 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
           else
             for (final card in stack.cards)
               CardWidget(card),
+      ],
+      MoneyChoice() when isPlayer => [
+        for (final card in player.cardsWithValue)
+          CardWidget(card),
       ],
       _ => [
         for (final stack in player.tableStacks)

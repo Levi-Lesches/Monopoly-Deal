@@ -3,6 +3,7 @@
 import "dart:async";
 
 import "package:collection/collection.dart";
+import "package:flutter/foundation.dart";
 import "package:mdeal/data.dart";
 
 import "chooser.dart";
@@ -22,82 +23,113 @@ class HomeModel extends DataModel {
   Choice<dynamic>? choice;
 
   @override
-  Future<void> init() async { restart(); }
+  Future<void> init() async {
+    restart();
+    cards.addListener(notifyListeners);
+  }
 
   void restart() {
     levi = RevealedPlayer("Levi");
     david = RevealedPlayer("David");
     _game = Game([levi, david]);
-    _game.debugAddMoney(david, MoneyCard(value: 5));
+    _game.debugAddMoney(levi, MoneyCard(value: 5));
     _game.debugAddProperty(levi, PropertyCard(name: "Boardwalk", color: PropertyColor.darkBlue));
     _game.debugAddProperty(levi, PropertyCard(name: "Park Place", color: PropertyColor.darkBlue));
     _game.debugAddProperty(david, PropertyCard(name: "Reading Railroad", color: PropertyColor.railroads));
     _game.debugAddProperty(david, PropertyCard(name: "B&O Railroad", color: PropertyColor.railroads));
-    _game.debugAddToHand(levi, RainbowRentActionCard());
-    _game.debugAddToHand(levi, DoubleTheRent());
-    _game.debugAddToHand(levi, slyDeal());
+    _game.interrupt(PaymentInterruption(amount: 10, causedBy: david, waitingFor: levi));
     update();
   }
-
-  StreamSubscription<MCard>? discardSub;
 
   int? turnsFor(Player player) => player.name == game.currentPlayer
     ? game.turnsRemaining : null;
 
   void update() {
     game = _game.getStateFor(levi);
-    // choice = null;
     choice = null;
     notifyListeners();
     if (game.currentPlayer != player.name) return;
+    unawaited(handleInterruption(game.interruption));
     if (game.interruptions.isEmpty && game.turnsRemaining > 0) {
-      // choice = Choice.card;
       choice = CardChoice.play(game);
       notifyListeners();
       unawaited(cards.next.then(playCard));
-    } else if (isDiscarding) {
-      // choice = Choice.card;
-      choice = CardChoice.discard(game);
-      notifyListeners();
-      discardSub = cards.listen(toggleDiscard);
     }
   }
 
-  bool get isDiscarding => discard != null;
-  final Set<MCard> toDiscard = {};
-  void toggleDiscard(MCard card) {
-    toDiscard.toggle(card);
-    notifyListeners();
+  Future<void> handleInterruption(Interruption? interruption) async {
+    switch (interruption) {
+      case null: return;
+      case PaymentInterruption(:final amount, :final causedBy):
+        final jsn = await promptJustSayNo("$causedBy is charging you \$$amount!", forcePrompt: false);
+        if (jsn != null) {
+          sendResponse(JustSayNoResponse(justSayNo: jsn, player: player));
+          return;
+        }
+        notifyListeners();
+        choice = MoneyChoice(game);
+        final payment = await cards.waitForList();
+        final response = PaymentResponse(cards: payment, player: player);
+        sendResponse(response);
+      case DiscardInterruption():
+        choice = CardChoice.discard(game);
+        notifyListeners();
+        final toDiscard = await cards.waitForList();
+        final response = DiscardResponse(cards: toDiscard, player: player);
+        sendResponse(response);
+      case StealInterruption(:final causedBy, :final toSteal, :final toGive):
+        final message = toGive == null
+          ? "$causedBy wants to steal $toSteal"
+          : "$causedBy wants to trade $toSteal for $toGive";
+        final jsn = await promptJustSayNo(message);
+        final response = jsn == null
+          ? AcceptedResponse(player: player)
+          : JustSayNoResponse(justSayNo: jsn, player: player);
+        sendResponse(response);
+      case StealStackInterruption(:final causedBy, :final color):
+        final message = "$causedBy wants to steal your $color set!";
+        final jsn = await promptJustSayNo(message);
+        final response = jsn == null
+          ? AcceptedResponse(player: player)
+          : JustSayNoResponse(justSayNo: jsn, player: player);
+        sendResponse(response);
+      case ChooseColorInterruption(colors: final choices, :final card):
+        choice = ColorChoice("Choose a color for $card", choices);
+        notifyListeners();
+        final color = await colors.next;
+        sendResponse(ColorResponse(color: color, player: player));
+    }
   }
 
-  DiscardInterruption? get discard => game
-    .interruptions
-    .whereType<DiscardInterruption>()
-    .where((i) => i.waitingFor == player.name)
-    .firstOrNull;
+  List<MCard> get cardChoices => cards.values;
+  void endTurn() => sendAction(EndTurnAction(player: player));
+
+  bool get canPay {
+    final interruption = game.interruption;
+    if (interruption is! PaymentInterruption) return true;
+    final response = PaymentResponse(cards: cardChoices, player: player);
+    try {
+      response.validate(interruption.amount);
+      return true;
+    } on MDealError {
+      return false;
+    }
+  }
 
   bool get canEndTurn {
-    final discard = this.discard;
-    if (discard == null) return true;
-    return toDiscard.length >= discard.amount;
-  }
-
-  Future<void> endTurn() async {
-    cards.cancel();
-    final discard = this.discard;
-    if (discard != null) {
-      _game.handleResponse(DiscardResponse(cards: toDiscard.toList(), player: player));
-      toDiscard.clear();
-      await discardSub?.cancel();
-      update();
+    if (game.interruption case DiscardInterruption(:final amount)) {
+      return cards.values.length >= amount;
     } else {
-      playAction(EndTurnAction(player: player));
+      return true;
     }
   }
 
-  void playAction(PlayerAction action) {
+  void sendAction(PlayerAction action) => safely(() => _game.handleAction(action));
+  void sendResponse(InterruptionResponse response) => safely(() => _game.handleResponse(response));
+
+  void safely(VoidCallback func) {
     try {
-      _game.handleAction(action);
+      func();
       errorMessage = null;
       notifyListeners();
     } on PlayerException catch (error) {
@@ -115,7 +147,7 @@ class HomeModel extends DataModel {
     if (isBanking) {
       isBanking = false;
       notifyListeners();
-      playAction(BankAction(card: card, player: player));
+      sendAction(BankAction(card: card, player: player));
       return;
     }
     switch (card) {
@@ -126,7 +158,7 @@ class HomeModel extends DataModel {
       case PassGo():
         action = PassGoAction(card: card, player: player);
       case WildPropertyCard(:final topColor, :final bottomColor):
-        choice = ColorChoice([topColor, bottomColor]);
+        choice = ColorChoice("Choose a color", [topColor, bottomColor]);
         notifyListeners();
         final color = await colors.next;
         action = WildPropertyAction(card: card, color: color, player: player);
@@ -138,7 +170,6 @@ class HomeModel extends DataModel {
       case PaymentActionCard(:final victimType):
         Player? victim;
         if (victimType == VictimType.onePlayer) {
-          // choice = Choice.player;
           choice = PlayerChoice(game);
           notifyListeners();
           victim = await players.next;
@@ -160,12 +191,11 @@ class HomeModel extends DataModel {
           if (isTrade) {
             choice = PropertyChoice.self(game);
             notifyListeners();
-            toGive = await properties.next;
+            toGive = await cards.next as PropertyLike;
           }
           action = StealAction(card: card, victim: victim, player: player, toSteal: toSteal, toGive: toGive);
         }
       case PropertySetModifier():
-        // choice = Choice.ownSet;
         choice = StackChoice.selfSets(game);
         notifyListeners();
         final stack = await stacks.next;
@@ -186,7 +216,7 @@ class HomeModel extends DataModel {
         choice = StackChoice.rent(game, colors: [color1, color2]);
         notifyListeners();
         final stack = await stacks.next;
-        final doubler = await getDoubler();
+        final doubler = await promptForCard<DoubleTheRent>("Use a double the rent?", forcePrompt: false);
         action = RentAction(card: card, color: stack.color, player: player, doubleTheRent: doubler);
       case RainbowRentActionCard():
         choice = StackChoice.rent(game);
@@ -195,25 +225,27 @@ class HomeModel extends DataModel {
         choice = PlayerChoice(game);
         notifyListeners();
         final victim = await players.next;
-        final doubler = await getDoubler();
+        final doubler = await promptForCard<DoubleTheRent>("Use a double the rent?", forcePrompt: false);
         action = RentAction(card: card, color: stack.color, player: player, victim: victim, doubleTheRent: doubler);
     }
-    playAction(action);
+    sendAction(action);
   }
 
-  Future<DoubleTheRent?> getDoubler() async {
-    final doublerInHand = player.hand.whereType<DoubleTheRent>().firstOrNull;
-    if (doublerInHand == null) return null;
-    choice = BoolChoice("Use a double the rent?");
+  Future<JustSayNo?> promptJustSayNo(String title, {bool forcePrompt = true}) =>
+    promptForCard<JustSayNo>("$title\nUse a Just Say No?", forcePrompt: forcePrompt);
+
+  Future<T?> promptForCard<T extends MCard>(String title, {required bool forcePrompt}) async {
+    final inHand = player.hand.whereType<T>().firstOrNull;
+    if (inHand == null && !forcePrompt) return null;
+    choice = BoolChoice(title, choices: [if (inHand != null) true, false]);
     notifyListeners();
     final confirmation = await confirmations.next;
-    return confirmation ? doublerInHand : null;
+    return confirmation ? inHand : null;
   }
 
   String? errorMessage;
   final cards = Chooser<MCard>();
   final colors = Chooser<PropertyColor>();
-  final properties = Chooser<PropertyLike>();
   final players = Chooser<Player>();
   final stacks = Chooser<PropertyStack>();
   final confirmations = Chooser<bool>();

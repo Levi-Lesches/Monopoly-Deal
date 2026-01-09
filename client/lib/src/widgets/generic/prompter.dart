@@ -24,11 +24,12 @@ class Prompter<T> extends StatelessWidget {
         children: [
           Text(
             title,
-            style: context.textTheme.displayMedium
-              ?.copyWith(color: Colors.white),
+            textAlign: TextAlign.center,
+            style: context.textTheme.displaySmall
+              ?.copyWith(color: Colors.white, height: 1.5),
           ),
           const SizedBox(height: 12),
-          Wrap(spacing: 12, children: [
+          Wrap(spacing: 12, runSpacing: 12, alignment: WrapAlignment.center, children: [
             for (final item in choices)
               InkWell(
                 onTap: () => onSelected(item),

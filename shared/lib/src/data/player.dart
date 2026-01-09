@@ -52,7 +52,7 @@ abstract class Player {
 
   Deck get _onTable => [
     ...tableMoney,
-    for (final stack in stacks) ...stack.cards,
+    for (final stack in stacks) ...stack.allCards,
   ];
 
   bool get hasAProperty => stacks

@@ -42,7 +42,7 @@ class PaymentResponse extends InterruptionResponse {
     "player": player.name,
   };
 
-  void validate(int amount) {
+  bool validate(int amount) {
     if (!player.hasCardsOnTable(cards)) throw GameError.notOnTable;
     if (player.netWorth < amount) {
       if (cards.length < player.cardsWithValue.length) {
@@ -52,6 +52,7 @@ class PaymentResponse extends InterruptionResponse {
       throw PlayerException(.notEnoughMoney);
     }
     if (cards.any((card) => card.value == 0)) throw PlayerException(.noValue);
+    return true;
   }
 
   void handle(Game game, Player otherPlayer) {

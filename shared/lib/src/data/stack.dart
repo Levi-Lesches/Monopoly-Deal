@@ -51,7 +51,7 @@ class PropertyStack {
         cards.add(card);
       case RainbowWildCard():
         if (!hasRoom) throw GameError("This stack is full");
-        if (isEmpty) throw GameError("Rainbow wild cards must be part of an existing stack");
+        // Don't check for rainbow wild errors here, player might be forced to use it
         cards.add(card);
       case House():
         if (!isSet) throw GameError("This stack is not a set");

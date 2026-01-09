@@ -42,8 +42,9 @@ extension GameDebugUtils on Game {
   }
 
   @visibleForTesting
-  void debugAddProperty(RevealedPlayer player, PropertyCard card) {
+  void debugAddProperty(RevealedPlayer player, PropertyLike card, {PropertyColor? color}) {
+    if (card is PropertyCard) color ??= card.color;
     referenceDeck.add(card);
-    player.addProperty(card, card.color);
+    player.addProperty(card, color!);
   }
 }

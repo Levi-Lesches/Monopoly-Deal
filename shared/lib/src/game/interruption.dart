@@ -120,13 +120,19 @@ class StealStackInterruption extends Interruption {
 
 class ChooseColorInterruption extends Interruption {
   final String card;  // uuid
+  final List<PropertyColor> colors;
   ChooseColorInterruption({
     required WildCard card,
+    required this.colors,
     required super.causedBy,
   }) : card = card.uuid, super(waitingFor: causedBy);
 
   ChooseColorInterruption.fromJson(Json json) :
     card = json["card"],
+    colors = [
+      for (final color in (json["colors"] as List).cast<String>())
+        PropertyColor.fromJson(color),
+    ],
     super.fromJson(json);
 
   @override
@@ -134,6 +140,7 @@ class ChooseColorInterruption extends Interruption {
     ...super.toJson(),
     "type": "color",
     "card": card,
+    "colors": colors,
   };
 
   @override

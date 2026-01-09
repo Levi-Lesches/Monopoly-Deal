@@ -92,6 +92,7 @@ class Game {
     final stealer = findPlayer(details.causedBy);
     final victim = findPlayer(details.waitingFor);
     final toSteal = findCardByName(details.toSteal) as PropertyLike;
+    if (!victim.hasCardsOnTable([toSteal])) throw GameError.notOnTable;
     final toGive = details.toGive.map(findCardByName) as PropertyLike?;
     victim.removeFromTable(toSteal);
     log("$stealer stole $toSteal from $victim");
@@ -108,8 +109,16 @@ class Game {
   PropertyColor? promptForColor(Player player, PropertyLike card) {
     switch (card) {
       case PropertyCard(:final color): return color;
-      case WildCard():
-        interrupt(ChooseColorInterruption(card: card, causedBy: player));
+      case WildPropertyCard(:final topColor, :final bottomColor):
+        interrupt(ChooseColorInterruption(card: card, causedBy: player, colors: [topColor, bottomColor]));
+        return null;
+      case RainbowWildCard():
+        final colors = [
+          for (final stack in player.stacks)
+            if (stack.hasRoom)
+              stack.color,
+        ];
+        interrupt(ChooseColorInterruption(card: card, causedBy: player, colors: colors));
         return null;
       case _: return null;
     }

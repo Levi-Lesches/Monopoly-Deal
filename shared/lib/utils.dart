@@ -38,6 +38,8 @@ extension ListUtils<E> on List<E> {
     final result = index + 1;
     return result == length ? 0 : result;
   }
+
+  void toggle(E element) => contains(element) ? remove(element) : add(element);
 }
 
 extension IterUtils<E> on Iterable<E> {

@@ -26,12 +26,14 @@ class CardWidget extends ReusableReactiveWidget<HomeModel> {
       return choices.contains(card);
     } else if (models.game.choice case PropertyChoice(:final choices)) {
       if (card is PropertyLike && choices.contains(card)) return true;
+    } else if (models.game.choice case MoneyChoice(:final choices)) {
+      return choices.contains(card);
     }
     return false;
   }
 
   Border get border {
-    if (models.game.toDiscard.contains(card)) {
+    if (models.game.cardChoices.contains(card)) {
       return Border.all(width: 3, color: Colors.red);
     } else if (canChoose) {
       return Border.all(width: 3);

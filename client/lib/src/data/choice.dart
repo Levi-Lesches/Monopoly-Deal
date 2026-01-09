@@ -24,7 +24,6 @@ class CardChoice extends Choice<MCard> {
 class PropertyChoice extends Choice<PropertyLike> {
   PropertyChoice.self(GameState game) : super([
     for (final stack in game.player.stacks)
-      if (!stack.isSet)
         ...stack.cards,
   ]);
 
@@ -68,10 +67,15 @@ class PlayerChoice extends Choice<Player> {
 }
 
 class ColorChoice extends Choice<PropertyColor> {
-  ColorChoice(super.choices);
+  final String message;
+  ColorChoice(this.message, super.choices);
 }
 
 class BoolChoice extends Choice<bool> {
   final String title;
-  BoolChoice(this.title) : super([true, false]);
+  BoolChoice(this.title, {List<bool> choices = const [true, false]}) : super(choices);
+}
+
+class MoneyChoice extends Choice<MCard> {
+  MoneyChoice(GameState game) : super(game.player.cardsWithValue.toList());
 }

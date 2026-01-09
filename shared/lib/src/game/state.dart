@@ -1,3 +1,4 @@
+import "package:collection/collection.dart";
 import "package:shared/data.dart";
 import "package:shared/utils.dart";
 
@@ -23,6 +24,9 @@ class GameState {
     required this.interruptions,
     required this.log,
   });
+
+  Interruption? get interruption => interruptions
+    .firstWhereOrNull((i) => i.waitingFor == player.name);
 
   GameState.fromJson(Json json) :
     player = RevealedPlayer.fromJson(json["player"]),
@@ -74,8 +78,8 @@ class GameState {
     StealingActionCard(:final isTrade) => otherPlayers.any((p) => p.hasPropertyToSteal)
       && (!isTrade || player.hasAProperty),
     PassGo() => true,
-    House() => player.hasSet,
-    Hotel() => player.stacks.any((s) => s.isSet && s.house != null),
+    House() => player.stacks.any((s) => s.isSet && s.house == null),
+    Hotel() => player.stacks.any((s) => s.isSet && s.house != null && s.hotel == null),
     JustSayNo() => false,
     DoubleTheRent() => false,
     Stackable() => false,  // covered in previous cases
