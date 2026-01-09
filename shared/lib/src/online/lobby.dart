@@ -1,42 +1,8 @@
 import "dart:async";
 
-import "package:shared/utils.dart";
+import "package:shared/network.dart";
 
-import "socket.dart";
-import "user.dart";
-
-class LobbyJoinPacket {
-  final bool isReady;
-  const LobbyJoinPacket({required this.isReady});
-
-  LobbyJoinPacket.fromJson(Json json) :
-    isReady = json["isReady"] ?? false;
-
-  Json toJson() => {"isReady": isReady};
-}
-
-sealed class LobbyServerPacket {
-  LobbyServerPacket();
-  factory LobbyServerPacket.fromJson(Json json) => switch (json["type"]) {
-    "accept" => LobbyAcceptPacket.fromJson(json),
-    "start" => LobbyStartPacket(),
-    _ => throw ArgumentError("Invalid packet: $json"),
-  };
-}
-
-class LobbyAcceptPacket extends LobbyServerPacket {
-  final bool isAccepted;
-  LobbyAcceptPacket({required this.isAccepted});
-
-  LobbyAcceptPacket.fromJson(Json json) :
-    isAccepted = json["isAccepted"] ?? false;
-
-  Json toJson() => {"type": "accept", "isAccepted": isAccepted};
-}
-
-class LobbyStartPacket extends LobbyServerPacket {
-  Json toJson() => {"type": "start"};
-}
+import "lobby_packets.dart";
 
 class LobbyClient {
   final ClientSocket socket;
@@ -49,9 +15,10 @@ class LobbyClient {
 
   Future<void> get gameStarted => _startCompleter.future;
   Completer<bool>? _joinCompleter;
+  StreamSubscription<void>? _sub;
 
   Future<void> init() async {
-    socket.listen(_parsePacket);
+    _sub = socket.listen(_parsePacket);
   }
 
   Future<void> dispose() async {
@@ -62,6 +29,7 @@ class LobbyClient {
       _joinCompleter?.completeError(TimeoutException("Lobby client was disposed"));
     }
     _joinCompleter = null;
+    await _sub?.cancel();
   }
 
   Future<bool> join() async {
@@ -97,17 +65,19 @@ class LobbyServer {
   final _startCompleter = Completer<void>();
   LobbyServer(this.socket);
 
+  StreamSubscription<void>? _sub;
+
   Future<void> get gameStarted => _startCompleter.future;
 
   Future<void> init() async {
-    socket.listen(parsePacket);
+    _sub = socket.listen(parsePacket);
   }
 
   Future<void> dispose() async {
     if (!_startCompleter.isCompleted) {
       _startCompleter.completeError(TimeoutException("Lobby server was disposed"));
     }
-    users.clear();
+    await _sub?.cancel();
   }
 
   Future<void> start() async {

@@ -1,6 +1,13 @@
 /// A JSON object
 typedef Json = Map<String, dynamic>;
 
+typedef FromJson<T> = T Function(Json);
+
+abstract class Serializable {
+  const Serializable();
+  Json toJson();
+}
+
 /// Utils on [Map].
 extension MapUtils<K, V> on Map<K, V> {
   /// Gets all the keys and values as 2-element records.
@@ -63,4 +70,14 @@ extension NullableUtils<T> on T? {
 
 extension SetUtils<E> on Set<E> {
   void toggle(E element) => contains(element) ? remove(element) : add(element);
+}
+
+T? safely<T>(T Function() func) {
+  try {
+    return func();
+  // Intended to be a catch all
+  // ignore: avoid_catches_without_on_clauses
+  } catch (error) {
+    return null;
+  }
 }

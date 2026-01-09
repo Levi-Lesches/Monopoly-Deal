@@ -2,9 +2,9 @@ import "dart:async";
 
 import "package:shared/data.dart";
 import "package:shared/game.dart";
-import "package:shared/utils.dart";
+import "package:shared/network.dart";
 
-import "socket.dart";
+import "game_packets.dart";
 
 class MDealClient {
   final User user;
@@ -25,33 +25,29 @@ class MDealClient {
   }
 
   Future<void> handlePacket(Packet packet) async {
-    final type = packet["type"] as String;
-    final json = packet["data"] as Json;
-    switch (type) {
-      case "error":
-        final error = MDealError.fromJson(json);
+    final serverPacket = GamePacket.fromJson(packet, GameServerPacketType.fromJson);
+    switch (serverPacket.type) {
+      case .error:
+        final error = MDealError.fromJson(serverPacket.data);
         _gameController.addError(error);
-      case "game":
-        final game = GameState.fromJson(json);
+      case .game:
+        final game = GameState.fromJson(serverPacket.data);
         _gameController.add(game);
     }
   }
 
   Future<void> sendResponse(InterruptionResponse response) async {
-    final body = {
-      "type": "response",
-      "data": response.toJson(),
-      "password": user.password,
-    };
-    await socket.send(body);
+    final body = GamePacket(type: GameClientPacketType.response, data: response.toJson());
+    await socket.send(body.toJson());
   }
 
   Future<void> sendAction(PlayerAction action) async {
-    final body = {
-      "type": "action",
-      "data": action.toJson(),
-      "password": user.password,
-    };
-    await socket.send(body);
+    final body = GamePacket(type: GameClientPacketType.action, data: action.toJson());
+    await socket.send(body.toJson());
+  }
+
+  Future<void> requestState() async {
+    const body = GamePacket(type: GameClientPacketType.game, data: {});
+    await socket.send(body.toJson());
   }
 }

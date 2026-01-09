@@ -31,7 +31,6 @@ class GameState {
     discarded = json.mapNullable("discarded", cardFromJson);
 
   Json toJson() => {
-    "type": "game",
     "player": player.toJson(),
     "otherPlayers": [
       for (final other in otherPlayers)

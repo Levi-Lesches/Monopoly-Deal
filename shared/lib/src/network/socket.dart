@@ -10,7 +10,7 @@ abstract class ServerSocket {
   Future<void> init();
   Future<void> dispose();
   Future<void> send(User user, Packet payload);
-  void listen(ServerCallback func);
+  StreamSubscription<void> listen(ServerCallback func);
 }
 
 typedef ClientCallback = void Function(Packet);
@@ -21,5 +21,5 @@ abstract class ClientSocket {
   Future<void> init();
   Future<void> dispose();
   Future<void> send(Packet payload);
-  void listen(ClientCallback func);
+  StreamSubscription<void> listen(ClientCallback func);
 }

@@ -16,16 +16,23 @@ Map<User, StreamController<Packet>> serverControllers = {
 };
 
 class MockServerSocket extends ServerSocket {
-  final subs = <StreamSubscription<void>>[];
+  final _subs = <StreamSubscription<void>>[];
+  final _controller = StreamController<(User, Packet)>.broadcast();
 
   @override
-  Future<void> init() async { }
+  Future<void> init() async {
+    for (final (user, controller) in clientControllers.records) {
+      void callback(Packet packet) => _controller.add( (user, packet) );
+      _subs.add(controller.stream.listen(callback));
+    }
+  }
 
   @override
   Future<void> dispose() async {
-    for (final sub in subs) {
+    for (final sub in _subs) {
       await sub.cancel();
     }
+    await _controller.close();
   }
 
   @override
@@ -33,27 +40,20 @@ class MockServerSocket extends ServerSocket {
     serverControllers[user]!.add(packet);
 
   @override
-  void listen(void Function(User, Packet) func) {
-    for (final (user, controller) in clientControllers.records) {
-      void callback(Packet packet) => func(user, packet);
-      subs.add(controller.stream.listen(callback));
-    }
-  }
+  StreamSubscription<void> listen(void Function(User, Packet) func) =>
+    _controller.stream.listen((record) => func(record.$1, record.$2));
 }
 
 class MockClientSocket extends ClientSocket {
   MockClientSocket(super.user);
 
   @override Future<void> init() async { }
-  @override Future<void> dispose() async =>
-    sub?.cancel();
+  @override Future<void> dispose() async { }
 
   @override Future<void> send(Packet packet) async =>
     clientControllers[user]!.add(packet);
 
-  StreamSubscription<void>? sub;
-
   @override
-  void listen(void Function(Packet) func) =>
-    sub = serverControllers[user]!.stream.listen(func);
+  StreamSubscription<void> listen(void Function(Packet) func) =>
+    serverControllers[user]!.stream.listen(func);
 }

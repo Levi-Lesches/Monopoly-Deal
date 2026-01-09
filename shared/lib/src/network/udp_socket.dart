@@ -60,20 +60,13 @@ class UdpClientSocket extends ClientSocket {
     await _udpSub?.cancel();
     _udpSub = null;
     await _udp.dispose();
-    for (final sub in _subs) {
-      await sub.cancel();
-    }
-    _subs.clear();
   }
 
   final _controller = StreamController<Packet>.broadcast();
-  final _subs = <StreamSubscription<void>>[];
 
   @override
-  void listen(ClientCallback callback) {
-    final sub = _controller.stream.listen(callback);
-    _subs.add(sub);
-  }
+  StreamSubscription<void> listen(ClientCallback callback) =>
+    _controller.stream.listen(callback);
 
   void _handlePacket(Datagram datagram) {
     final jsonString = String.fromCharCodes(datagram.data);
@@ -106,22 +99,14 @@ class UdpServerSocket extends ServerSocket {
   Future<void> dispose() async {
     await _sub?.cancel();
     await _udp.dispose();
-    for (final sub in _subs) {
-      await sub.cancel();
-    }
     _sub = null;
-    _subs.clear();
   }
 
   final _controller = StreamController<UdpClientPacket>.broadcast();
-  final _subs = <StreamSubscription<void>>[];
 
   @override
-  void listen(ServerCallback func) => _subs.add(
-    _controller.stream.listen(
-      (udpPacket) => func(udpPacket.user, udpPacket.packet),
-    ),
-  );
+  StreamSubscription<void> listen(ServerCallback func) => _controller.stream
+    .listen((udpPacket) => func(udpPacket.user, udpPacket.packet));
 
   final _clients = <User, SocketInfo>{};
   void parsePacket(Datagram datagram) {
