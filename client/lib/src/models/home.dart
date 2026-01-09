@@ -16,6 +16,9 @@ enum Choice {
 
 /// The view model for the home page.
 class HomeModel extends DataModel {
+  final MDealClient client;
+  HomeModel(this.client);
+
   RevealedPlayer get player => game.player;
   late RevealedPlayer levi;
   late RevealedPlayer david;

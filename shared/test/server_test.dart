@@ -17,10 +17,10 @@ import "package:test/test.dart";
 import "mock_sockets.dart";
 
 void main() => test("Server test", () async {
-  final aliceClient = MDealClient(MockClientSocket(aliceUser), aliceUser);
+  final aliceClient = MDealClient(MockClientSocket(aliceUser));
   await aliceClient.init();
 
-  final bobClient = MDealClient(MockClientSocket(bobUser), bobUser);
+  final bobClient = MDealClient(MockClientSocket(bobUser));
   await bobClient.init();
 
   aliceClient.expectUpdate();

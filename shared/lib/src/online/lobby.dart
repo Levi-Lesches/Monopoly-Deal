@@ -8,10 +8,8 @@ class LobbyClient {
   final ClientSocket socket;
   final _startCompleter = Completer<void>();
   final User user;
-  LobbyClient({
-    required this.socket,
-    required this.user,
-  });
+  LobbyClient(this.socket) :
+    user = socket.user;
 
   Future<void> get gameStarted => _startCompleter.future;
   Completer<bool>? _joinCompleter;
@@ -40,10 +38,10 @@ class LobbyClient {
     return completer.future.timeout(const Duration(seconds: 5));
   }
 
-  Future<bool> markReady() async {
+  Future<bool> markReady({required bool isReady}) async {
     final completer = Completer<bool>();
     _joinCompleter = completer;
-    const packet = LobbyJoinPacket(isReady: true);
+    final packet = LobbyJoinPacket(isReady: isReady);
     await socket.send(packet.toJson());
     return completer.future;
   }

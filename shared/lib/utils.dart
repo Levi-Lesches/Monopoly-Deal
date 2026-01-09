@@ -72,6 +72,10 @@ extension SetUtils<E> on Set<E> {
   void toggle(E element) => contains(element) ? remove(element) : add(element);
 }
 
+extension StringUtils on String {
+  String? get nullIfEmpty => isEmpty ? null : this;
+}
+
 T? safely<T>(T Function() func) {
   try {
     return func();

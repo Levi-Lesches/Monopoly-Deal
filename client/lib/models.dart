@@ -1,3 +1,6 @@
+import "package:shared/network.dart";
+import "package:shared/online.dart";
+
 import "";
 export "src/models/home.dart";
 export "src/models/model.dart";
@@ -8,7 +11,7 @@ class Models extends DataModel {
 	Models._();
 
   // List your models here
-  final game = HomeModel();
+  HomeModel game = HomeModel(MDealClient(UdpClientSocket(User("test"), port: 9000)));
 
 	/// A list of all models to manage.
 	List<DataModel> get models => [game];
@@ -25,6 +28,11 @@ class Models extends DataModel {
     for (final model in models) {
       await model.initFromOthers();
     }
+  }
+
+  Future<void> startGame(MDealClient client) async {
+    game = HomeModel(client);
+    await game.init();
   }
 }
 

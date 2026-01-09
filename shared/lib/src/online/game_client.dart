@@ -9,7 +9,8 @@ import "game_packets.dart";
 class MDealClient {
   final User user;
   final ClientSocket socket;
-  MDealClient(this.socket, this.user);
+  MDealClient(this.socket) :
+    user = socket.user;
 
   final _gameController = StreamController<GameState>.broadcast();
   Stream<GameState> get gameUpdates => _gameController.stream;
