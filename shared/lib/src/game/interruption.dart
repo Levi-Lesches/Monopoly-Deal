@@ -159,5 +159,5 @@ class DiscardInterruption extends Interruption {
   };
 
   @override
-  String toString() => "Waiting for $waitingFor to discard $amount cards";
+  String toString() => "Waiting for $waitingFor to discard at least $amount cards";
 }

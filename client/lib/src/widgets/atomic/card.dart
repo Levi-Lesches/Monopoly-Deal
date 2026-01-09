@@ -16,19 +16,15 @@ class CardWidget extends ReusableReactiveWidget<HomeModel> {
     Colors.purple,
   ];
 
-  Color get color => card is PropertyCard || card is WildPropertyCard
-    ? Colors.white
-    : card.value == 10 ? Colors.red : colors[card.value];
-
   final MCard card;
-  // final VoidCallback? onSelected;
-  bool get isChoosing => models.game.choice2 is CardChoice;
-  CardWidget(this.card) : super(models.game, key: ValueKey(card.uuid));
+  final PropertyColor? fallbackColor;
+  CardWidget(this.card, {this.fallbackColor}) :
+    super(models.game, key: ValueKey(card.uuid));
 
   bool get canChoose {
-    if (models.game.choice2 case CardChoice(:final choices)) {
+    if (models.game.choice case CardChoice(:final choices)) {
       return choices.contains(card);
-    } else if (models.game.choice2 case PropertyChoice(:final choices)) {
+    } else if (models.game.choice case PropertyChoice(:final choices)) {
       if (card is PropertyLike && choices.contains(card)) return true;
     }
     return false;
@@ -38,17 +34,30 @@ class CardWidget extends ReusableReactiveWidget<HomeModel> {
     if (models.game.toDiscard.contains(card)) {
       return Border.all(width: 3, color: Colors.red);
     } else if (canChoose) {
-    // if (models.game.choice2 case CardChoice(:final choices)) {
-      // } else if (choices.contains(card)) {
-        return Border.all(width: 3);
-      // }
+      return Border.all(width: 3);
     } else {
       return Border.all();
     }
   }
 
+  Color get color {
+    if (card case PropertyCard(:final color)) {
+      return color.flutterColor;
+    } else if (card is WildCard) {
+      return fallbackColor?.flutterColor ?? Colors.white;
+    } else if (card.value == 10) {
+      return Colors.red;
+    } else {
+      return colors[card.value];
+    }
+  }
+
   Widget get child => Center(
-    child: Text(card.name, textAlign: TextAlign.center),
+    child: Text(
+      card.name,
+      textAlign: TextAlign.center,
+      style: TextStyle(color: textColorFor(color)),
+    ),
   );
 
   @override

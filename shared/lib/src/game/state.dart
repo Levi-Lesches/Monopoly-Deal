@@ -12,6 +12,7 @@ class GameState {
 
   final MCard? discarded;
   final List<Interruption> interruptions;
+  final List<String> log;
 
   GameState({
     required this.player,
@@ -20,6 +21,7 @@ class GameState {
     required this.turnsRemaining,
     required this.discarded,
     required this.interruptions,
+    required this.log,
   });
 
   GameState.fromJson(Json json) :
@@ -28,7 +30,8 @@ class GameState {
     interruptions = json.parseList("interruptions", Interruption.parse),
     currentPlayer = json["currentPlayer"],
     turnsRemaining = json["turnsRemaining"],
-    discarded = json.mapNullable("discarded", cardFromJson);
+    discarded = json.mapNullable("discarded", cardFromJson),
+    log = json["log"];
 
   Json toJson() => {
     "player": player.toJson(),
@@ -43,6 +46,7 @@ class GameState {
       for (final interruption in interruptions)
         interruption.toJson(),
     ],
+    "log": log,
   };
 
   bool get canPlayWildCard => player.stacks
@@ -50,6 +54,12 @@ class GameState {
 
   bool get othersHaveMoney => otherPlayers
     .any((player) => player.hasMoney);
+
+  Player playerWithStack(PropertyStack stack) => otherPlayers
+    .firstWhere((p) => p.stacks.contains(stack));
+
+  Player playerWithProperty(PropertyLike card) => otherPlayers
+    .firstWhere((player) => player.hasCardsOnTable([card]));
 
   bool canPlay(MCard card) => switch(card) {
     MoneyCard() => true,

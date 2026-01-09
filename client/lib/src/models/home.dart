@@ -1,18 +1,12 @@
+// ignore_for_file: invalid_use_of_visible_for_testing_member
+
 import "dart:async";
 
+import "package:collection/collection.dart";
 import "package:mdeal/data.dart";
 
 import "chooser.dart";
 import "model.dart";
-
-enum Choice {
-  card,
-  ownProperty,
-  otherProperty,
-  ownSet,
-  otherSet,
-  player,
-}
 
 /// The view model for the home page.
 class HomeModel extends DataModel {
@@ -25,8 +19,7 @@ class HomeModel extends DataModel {
   late Game _game;
   late GameState game;
 
-  // Choice? choice;
-  Choice2<dynamic>? choice2;
+  Choice<dynamic>? choice;
 
   @override
   Future<void> init() async { restart(); }
@@ -36,10 +29,12 @@ class HomeModel extends DataModel {
     david = RevealedPlayer("David");
     _game = Game([levi, david]);
     _game.debugAddMoney(david, MoneyCard(value: 5));
-    _game.debugAddProperty(david, PropertyCard(name: "Boardwalk", color: PropertyColor.darkBlue));
-    _game.debugAddProperty(david, PropertyCard(name: "Park Place", color: PropertyColor.darkBlue));
+    _game.debugAddProperty(levi, PropertyCard(name: "Boardwalk", color: PropertyColor.darkBlue));
+    _game.debugAddProperty(levi, PropertyCard(name: "Park Place", color: PropertyColor.darkBlue));
     _game.debugAddProperty(david, PropertyCard(name: "Reading Railroad", color: PropertyColor.railroads));
     _game.debugAddProperty(david, PropertyCard(name: "B&O Railroad", color: PropertyColor.railroads));
+    _game.debugAddToHand(levi, RainbowRentActionCard());
+    _game.debugAddToHand(levi, DoubleTheRent());
     _game.debugAddToHand(levi, slyDeal());
     update();
   }
@@ -49,30 +44,22 @@ class HomeModel extends DataModel {
   int? turnsFor(Player player) => player.name == game.currentPlayer
     ? game.turnsRemaining : null;
 
-  Future<void> update() async {
+  void update() {
     game = _game.getStateFor(levi);
     // choice = null;
-    choice2 = null;
+    choice = null;
     notifyListeners();
     if (game.currentPlayer != player.name) return;
     if (game.interruptions.isEmpty && game.turnsRemaining > 0) {
       // choice = Choice.card;
-      choice2 = CardChoice.play(game);
+      choice = CardChoice.play(game);
       notifyListeners();
       unawaited(cards.next.then(playCard));
     } else if (isDiscarding) {
       // choice = Choice.card;
-      choice2 = CardChoice.discard(game);
+      choice = CardChoice.discard(game);
       notifyListeners();
       discardSub = cards.listen(toggleDiscard);
-    } else if (game.interruptions.first is StealInterruption) {
-      // TODO: Accept
-      await Future<void>.delayed((Duration(seconds: 1)));
-      final jsn = JustSayNo();
-      _game.debugAddToHand(david, jsn);
-      final response = JustSayNoResponse(player: david, justSayNo: jsn);
-      _game.handleResponse(response);
-      update();
     }
   }
 
@@ -139,60 +126,39 @@ class HomeModel extends DataModel {
       case PassGo():
         action = PassGoAction(card: card, player: player);
       case WildPropertyCard(:final topColor, :final bottomColor):
-        colorChoices = [topColor, bottomColor];
+        choice = ColorChoice([topColor, bottomColor]);
         notifyListeners();
         final color = await colors.next;
         action = WildPropertyAction(card: card, color: color, player: player);
       case RainbowWildCard():
-        colorChoices = player.stacks
-          .where((stack) => stack.isNotEmpty)
-          .map((stack) => stack.color)
-          .toList();
-        colorChoices = [
-          for (final stack in player.stacks)
-            if (stack.isNotEmpty)
-              stack.color,
-        ];
-        if (colorChoices!.isEmpty) {
-          errorMessage = "Can only play a rainbow wild on an existing property stack";
-          notifyListeners();
-          return;
-        }
-        final color = await colors.next;
-        action = RainbowWildAction(card: card, color: color, player: player);
+        choice = StackChoice.rainbowWild(game);
+        notifyListeners();
+        final stack = await stacks.next;
+        action = RainbowWildAction(card: card, color: stack.color, player: player);
       case PaymentActionCard(:final victimType):
         Player? victim;
         if (victimType == VictimType.onePlayer) {
           // choice = Choice.player;
-          choice2 = PlayerChoice(game);
+          choice = PlayerChoice(game);
           notifyListeners();
           victim = await players.next;
         }
         action = ChargeAction(card: card, player: player, victim: victim);
       case StealingActionCard(:final canChooseSet, :final isTrade):
-        // choice = Choice.player;
-        print("Stealing cards");
-        choice2 = PlayerChoice(game);
-        notifyListeners();
-        final victim = await players.next;
-        print("Chose player: $victim");
         if (canChooseSet) {
-          // choice = Choice.otherSet;
-          choice2 = StackChoice.others(game);
+          choice = StackChoice.others(game);
           notifyListeners();
-          final color = await colors.next;
-          action = StealAction(card: card, victim: victim, color: color, player: player);
+          final stack = await stacks.next;
+          final victim = game.playerWithStack(stack);
+          action = StealAction(card: card, victim: victim, color: stack.color, player: player);
         } else {
-          // choice = Choice.otherProperty;
-          choice2 = PropertyChoice.others(game);
+          choice = PropertyChoice.others(game);
           notifyListeners();
-          print("Waiting for steal choice");
           final toSteal = await cards.next as PropertyLike;
-          print("Stealing: $toSteal");
+          final victim = game.playerWithProperty(toSteal);
           PropertyLike? toGive;
           if (isTrade) {
-            // choice = Choice.ownProperty;
-            choice2 = PropertyChoice.self(game);
+            choice = PropertyChoice.self(game);
             notifyListeners();
             toGive = await properties.next;
           }
@@ -200,10 +166,10 @@ class HomeModel extends DataModel {
         }
       case PropertySetModifier():
         // choice = Choice.ownSet;
-        choice2 = StackChoice.selfSets(game);
+        choice = StackChoice.selfSets(game);
         notifyListeners();
-        final color = await colors.next;
-        action = SetModifierAction(card: card, color: color, player: player);
+        final stack = await stacks.next;
+        action = SetModifierAction(card: card, color: stack.color, player: player);
       case Stackable():  // covered by Property, Wild, Rainbow, House, and Hotel
         return;
       case JustSayNo():
@@ -216,37 +182,46 @@ class HomeModel extends DataModel {
         notifyListeners();
         update();
         return;
-      // TODO: Double the rent
       case RentActionCard(:final color1, :final color2):
-        choice2 = StackChoice.rent(game, colors: [color1, color2]);
+        choice = StackChoice.rent(game, colors: [color1, color2]);
         notifyListeners();
-        final color = await colors.next;
-        action = RentAction(card: card, color: color, player: player);
+        final stack = await stacks.next;
+        final doubler = await getDoubler();
+        action = RentAction(card: card, color: stack.color, player: player, doubleTheRent: doubler);
       case RainbowRentActionCard():
-        choice2 = StackChoice.rent(game);
+        choice = StackChoice.rent(game);
         notifyListeners();
-        final color = await colors.next;
-        // choice = Choice.player;
-        choice2 = PlayerChoice(game);
+        final stack = await stacks.next;
+        choice = PlayerChoice(game);
+        notifyListeners();
         final victim = await players.next;
-        action = RentAction(card: card, color: color, player: player, victim: victim);
+        final doubler = await getDoubler();
+        action = RentAction(card: card, color: stack.color, player: player, victim: victim, doubleTheRent: doubler);
     }
     playAction(action);
   }
 
+  Future<DoubleTheRent?> getDoubler() async {
+    final doublerInHand = player.hand.whereType<DoubleTheRent>().firstOrNull;
+    if (doublerInHand == null) return null;
+    choice = BoolChoice("Use a double the rent?");
+    notifyListeners();
+    final confirmation = await confirmations.next;
+    return confirmation ? doublerInHand : null;
+  }
+
   String? errorMessage;
-  List<PropertyColor>? colorChoices;
   final cards = Chooser<MCard>();
   final colors = Chooser<PropertyColor>();
   final properties = Chooser<PropertyLike>();
   final players = Chooser<Player>();
+  final stacks = Chooser<PropertyStack>();
+  final confirmations = Chooser<bool>();
 
   bool isBanking = false;
   void toggleBank() {
     isBanking = !isBanking;
-    choice2 = isBanking ? CardChoice.bank(game) : CardChoice.play(game);
+    choice = isBanking ? CardChoice.bank(game) : CardChoice.play(game);
     notifyListeners();
   }
-
-  List<MCard>? cardChoices;
 }

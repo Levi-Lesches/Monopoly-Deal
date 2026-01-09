@@ -11,19 +11,21 @@ export "game_handlers.dart";
 class Game {
   final List<RevealedPlayer> players;
   List<MCard> referenceDeck = [];
+  final List<String> _log = [];
   Deck deck;
   Deck discardPile;
 
   int playerIndex = 0;
   RevealedPlayer get currentPlayer => players[playerIndex];
   int turnsRemaining = 0;
-  List<Interruption> interruptions = [];
+  final interruptions = <Interruption>[];
 
   Game(this.players) :
     deck = shuffleDeck(),
     discardPile = []
   {
     referenceDeck = List.from(deck);
+    log("Starting the game!");
     dealStartingCards();
     startTurn();
   }
@@ -39,6 +41,8 @@ class Game {
   RevealedPlayer findPlayer(String name) => players
     .firstWhere((other) => other.name == name);
 
+  void log(String message) => _log.add(message);
+
   GameState getStateFor(RevealedPlayer player) => GameState(
     player: player,
     otherPlayers: [
@@ -49,6 +53,7 @@ class Game {
     interruptions: interruptions,
     discarded: discardPile.lastOrNull,
     turnsRemaining: turnsRemaining,
+    log: _log.reversed.take(20).toList(),
   );
 
   void dealToPlayer(RevealedPlayer player, int count) {
@@ -68,19 +73,20 @@ class Game {
   }
 
   void startTurn() {
-    if (currentPlayer.hand.isEmpty) {
-      dealToPlayer(currentPlayer, 5);
-    } else {
-      dealToPlayer(currentPlayer, 2);
-    }
+    final numCards = currentPlayer.handCount == 0 ? 5 : 2;
+    dealToPlayer(currentPlayer, numCards);
+    log("--------------------------------");
+    log("Dealt $currentPlayer $numCards cards to start their turn");
     turnsRemaining = 3;
   }
 
-  void chargePlayers(Player player, int amount, List<Player> players) => interruptions = [
-    for (final otherPlayer in players.exceptFor(player))
-      if (otherPlayer.netWorth > 0)
-        PaymentInterruption(amount: amount, waitingFor: otherPlayer, causedBy: player),
-  ];
+  void chargePlayers(Player player, int amount, List<Player> players) {
+    for (final otherPlayer in players.exceptFor(player)) {
+      if (otherPlayer.netWorth == 0) continue;
+      final interruption = PaymentInterruption(amount: amount, waitingFor: otherPlayer, causedBy: player);
+      interrupt(interruption);
+    }
+  }
 
   void steal(StealInterruption details) {
     final stealer = findPlayer(details.causedBy);
@@ -88,12 +94,14 @@ class Game {
     final toSteal = findCardByName(details.toSteal) as PropertyLike;
     final toGive = details.toGive.map(findCardByName) as PropertyLike?;
     victim.removeFromTable(toSteal);
+    log("$stealer stole $toSteal from $victim");
     final color = promptForColor(stealer, toSteal);
     if (color != null) stealer.addProperty(toSteal, color);
     if (toGive != null) {
       final color2 = promptForColor(victim, toGive);
       stealer.removeFromTable(toGive);
       if (color2 != null) victim.addProperty(toGive, color2);
+      log("$stealer gave $toGive to $victim");
     }
   }
 
@@ -101,19 +109,24 @@ class Game {
     switch (card) {
       case PropertyCard(:final color): return color;
       case WildCard():
-        final interruption = ChooseColorInterruption(card: card, causedBy: player);
-        interruptions.add(interruption);
+        interrupt(ChooseColorInterruption(card: card, causedBy: player));
         return null;
       case _: return null;
     }
   }
 
+  void interrupt(Interruption interruption) {
+    interruptions.add(interruption);
+    log(interruption.toString());
+  }
+
   void endTurn() {
     if (interruptions.isNotEmpty) throw GameError("Resolve all interruptions first");
+    log("$currentPlayer ended their turn");
     turnsRemaining = 0;
     var amountToDiscard = currentPlayer.handCount - 7;
     if (amountToDiscard < 0) amountToDiscard = 0;
-    interruptions.add(DiscardInterruption(amount: amountToDiscard, waitingFor: currentPlayer));
+    interrupt(DiscardInterruption(amount: amountToDiscard, waitingFor: currentPlayer));
   }
 
   void discard(RevealedPlayer player, MCard card) {

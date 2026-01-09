@@ -24,7 +24,7 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
   int? get turnsRemaining => models.game.turnsFor(player);
   bool get canEndTurn => models.game.canEndTurn;
   bool get isPlayer => player.name == models.game.player.name;
-  bool get canBank => isPlayer && isTurn && turnsRemaining! > 0;
+  bool get canBank => isPlayer && isTurn && turnsRemaining! > 0 && models.game.choice is CardChoice;
 
   @override
   Widget build(BuildContext context, HomeModel model) => Column(
@@ -54,7 +54,7 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
           Text("Turns Left: $turnsRemaining / 3"),
         const Spacer(),
         if (isPlayer && isTurn)
-          if (model.toDiscard.isEmpty) FilledButton(
+          if (model.discard == null) FilledButton(
             onPressed: canEndTurn ? models.game.endTurn : null,
             child: const Text("End Turn"),
           ) else FilledButton(
@@ -62,7 +62,7 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             child: const Text("Discard"),
           )
-        else if (model.choice2 is PlayerChoice && !isPlayer)
+        else if (model.choice is PlayerChoice && !isPlayer)
           FilledButton(
             onPressed: () => model.players.choose(player),
             child: const Text("Choose"),
@@ -75,6 +75,7 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
+            spacing: 12,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(width: 12),
@@ -98,12 +99,10 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
                   ),
                 ),
               ],),
-              const SizedBox(width: 8),
               const SizedBox(
                 height: CardWidget.height,
                 child: VerticalDivider(),
               ),
-              const SizedBox(width: 8),
               ...buildStacks(model),
             ],
           ),
@@ -113,12 +112,8 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
   );
 
   List<Widget> buildStacks(HomeModel model) {
-    final choice = model.choice2;
+    final choice = model.choice;
     return switch (choice) {
-      PlayerChoice() || CardChoice() || StackChoice() || null => [
-        for (final stack in player.tableStacks)
-          StackWidget(stack),
-      ],
       PropertyChoice() => [
         for (final stack in player.tableStacks)
           if (stack.isSet)
@@ -127,11 +122,10 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
             for (final card in stack.cards)
               CardWidget(card),
       ],
+      _ => [
+        for (final stack in player.tableStacks)
+          StackWidget(stack),
+      ],
     };
   }
-
-  // bool canChooseProperty(HomeModel model) => switch(model.choice2) {
-  //   null => false,
-  //   PropertyChoice() =>
-  // }
 }

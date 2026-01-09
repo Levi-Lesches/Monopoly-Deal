@@ -60,14 +60,14 @@ class PropertyStack {
       case Hotel():
         if (!isSet) throw GameError("This stack is not a set");
         if (house == null) throw PlayerException(.hotelBeforeHouse);
-        if (hotel == null) throw PlayerException(.duplicateCardInStack);
+        if (hotel != null) throw PlayerException(.duplicateCardInStack);
         hotel = card;
-      // case _:
     }
   }
 
   int get rent {
-    var result = color.rents[cards.length];
+    if (cards.isEmpty) return 0;
+    var result = color.rents[cards.length - 1];
     if (house != null) result += 3;
     if (hotel != null) result += 4;
     return result;

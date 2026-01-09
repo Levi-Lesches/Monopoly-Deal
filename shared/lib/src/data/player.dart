@@ -3,11 +3,8 @@
 
 import "package:collection/collection.dart";
 import "package:meta/meta.dart";
+import "package:shared/data.dart";
 import "package:shared/utils.dart";
-
-import "card.dart";
-import "deck.dart";
-import "stack.dart";
 
 abstract class Player {
   final String name;

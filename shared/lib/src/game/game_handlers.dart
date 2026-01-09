@@ -17,10 +17,12 @@ extension GameHandlers on Game {
       case JustSayNoResponse(:final justSayNo):
         response.validate();
         discard(response.player, justSayNo);
+        log("${response.player} used a Just Say No!");
       case PaymentResponse():
         if (interruption is! PaymentInterruption) throw GameError.wrongResponse;
         response.validate(interruption.amount);
         response.handle(this, causedBy);
+        log("${response.player} paid with ${response.cards}");
       case AcceptedResponse():  // do the thing
         switch (interruption) {
           case StealInterruption():
@@ -29,6 +31,7 @@ extension GameHandlers on Game {
             final stack = waitingFor.getStackWithSet(color)!;
             waitingFor.stacks.remove(stack);
             causedBy.stacks.add(stack);
+            log("$causedBy stole $waitingFor's $color set!");
           case _: throw GameError.wrongResponse;
         }
       case ColorResponse(:final color):
@@ -36,10 +39,12 @@ extension GameHandlers on Game {
         final card = findCard(interruption.card) as WildCard;
         response.validate(card);
         response.player.addProperty(card, color);
+        log("${response.player} chose $color");
       case DiscardResponse(:final cards):
         if (interruption is! DiscardInterruption) throw GameError.wrongResponse;
         response.validate(interruption.amount);
         for (final card in cards) {
+          log("$currentPlayer discarded $card");
           discard(currentPlayer, card);
         }
         playerIndex = players.nextIndex(playerIndex);

@@ -47,9 +47,9 @@ class PaymentResponse extends InterruptionResponse {
     if (player.netWorth < amount) {
       if (cards.length < player.cardsWithValue.length) {
         throw PlayerException(.notEnoughMoney);  // can automate this
-      } else if (cards.totalValue < amount) {
-        throw PlayerException(.notEnoughMoney);
       }
+    } else if (cards.totalValue < amount) {
+      throw PlayerException(.notEnoughMoney);
     }
     if (cards.any((card) => card.value == 0)) throw PlayerException(.noValue);
   }

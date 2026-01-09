@@ -1,16 +1,16 @@
 import "package:mdeal/data.dart";
 
-sealed class Choice2<T> {
+sealed class Choice<T> {
   final List<T> choices;
-  Choice2(this.choices);
+  Choice(this.choices);
 }
 
-class CardChoice extends Choice2<MCard> {
+class CardChoice extends Choice<MCard> {
   CardChoice.discard(GameState game) : super(game.player.hand);
 
   CardChoice.bank(GameState game) : super([
     for (final card in game.player.hand)
-      if (card.value > 0)
+      if (card is! PropertyLike && card is! MoneyCard && card.value > 0)
         card,
   ]);
 
@@ -21,7 +21,7 @@ class CardChoice extends Choice2<MCard> {
   ]);
 }
 
-class PropertyChoice extends Choice2<PropertyLike> {
+class PropertyChoice extends Choice<PropertyLike> {
   PropertyChoice.self(GameState game) : super([
     for (final stack in game.player.stacks)
       if (!stack.isSet)
@@ -36,10 +36,10 @@ class PropertyChoice extends Choice2<PropertyLike> {
   ]);
 }
 
-class StackChoice extends Choice2<PropertyStack> {
+class StackChoice extends Choice<PropertyStack> {
   StackChoice.rent(GameState game, {List<PropertyColor>? colors}) : super([
     for (final stack in game.player.stacks)
-      if (stack.isNotEmpty && (colors == null || colors.contains(stack.color)))
+    if (stack.isNotEmpty && (colors == null || colors.contains(stack.color)))
         stack,
   ]);
 
@@ -55,22 +55,23 @@ class StackChoice extends Choice2<PropertyStack> {
         if (stack.isSet)
           stack,
   ]);
+
+  StackChoice.rainbowWild(GameState game) : super([
+    for (final stack in game.player.stacks)
+      if (stack.hasRoom)
+        stack,
+  ]);
 }
 
-class PlayerChoice extends Choice2<Player> {
+class PlayerChoice extends Choice<Player> {
   PlayerChoice(GameState game) : super(game.otherPlayers);
 }
 
-// class Choice<T> {
-//   List<T> get choices;
-// }
+class ColorChoice extends Choice<PropertyColor> {
+  ColorChoice(super.choices);
+}
 
-// sealed class BankCardChoice extends Choice<MCard> {
-//   bool isValid(RevealedPlayer player, MCard card) =>
-//     player.hasCardsInHand([card])
-//     && card.value > 0;
-// }
-
-// sealed class DiscardChoice extends Choice<MCard> {
-//   bool isValid(RevealedPlayer player, MCard card) =>
-// }
+class BoolChoice extends Choice<bool> {
+  final String title;
+  BoolChoice(this.title) : super([true, false]);
+}

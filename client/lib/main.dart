@@ -1,3 +1,4 @@
+import "package:flutter/gestures.dart";
 import "package:flutter/material.dart";
 
 import "package:mdeal/models.dart";
@@ -11,6 +12,16 @@ Future<void> main() async {
   runApp(const MdealApp());
 }
 
+class MyCustomScrollBehavior extends MaterialScrollBehavior {
+  // Override behavior methods and getters like dragDevices
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+    // etc.
+  };
+}
+
 /// The main app widget.
 class MdealApp extends StatelessWidget {
   /// A const constructor.
@@ -18,6 +29,7 @@ class MdealApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MaterialApp.router(
+    scrollBehavior: MyCustomScrollBehavior(),
     title: "Flutter Demo",
     theme: ThemeData(
       useMaterial3: true,
