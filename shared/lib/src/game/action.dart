@@ -322,6 +322,7 @@ class SetModifierAction extends OneCardAction {
 
   @override
   void handle(Game game) {
+    if (!color.isNormal) throw PlayerException(.invalidColor);
     final stack = player.getStackWithSet(color);
     if (stack == null) throw PlayerException(.noSet);
     stack.add(card);
