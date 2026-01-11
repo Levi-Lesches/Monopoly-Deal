@@ -85,3 +85,11 @@ T? safely<T>(T Function() func) {
     return null;
   }
 }
+
+Future<T?> safelyAsync<T>(Future<T> Function() func) async {
+  try {
+    return await func();
+  } catch (error) {
+    return null;
+  }
+}

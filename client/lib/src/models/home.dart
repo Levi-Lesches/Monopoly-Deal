@@ -15,12 +15,22 @@ class HomeModel extends DataModel {
 
   RevealedPlayer get player => game.player;
   Choice<dynamic>? choice;
+  StreamSubscription<void>? _sub;
 
   @override
   Future<void> init() async {
-    client.gameUpdates.listen(update);
+    cancelChoice(playCard: false);
+    _sub = client.gameUpdates.listen(update);
     await client.requestState();
     cards.addListener(notifyListeners);
+  }
+
+  @override
+  Future<void> dispose() async {
+    await _sub?.cancel();
+    await client.dispose();
+    cancelChoice(playCard: false);
+    super.dispose();
   }
 
   void setError(Object error) {
@@ -32,6 +42,7 @@ class HomeModel extends DataModel {
     ? game.turnsRemaining : null;
 
   void update(GameState state) {
+    cancelChoice(playCard: false);
     game = state;
     choice = null;
     notifyListeners();
@@ -238,7 +249,6 @@ class HomeModel extends DataModel {
     }
     if (playCard) {
       unawaited(client.requestState());
-      update(game);
     }
   }
 

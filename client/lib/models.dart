@@ -15,13 +15,16 @@ class Models extends DataModel {
 	/// A list of all models to manage.
 	List<DataModel> get models => [game];
 
-	@override
-	Future<void> init() async {
+  Future<void> resetGame() async {
     final user = User("test1");
     final mockClient = MockGameClient(user);
     await mockClient.init();
     game = HomeModel(mockClient, mockClient.state);
+  }
 
+	@override
+	Future<void> init() async {
+    await resetGame();
 		for (final model in models) {
       await model.init();
     }

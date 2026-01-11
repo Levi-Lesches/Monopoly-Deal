@@ -16,14 +16,14 @@ class MDealClient {
   final _gameController = StreamController<GameState>.broadcast();
   Stream<GameState> get gameUpdates => _gameController.stream;
 
+  StreamSubscription<void>? _sub;
   Future<void> init() async {
-    await _socket.init();
-    _socket.listen(_handlePacket);
+    _sub = _socket.listen(_handlePacket);
   }
 
   Future<void> dispose() async {
-    await _socket.dispose();
     await _gameController.close();
+    await _sub?.cancel();
   }
 
   Future<void> _handlePacket(Packet packet) async {

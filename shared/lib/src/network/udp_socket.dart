@@ -79,6 +79,9 @@ class UdpClientSocket extends ClientSocket {
 
 class UdpServerSocket extends ServerSocket {
   final UdpSocket _udp;
+  final _controller = StreamController<UdpClientPacket>.broadcast();
+  final _clients = <User, SocketInfo>{};
+
   UdpServerSocket({required int port}) :
     _udp = UdpSocket(port: port);
 
@@ -94,16 +97,16 @@ class UdpServerSocket extends ServerSocket {
   Future<void> dispose() async {
     await _sub?.cancel();
     await _udp.dispose();
+    await _controller.close();
+    _clients.clear();
     _sub = null;
   }
 
-  final _controller = StreamController<UdpClientPacket>.broadcast();
 
   @override
   StreamSubscription<void> listen(ServerCallback func) => _controller.stream
     .listen((udpPacket) => func(udpPacket.user, udpPacket.packet));
 
-  final _clients = <User, SocketInfo>{};
   void parsePacket(Datagram datagram) {
     final jsonString = String.fromCharCodes(datagram.data);
     final json = jsonDecode(jsonString);

@@ -1,6 +1,7 @@
 import "package:flutter/material.dart";
 import "package:mdeal/data.dart";
 import "package:mdeal/models.dart";
+import "package:mdeal/pages.dart";
 
 import "package:mdeal/widgets.dart";
 
@@ -9,11 +10,28 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
   HomePage() : super(models.game);
 
   @override
+  bool get shouldDispose => true;
+
+  @override
   Widget build(BuildContext context, HomeModel model) => Scaffold(
-    appBar: AppBar(title: Text("${model.player}'s Game")),
-    floatingActionButton: FloatingActionButton(
-      child: const Text("Cancel"),
-      onPressed: () => model.cancelChoice(),
+    appBar: AppBar(
+      title: Text("${model.player}'s Game"),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.restore),
+          tooltip: "Cancel / Restore",
+          onPressed: () => model.cancelChoice(),
+        ),
+      ],
+    ),
+    floatingActionButtonLocation: .centerFloat,
+    floatingActionButton: model.game.winner == null ? null :  FloatingActionButton.extended(
+      label: const Text("New game"),
+      icon: const Icon(Icons.replay),
+      onPressed: () async {
+        router.go(Routes.lobby);
+        await models.resetGame();
+      },
     ),
     body: Stack(
       children: [

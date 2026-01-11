@@ -10,8 +10,9 @@ export "game_handlers.dart";
 
 class Game {
   final List<RevealedPlayer> players;
-  List<MCard> referenceDeck = [];
   final List<String> _log = [];
+
+  final List<MCard> referenceDeck = [];
   Deck deck;
   Deck discardPile;
 
@@ -24,7 +25,7 @@ class Game {
     deck = shuffleDeck(),
     discardPile = []
   {
-    referenceDeck = List.from(deck);
+    referenceDeck.addAll(deck);
     log("Starting the game!");
     dealStartingCards();
     startTurn();
@@ -32,10 +33,6 @@ class Game {
 
   T findCard<T extends MCard>(String uuid) => referenceDeck
     .firstWhere((card) => card.uuid == uuid)
-    as T;
-
-  T findCardByName<T extends MCard>(String name) => referenceDeck
-    .firstWhere((card) => card.name == name)
     as T;
 
   RevealedPlayer findPlayer(String name) => players

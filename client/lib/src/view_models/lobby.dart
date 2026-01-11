@@ -51,7 +51,9 @@ class LobbyViewModel extends ViewModel {
     client = LobbyClient(socket!);
     await client!.init();
     client!.lobbyUsers.listen(updateUsers);
-    hasJoined = await client!.join();
+    final result = await safelyAsync(() => client!.join());
+    if (result == null) {isLoading = false; notifyListeners(); return; }
+    hasJoined = result;
     unawaited(client!.gameStarted.then((_) => startGame()));
     isLoading = false;
     notifyListeners();

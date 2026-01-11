@@ -25,14 +25,14 @@ class LobbyClient {
 
   Future<void> dispose() async {
     if (!_startCompleter.isCompleted) {
-      _startCompleter.completeError(TimeoutException("Lobby client was disposed"));
+      _startCompleter.completeError(TimeoutException("started: Lobby client was disposed"));
     }
     if (!(_joinCompleter?.isCompleted ?? true)) {
-      _joinCompleter?.completeError(TimeoutException("Lobby client was disposed"));
+      _joinCompleter?.completeError(TimeoutException("join: Lobby client was disposed"));
     }
     _joinCompleter = null;
-    await _playersController.close();
     await _sub?.cancel();
+    await _playersController.close();
   }
 
   Future<bool> join() async {
@@ -40,7 +40,7 @@ class LobbyClient {
     await socket.send(packet);
     final completer = Completer<bool>();
     _joinCompleter = completer;
-    return completer.future.timeout(const Duration(seconds: 5));
+    return completer.future.timeout(const Duration(seconds: 1));
   }
 
   Future<bool> markReady({required bool isReady}) async {
@@ -56,6 +56,7 @@ class LobbyClient {
     switch (response) {
       case LobbyAcceptPacket(:final isAccepted):
         _joinCompleter?.complete(isAccepted);
+        _joinCompleter = null;
       case LobbyStartPacket():
         _startCompleter.complete();
       case LobbyDetailsPacket(:final players):
@@ -68,10 +69,12 @@ class LobbyServer {
   final ServerSocket socket;
   final Map<User, bool> users = {};
   final _startCompleter = Completer<void>();
+  final _controller = StreamController<User>();
   LobbyServer(this.socket);
 
   StreamSubscription<void>? _sub;
 
+  Stream<User> get userStream => _controller.stream;
   Future<void> get gameStarted => _startCompleter.future;
 
   Future<void> init() async {
@@ -102,6 +105,7 @@ class LobbyServer {
       await socket.send(user, response.toJson());
     } else {
       users[user] = request.isReady;
+      _controller.add(user);
       final response = LobbyAcceptPacket(isAccepted: true);
       await socket.send(user, response.toJson());
       if (users.length > 1 && isReady) {

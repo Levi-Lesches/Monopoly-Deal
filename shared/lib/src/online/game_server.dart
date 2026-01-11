@@ -1,5 +1,6 @@
 import "dart:async";
 
+import "package:collection/collection.dart";
 import "package:shared/data.dart";
 import "package:shared/game.dart";
 import "package:shared/network.dart";
@@ -8,6 +9,7 @@ import "package:shared/utils.dart";
 import "game_packets.dart";
 
 class Server {
+  final _finishedCompleter = Completer<void>();
   final Game game;
   final ServerSocket socket;
   final List<User> users;
@@ -19,6 +21,8 @@ class Server {
   Future<void> init() async {
     socket.listen(handlePacket);
   }
+
+  Future<void> get isFinished => _finishedCompleter.future;
 
   Future<void> handlePacket(User user, Packet packet) async {
     final clientPacket = safely(() => GamePacket.fromJson(packet, GameClientPacketType.fromJson));
@@ -57,8 +61,13 @@ class Server {
 
   Future<void> dispose() async { }
 
-  Future<void> broadcastToAll() =>
-    Future.wait(users.map(broadcastTo));
+  Future<void> broadcastToAll() async {
+    for (final user in users) {
+      await broadcastTo(user);
+    }
+    final winner = players.firstWhereOrNull((p) => p.isWinner);
+    if (winner != null) _finishedCompleter.complete();
+  }
 
   Future<void> broadcastTo(User user) async {
     final player = game.findPlayer(user.name);
