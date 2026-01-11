@@ -47,13 +47,6 @@ extension GameHandlers on Game {
         startTurn();
     }
     interruptions.remove(interruption);
-    if (
-      interruptions.isEmpty
-      && turnsRemaining == 0
-      && interruption is! DiscardInterruption
-    ) {
-      endTurn();
-    }
   }
 
   void accept(Interruption interruption) {
@@ -83,6 +76,5 @@ extension GameHandlers on Game {
     action.handle(this);
     action.postHandle(this);
     turnsRemaining -= action.cardsUsed;
-    if (interruptions.isEmpty && turnsRemaining == 0) endTurn();
   }
 }
