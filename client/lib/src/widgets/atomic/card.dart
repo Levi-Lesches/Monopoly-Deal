@@ -54,14 +54,6 @@ class CardWidget extends ReusableReactiveWidget<HomeModel> {
     }
   }
 
-  Widget get child => Center(
-    child: Text(
-      card.name,
-      textAlign: TextAlign.center,
-      style: TextStyle(color: textColorFor(color)),
-    ),
-  );
-
   @override
   Widget build(BuildContext context, HomeModel model) => Padding(
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -74,7 +66,20 @@ class CardWidget extends ReusableReactiveWidget<HomeModel> {
         shape: border,
         child: InkWell(
           onTap: canChoose ? () => models.game.cards.choose(card) : null,
-          child: child,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Align(
+                alignment: const Alignment(-0.8, -0.9),
+                child: Text("\$${card.value}", style: TextStyle(color: textColorFor(color))),
+              ),
+              Text(
+                card.name,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: textColorFor(color)),
+              ),
+            ],
+          ),
         ),
       ),
     ),
