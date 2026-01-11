@@ -55,7 +55,7 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
     ),
     DiscardInterruption(:final amount) => ListTile(
       leading: const Icon(Icons.delete_forever, size: 36),
-      title: Text("Discard $amount cards"),
+      title: Text("Discard at least $amount card(s)"),
       subtitle: Text("Discarding: ${model.cards.values}"),
       trailing: FilledButton(
         onPressed: model.cards.values.length >= amount ? models.game.cards.confirmList : null,
@@ -68,6 +68,38 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
     ChooseColorInterruption() => null,
     JustSayNoInterruption() => null,
     null => null,
+  };
+
+  Widget? buildOtherInterruptionTile(HomeModel model) => switch(model.game.interruptionFor(player)) {
+    null => null,
+    PaymentInterruption(:final amount, :final causedBy) => ListTile(
+      leading: const Icon(Icons.paid, size: 36,),
+      title: Text("Needs to pay $causedBy \$$amount"),
+    ),
+    StealInterruption(:final causedBy, :final toGiveName, :final toStealName) => ListTile(
+      leading: toGiveName != null
+        ? const Icon(Icons.swap_horizontal_circle, size: 36,)
+        : const Icon(Icons.error, size: 36),
+        title: toGiveName == null
+          ? Text("$causedBy wants to steal $toStealName")
+          : Text("$causedBy wants to steal $toStealName and give $toGiveName"),
+    ),
+    StealStackInterruption(:final causedBy, :final color) => ListTile(
+      leading: const Icon(Icons.error, size: 36),
+      title: Text("$causedBy wants to steal the $color set"),
+    ),
+    ChooseColorInterruption() => const ListTile(
+      leading: Icon(Icons.color_lens, size: 36),
+      title: Text("Picking a color..."),
+    ),
+    DiscardInterruption(:final amount) => ListTile(
+      leading: const Icon(Icons.delete_forever, size: 36),
+      title: Text("Needs to discard at least $amount card(s)"),
+    ),
+    JustSayNoInterruption() => const ListTile(
+      leading: Icon(Icons.block, size: 36),
+      title: Text("Got blocked by a just say no!"),
+    ),
   };
 
   @override
@@ -110,7 +142,9 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
         ],
       ),
       if (isPlayer)
-        ?buildInterruptionTile(model),
+        ?buildInterruptionTile(model)
+      else
+        ?buildOtherInterruptionTile(model),
       const SizedBox(height: 12),
       Align(
         alignment: Alignment.centerLeft,

@@ -35,8 +35,10 @@ class GameState {
     required this.log,
   });
 
-  Interruption? get interruption => interruptions
-    .firstWhereOrNull((i) => i.waitingFor == player.name);
+  Interruption? interruptionFor(Player other) => interruptions
+    .firstWhereOrNull((i) => i.waitingFor == other.name);
+
+  Interruption? get interruption => interruptionFor(player);
 
   GameState.fromJson(Json json) :
     player = RevealedPlayer.fromJson(json["player"]),
