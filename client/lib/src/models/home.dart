@@ -41,13 +41,17 @@ class HomeModel extends DataModel {
   int? turnsFor(Player player) => player.name == game.currentPlayer
     ? game.turnsRemaining : null;
 
+  bool winnerPopup = false;
   void update(GameState state) {
     cancelChoice(playCard: false);
     game = state;
     choice = null;
     notifyListeners();
+    if (game.winner != null) {
+      winnerPopup = true;
+      return;
+    }
     unawaited(handleInterruption(game.interruption));
-    if (game.winner != null) return;
     if (game.currentPlayer != player.name) return;
     if (game.interruptions.isEmpty && game.turnsRemaining > 0) {
       choice = CardChoice.play(game);
@@ -244,6 +248,8 @@ class HomeModel extends DataModel {
     && game.player.hasAProperty;
 
   void cancelChoice({bool playCard = true}) {
+    winnerPopup = false;
+    notifyListeners();
     for (final chooser in choosers) {
       chooser.cancel();
     }

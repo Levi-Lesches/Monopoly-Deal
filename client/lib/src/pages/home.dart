@@ -119,47 +119,49 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
             ],
           ),
         ),
-        if (model.choice case ColorChoice(:final choices))
-          Positioned.fill(
-            child: Prompter(
-              title: "Choose a color",
-              choices: choices,
-              onSelected: model.colors.choose,
-              builder: (item) => ColoredBox(color: item.flutterColor),
-            )
-          )
-        else if (model.choice case BoolChoice(:final choices, :final title))
-          Positioned.fill(
-            child: Prompter(
-              title: title,
-              choices: choices,
-              onSelected: model.confirmations.choose,
-              builder: (item) => item
-                ? const Icon(Icons.check_box, size: 64, color: Colors.green)
-                : const Icon(Icons.cancel, size: 64, color: Colors.red),
-            ),
-          )
-        else if (model.game.winner case final Player player)
-          Positioned.fill(
+        Positioned.fill(child: buildPrompter(model.choice)),
+        if (model.game.winner case final Player player)
+          if (model.winnerPopup) Positioned.fill(
             child: Prompter(
               title: "$player won!",
               builder: (item) => Container(),
+              canCancel: true,
               choices: const [],
               onSelected: (_) { },
-            ),
-          )
-        else if (model.choice case ConfirmCard(:final choices, :final color))
-          Positioned.fill(
-            child: Prompter(
-              size: const Size(CardWidget.width, CardWidget.height),
-              title: "Choose a card",
-              canCancel: true,
-              builder: (item) => CardWidget(item, fallbackColor: color),
-              choices: choices,
-              onSelected: model.cards.choose,
             ),
           ),
       ],
     ),
   );
+
+  Widget buildPrompter(Choice<void>? choice) => switch (choice) {
+    ColorChoice(:final choices) => Prompter(
+      title: "Choose a color",
+      choices: choices,
+      onSelected: model.colors.choose,
+      builder: (item) => ColoredBox(color: item.flutterColor),
+      ),
+    BoolChoice(:final choices, :final title) => Prompter(
+      title: title,
+      choices: choices,
+      onSelected: model.confirmations.choose,
+      builder: (item) => item
+        ? const Icon(Icons.check_box, size: 64, color: Colors.green)
+        : const Icon(Icons.cancel, size: 64, color: Colors.red),
+    ),
+    ConfirmCard(:final choices, :final color) => Prompter(
+      size: const Size(CardWidget.width, CardWidget.height),
+      title: "Choose a card",
+      canCancel: true,
+      builder: (item) => CardWidget(item, fallbackColor: color),
+      choices: choices,
+      onSelected: model.cards.choose,
+    ),
+    null => Container(),
+    CardChoice() => Container(),
+    PropertyChoice() => Container(),
+    StackChoice() => Container(),
+    PlayerChoice() => Container(),
+    MoneyChoice() => Container(),
+  };
 }

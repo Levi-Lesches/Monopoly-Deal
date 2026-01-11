@@ -47,7 +47,10 @@ class Prompter<T> extends StatelessWidget {
           const SizedBox(height: 24),
           if (canCancel)
             OutlinedButton(
-              onPressed: models.game.cancelChoice,
+              onPressed: () => models.game.cancelChoice(playCard: false),
+              style: OutlinedButton.styleFrom(
+                backgroundColor: Colors.blue,
+              ),
               child: const Text("Cancel", style: TextStyle(color: Colors.white)),
             ),
         ],
