@@ -55,7 +55,7 @@ class Game {
     interruptions: interruptions,
     discarded: discardPile.lastOrNull,
     turnsRemaining: turnsRemaining,
-    log: _log.reversed.take(20).toList(),
+    log: _log.take(20).toList(),
   );
 
   void dealToPlayer(RevealedPlayer player, int count) {

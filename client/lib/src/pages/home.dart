@@ -59,9 +59,7 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
                       height: CardWidget.height,
                       child: Row(
                         mainAxisSize: .min,
-                        spacing: 8,
                         children: [
-                          const SizedBox(width: 8),
                           EmptyCardWidget(
                             text: "${model.game.numCards}\nCards Left",
                             color: Colors.grey.shade800,
@@ -72,9 +70,10 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
                             const EmptyCardWidget(),
                           Expanded(
                             child: ListView(
+                              reverse: true,
                               children: [
-                                for (final message in model.game.log)
-                                  Text(message, textAlign: TextAlign.center),
+                                for (final message in model.game.log.reversed)
+                                  Text("- $message", style: context.textTheme.bodySmall, textAlign: TextAlign.start),
                               ],
                             ),
                           ),

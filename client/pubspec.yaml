@@ -11,13 +11,14 @@ msix_config:
   publisher_display_name: Levi Lesches
   identity_name: com.levi.monopoly-deal
   msix_version: 1.0.0.7
-  logo_path: icon.png
+  logo_path: icon.jpg
 
 resolution: workspace
 dependencies:
   collection: ^1.19.1
   flutter:
     sdk: flutter
+  flutter_launcher_icons: ^0.14.4
   go_router: ^17.0.1
   shared: ^1.0.0
 
@@ -29,3 +30,9 @@ flutter:
 
   assets:
     - images/
+
+flutter_launcher_icons:
+  image_path: icon.jpg
+  android: true
+  windows:
+    generate: true

@@ -10,7 +10,7 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
     Colors.orange,
     Colors.green,
     Colors.purple,
-    Colors.blueGrey,
+    Colors.red,
   ];
 
   final int playerIndex;
@@ -26,21 +26,11 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
   bool get canBank => isPlayer && isTurn && turnsRemaining! > 0 && models.game.choice is CardChoice;
 
   Widget? getTrailingButton(BuildContext context, HomeModel model) {
-    if (isPlayer) {
-      if (!isTurn) return null;
-      final interruption = model.game.interruption;
-      return FilledButton(
-        onPressed: interruption == null ? models.game.endTurn : null,
-        child: const Text("End Turn"),
-      );
-    } else if (model.choice is PlayerChoice) {
-      return FilledButton(
-        onPressed: () => model.players.choose(player),
-        child: const Text("Choose"),
-      );
-    } else {
-      return null;
-    }
+    if (!isPlayer || !isTurn) return null;
+    return FilledButton(
+      onPressed: model.game.interruptions.isEmpty ? models.game.endTurn : null,
+      child: const Text("End Turn"),
+    );
   }
 
   Widget? buildInterruptionTile(HomeModel model) => switch (model.game.interruption) {
@@ -102,6 +92,8 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
     ),
   };
 
+  bool get canChoose => model.choice is PlayerChoice && !isPlayer;
+
   @override
   Widget build(BuildContext context, HomeModel model) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,6 +104,8 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
         children: [
           IntrinsicWidth(
             child: ListTile(
+              tileColor: canChoose ? Colors.blueGrey.withAlpha(100) : null,
+              onTap: canChoose ? () => model.players.choose(player) : null,
               leading: CircleAvatar(
                 radius: isTurn ? 24 : 18,
                 backgroundColor: colors[playerIndex],
@@ -144,6 +138,7 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
         ?buildInterruptionTile(model)
       else
         ?buildOtherInterruptionTile(model),
+
       const SizedBox(height: 12),
       Align(
         alignment: Alignment.centerLeft,
