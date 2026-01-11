@@ -45,7 +45,7 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
 
   Widget? buildInterruptionTile(HomeModel model) => switch (model.game.interruption) {
     PaymentInterruption(:final amount, :final causedBy) => ListTile(
-      leading: const Icon(Icons.info, size: 36),
+      leading: const Icon(Icons.attach_money, size: 36),
       title: Text("Pay $causedBy \$$amount"),
       subtitle: Text("Current value: ${model.cardChoices.totalValue}"),
       trailing: FilledButton(
@@ -54,7 +54,7 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
       )
     ),
     DiscardInterruption(:final amount) => ListTile(
-      leading: const Icon(Icons.info, size: 36),
+      leading: const Icon(Icons.delete_forever, size: 36),
       title: Text("Discard $amount cards"),
       subtitle: Text("Discarding: ${model.cards.values}"),
       trailing: FilledButton(
@@ -63,9 +63,11 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
         child: model.cards.values.isEmpty ? const Text("End Turn") : const Text("Discard"),
       ),
     ),
-    StealInterruption() || StealStackInterruption() || ChooseColorInterruption() => null,
+    StealInterruption() => null,
+    StealStackInterruption() => null,
+    ChooseColorInterruption() => null,
+    JustSayNoInterruption() => null,
     null => null,
-    // _ => null,
   };
 
   @override

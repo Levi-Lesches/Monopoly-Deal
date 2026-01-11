@@ -48,6 +48,13 @@ class HomeModel extends DataModel {
   Future<void> handleInterruption(Interruption? interruption) async {
     switch (interruption) {
       case null: return;
+      case JustSayNoInterruption(:final causedBy):
+        final jsn = await promptJustSayNo("$causedBy played a Just Say No!");
+        if (jsn == null) {
+          sendResponse(AcceptedResponse(player: player));
+        } else {
+          sendResponse(JustSayNoResponse(player: player, justSayNo: jsn));
+        }
       case PaymentInterruption(:final amount, :final causedBy):
         final jsn = await promptJustSayNo("$causedBy is charging you \$$amount!", forcePrompt: false);
         if (jsn != null) {

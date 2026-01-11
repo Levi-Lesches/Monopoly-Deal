@@ -18,22 +18,18 @@ extension GameHandlers on Game {
         response.validate();
         discard(response.player, justSayNo);
         log("${response.player} used a Just Say No!");
+        if (interruption is JustSayNoInterruption) {
+          interrupt(interruption.original);
+        } else {
+          interrupt(JustSayNoInterruption(causedBy: waitingFor, waitingFor: causedBy, original: interruption));
+        }
       case PaymentResponse():
         if (interruption is! PaymentInterruption) throw GameError.wrongResponse;
         response.validate(interruption.amount);
         response.handle(this, causedBy);
         log("${response.player} paid with ${response.cards}");
       case AcceptedResponse():  // do the thing
-        switch (interruption) {
-          case StealInterruption():
-            steal(interruption);
-          case StealStackInterruption(:final color):
-            final stack = waitingFor.getStackWithSet(color)!;
-            waitingFor.stacks.remove(stack);
-            causedBy.stacks.add(stack);
-            log("$causedBy stole $waitingFor's $color set!");
-          case _: throw GameError.wrongResponse;
-        }
+        accept(interruption);
       case ColorResponse(:final color):
         if (interruption is! ChooseColorInterruption) throw GameError.wrongResponse;
         final card = findCard(interruption.card) as WildCard;
@@ -57,6 +53,25 @@ extension GameHandlers on Game {
       && interruption is! DiscardInterruption
     ) {
       endTurn();
+    }
+  }
+
+  void accept(Interruption interruption) {
+    final waitingFor = findPlayer(interruption.waitingFor);
+    final causedBy = findPlayer(interruption.causedBy);
+    switch (interruption) {
+      case StealInterruption():
+        steal(interruption);
+      case StealStackInterruption(:final color):
+        final stack = waitingFor.getStackWithSet(color)!;
+        waitingFor.stacks.remove(stack);
+        causedBy.stacks.add(stack);
+        log("$causedBy stole $waitingFor's $color set!");
+      case JustSayNoInterruption(:final original):
+        accept(original);
+      case PaymentInterruption():
+      case ChooseColorInterruption():
+      case DiscardInterruption():
     }
   }
 

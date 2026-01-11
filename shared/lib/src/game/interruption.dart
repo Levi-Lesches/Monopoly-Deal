@@ -179,3 +179,27 @@ class DiscardInterruption extends Interruption {
   @override
   String toString() => "Waiting for $waitingFor to discard at least $amount cards";
 }
+
+class JustSayNoInterruption extends Interruption {
+  Interruption original;
+
+  JustSayNoInterruption({
+    required this.original,
+    required super.causedBy,
+    required super.waitingFor,
+  });
+
+  JustSayNoInterruption.fromJson(Json json) :
+    original = Interruption.parse(json["original"]),
+    super.fromJson(json);
+
+  @override
+  Json toJson() => {
+    ...super.toJson(),
+    "type": "justSayNo",
+    "original": original.toJson(),
+  };
+
+  @override
+  String toString() => "Waiting for $waitingFor to counter a Just Say No by $causedBy";
+}
