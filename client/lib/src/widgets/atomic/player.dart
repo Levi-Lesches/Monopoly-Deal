@@ -107,40 +107,39 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
     crossAxisAlignment: CrossAxisAlignment.start,
     mainAxisSize: MainAxisSize.min,
     children: [
-      Wrap(
-        alignment: WrapAlignment.spaceBetween,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        runAlignment: WrapAlignment.spaceAround,
+      Row(
         spacing: 12,
         children: [
-          const SizedBox(width: 12),
-          CircleAvatar(
-            radius: isTurn ? 24 : 18,
-            backgroundColor: colors[playerIndex],
-            child: const Icon(Icons.person),
+          IntrinsicWidth(
+            child: ListTile(
+              leading: CircleAvatar(
+                radius: isTurn ? 24 : 18,
+                backgroundColor: colors[playerIndex],
+                child: const Icon(Icons.person),
+              ),
+              title: Text(
+                player.name,
+                style: isTurn ? context.textTheme.titleLarge : null,
+              ),
+              subtitle: Text("Net Worth: \$${player.netWorth}"),
+            ),
           ),
-          const SizedBox(width: 12),
-          Text(
-            player.name,
-            style: isTurn ? context.textTheme.titleLarge : null,
-          ),
-          const SizedBox(width: 12),
-          Text("Net Worth: \$${player.netWorth}"),
-          const SizedBox(width: 12),
-          Text("Sets: ${player.numSets}"),
-          const SizedBox(width: 12),
-          Text(
-            "Cards: ${player.handCount}",
-            style: player.handCount > 7 ? const TextStyle(color: Colors.red) : null,
-          ),
-          const SizedBox(width: 12),
-          if (turnsRemaining != null && turnsRemaining! > 0)
-            Text("Turns Left: $turnsRemaining / 3"),
-            const SizedBox(width: 12),
-          ?getTrailingButton(context, model),
+          const Spacer(),
+          CounterWidget(count: player.handCount, max: 7, label: "Cards"),
+          const Spacer(),
+          CounterWidget(count: player.numSets, max: 3, label: "Sets"),
           const SizedBox(width: 12),
         ],
       ),
+
+      if (isTurn && !model.game.isDiscarding)
+        ListTile(
+          leading: const Icon(Icons.pending, size: 36,),
+          title: Text("It's $player's turn", style: context.textTheme.bodyLarge),
+          subtitle: CounterWidget(count: model.game.turnsUsed, max: 3),
+          trailing: getTrailingButton(context, model),
+        ),
+
       if (isPlayer)
         ?buildInterruptionTile(model)
       else

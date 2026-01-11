@@ -3,6 +3,7 @@ import "package:mdeal/data.dart";
 
 export "package:go_router/go_router.dart";
 
+export "src/widgets/generic/counter.dart";
 export "src/widgets/generic/prompter.dart";
 export "src/widgets/generic/reactive_widget.dart";
 export "src/widgets/atomic/card.dart";

@@ -38,6 +38,12 @@ class GameState {
   Interruption? interruptionFor(Player other) => interruptions
     .firstWhereOrNull((i) => i.waitingFor == other.name);
 
+  int get turnsUsed => 3 - turnsRemaining;
+
+  bool get isDiscarding => interruptions
+    .whereType<DiscardInterruption>()
+    .isNotEmpty;
+
   Interruption? get interruption => interruptionFor(player);
 
   GameState.fromJson(Json json) :
