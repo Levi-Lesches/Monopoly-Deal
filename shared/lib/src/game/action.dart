@@ -117,8 +117,9 @@ class MoveAction extends PlayerAction {
   void handle(Game game) {
     final fromStack = player.getStackWithCard(card);
     switch (card) {
-      case WildPropertyCard() || RainbowWildCard():
-        if (fromStack.cards.exceptFor(card as PropertyLike).every((c) => c is RainbowWildCard)) {
+      case WildCard():
+        final otherCards = fromStack.cards.exceptFor(card as PropertyLike);
+        if (otherCards.isNotEmpty && otherCards.every((c) => c is RainbowWildCard)) {
           throw GameError("That would leave only rainbow cards on ${fromStack.color}");
         }
         fromStack.remove(player, card);
@@ -128,7 +129,7 @@ class MoveAction extends PlayerAction {
         final toStack = player.getStackWithSet(color)!;
         toStack.add(card);
         final hotel = fromStack.hotel;
-        if (hotel != null) {
+        if (hotel != null) {  // also move the hotel
           fromStack.hotel = null;
           toStack.hotel = hotel;
         }

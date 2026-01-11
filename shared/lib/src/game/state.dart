@@ -106,8 +106,8 @@ class GameState {
     StealingActionCard(:final isTrade) => otherPlayers.any((p) => p.hasPropertyToSteal)
       && (!isTrade || player.hasAProperty),
     PassGo() => true,
-    House() => player.stacks.any((s) => s.isSet && s.house == null),
-    Hotel() => player.stacks.any((s) => s.isSet && s.house != null && s.hotel == null),
+    House() => player.stacks.any((s) => s.isSet && s.color.isNormal && s.house == null),
+    Hotel() => player.stacks.any((s) => s.isSet && s.color.isNormal && s.house != null && s.hotel == null),
     JustSayNo() => false,
     DoubleTheRent() => false,
     Stackable() => false,  // covered in previous cases

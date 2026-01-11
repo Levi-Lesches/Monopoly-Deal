@@ -41,15 +41,27 @@ class PropertyChoice extends Choice<PropertyLike> {
 }
 
 class StackChoice extends Choice<PropertyStack> {
+  StackChoice.move(GameState game) : super([
+    for (final stack in game.player.stacks)
+      if (stack.cards.any((c) => c is WildCard))
+        stack,
+  ]);
+
   StackChoice.self(GameState game, {List<PropertyColor>? colors}) : super([
     for (final stack in game.player.stacks)
       if (stack.isNotEmpty && (colors == null || colors.contains(stack.color)))
         stack,
   ]);
 
-  StackChoice.selfSets(GameState game, {bool withHouse = false}) : super([
+  StackChoice.house(GameState game) : super([
     for (final stack in game.player.stacks)
-      if (stack.isSet && (!withHouse || stack.house != null))
+      if (stack.isSet && stack.color.isNormal && stack.house == null)
+        stack,
+  ]);
+
+  StackChoice.hotel(GameState game) : super([
+    for (final stack in game.player.stacks)
+      if (stack.isSet && stack.color.isNormal && stack.house != null && stack.hotel == null)
         stack,
   ]);
 

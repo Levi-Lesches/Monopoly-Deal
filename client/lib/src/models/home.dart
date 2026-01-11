@@ -20,7 +20,7 @@ class HomeModel extends DataModel {
   @override
   Future<void> init() async {
     cancelChoice(playCard: false);
-    _sub = client.gameUpdates.listen(update);
+    _sub = client.gameUpdates.listen(update, onError: setError);
     await client.requestState();
     cards.addListener(notifyListeners);
   }
@@ -34,6 +34,7 @@ class HomeModel extends DataModel {
   }
 
   void setError(Object error) {
+    cancelChoice();
     errorMessage = error.toString();
     notifyListeners();
   }
@@ -196,8 +197,13 @@ class HomeModel extends DataModel {
           }
           action = StealAction(card: card, victim: victim, player: player, toSteal: toSteal, toGive: toGive);
         }
-      case PropertySetModifier():
-        choice = StackChoice.selfSets(game);
+      case House():
+        choice = StackChoice.house(game);
+        notifyListeners();
+        final stack = await stacks.next;
+        action = SetModifierAction(card: card, color: stack.color, player: player);
+      case Hotel():
+        choice = StackChoice.hotel(game);
         notifyListeners();
         final stack = await stacks.next;
         action = SetModifierAction(card: card, color: stack.color, player: player);
@@ -245,7 +251,8 @@ class HomeModel extends DataModel {
   bool get canOrganize =>
     game.currentPlayer == player.name
     && game.interruptions.isEmpty
-    && game.player.hasAProperty;
+    && game.player.hasAProperty
+    && StackChoice.move(game).choices.isNotEmpty;
 
   void cancelChoice({bool playCard = true}) {
     winnerPopup = false;
@@ -260,7 +267,7 @@ class HomeModel extends DataModel {
 
   Future<void> organize() async {
     cancelChoice(playCard: false);
-    choice = StackChoice.self(game);
+    choice = StackChoice.move(game);
     notifyListeners();
     final stack = await stacks.next;
     choice = ConfirmCard([
@@ -287,14 +294,14 @@ class HomeModel extends DataModel {
         final action = MoveAction(card: card, color: color, player: player);
         sendAction(action);
       case House():
-        choice = StackChoice.selfSets(game);
+        choice = StackChoice.house(game);
         final stack2 = await stacks.next;
         final color = stack2.color;
         if (color == stack.color) return cancelChoice();
         final action = MoveAction(card: card, color: color, player: player);
         sendAction(action);
       case Hotel():
-        choice = StackChoice.selfSets(game, withHouse: true);
+        choice = StackChoice.hotel(game);
         final stack2 = await stacks.next;
         final color = stack2.color;
         if (color == stack.color) return cancelChoice();

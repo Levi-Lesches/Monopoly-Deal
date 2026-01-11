@@ -72,7 +72,7 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
                             child: ListView(
                               reverse: true,
                               children: [
-                                for (final message in model.game.log.reversed)
+                                for (final message in model.game.log)
                                   Text("- $message", style: context.textTheme.bodySmall, textAlign: TextAlign.start),
                               ],
                             ),
@@ -124,7 +124,7 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
             child: Prompter(
               title: "$player won!",
               builder: (item) => Container(),
-              canCancel: true,
+              canCancel: .cancel,
               choices: const [],
               onSelected: (_) { },
             ),
@@ -139,7 +139,7 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
       choices: choices,
       onSelected: model.colors.choose,
       builder: (item) => ColoredBox(color: item.flutterColor),
-      ),
+    ),
     BoolChoice(:final choices, :final title) => Prompter(
       title: title,
       choices: choices,
@@ -151,7 +151,7 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
     ConfirmCard(:final choices, :final color) => Prompter(
       size: const Size(CardWidget.width, CardWidget.height),
       title: "Choose a card",
-      canCancel: true,
+      canCancel: .reload,
       builder: (item) => CardWidget(item, fallbackColor: color),
       choices: choices,
       onSelected: model.cards.choose,

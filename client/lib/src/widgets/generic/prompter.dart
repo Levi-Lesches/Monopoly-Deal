@@ -2,6 +2,12 @@ import "package:flutter/material.dart";
 import "package:mdeal/models.dart";
 import "package:mdeal/widgets.dart";
 
+enum CancelType {
+  none,
+  cancel,
+  reload,
+}
+
 typedef ItemBuilder<T> = Widget Function(T item);
 class Prompter<T> extends StatelessWidget {
   final String title;
@@ -9,7 +15,7 @@ class Prompter<T> extends StatelessWidget {
   final ItemBuilder<T> builder;
   final ValueChanged<T> onSelected;
   final Size size;
-  final bool canCancel;
+  final CancelType canCancel;
 
   const Prompter({
     required this.title,
@@ -17,7 +23,7 @@ class Prompter<T> extends StatelessWidget {
     required this.onSelected,
     required this.builder,
     this.size = const Size(100, 100),
-    this.canCancel = false,
+    this.canCancel = .none,
   });
 
   @override
@@ -45,9 +51,11 @@ class Prompter<T> extends StatelessWidget {
               ),
           ],),
           const SizedBox(height: 24),
-          if (canCancel)
+          if (canCancel != .none)
             OutlinedButton(
-              onPressed: () => models.game.cancelChoice(playCard: false),
+              onPressed: () => canCancel == .reload
+                ? models.game.cancelChoice()
+                : models.game.cancelChoice(playCard: false),
               style: OutlinedButton.styleFrom(
                 backgroundColor: Colors.blue,
               ),
