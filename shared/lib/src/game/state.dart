@@ -21,6 +21,8 @@ class GameState {
   final int turnsRemaining;
 
   final MCard? discarded;
+  final int numCards;
+
   final List<Interruption> interruptions;
   final List<String> log;
 
@@ -33,6 +35,7 @@ class GameState {
     required this.discarded,
     required this.interruptions,
     required this.log,
+    required this.numCards,
   });
 
   Interruption? interruptionFor(Player other) => interruptions
@@ -54,6 +57,7 @@ class GameState {
     currentPlayer = json["currentPlayer"],
     turnsRemaining = json["turnsRemaining"],
     discarded = json.mapNullable("discarded", cardFromJson),
+    numCards = json["numCards"],
     log = (json["log"] as List).cast<String>();
 
   Json toJson() => {
@@ -66,6 +70,7 @@ class GameState {
     "currentPlayer": currentPlayer,
     "turnsRemaining": turnsRemaining,
     "discarded": discarded?.toJson(),
+    "numCards": numCards,
     "interruptions": [
       for (final interruption in interruptions)
         interruption.toJson(),

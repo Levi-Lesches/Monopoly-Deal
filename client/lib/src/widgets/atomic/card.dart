@@ -87,12 +87,24 @@ class CardWidget extends ReusableReactiveWidget<HomeModel> {
 }
 
 class EmptyCardWidget extends StatelessWidget {
+  final String text;
+  final Color? color;
+  const EmptyCardWidget({this.text = "Empty", this.color});
+
   @override
-  Widget build(BuildContext context) => const Padding(
-    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
     child: SizedBox(
       height: CardWidget.height,
       width: CardWidget.width,
+      child: Container(
+        decoration: BoxDecoration(color: color, border: Border.all()),
+        alignment: .center,
+        child: Text(
+          text,
+          textAlign: .center,
+          style: color == null ? null : TextStyle(color: textColorFor(color!))),
+      ),
     ),
   );
 }

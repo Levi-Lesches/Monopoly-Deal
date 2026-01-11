@@ -158,7 +158,7 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
                 if (player.tableMoney.lastOrNull case final MCard card)
                   CardWidget(card)
                 else
-                  EmptyCardWidget(),
+                  const EmptyCardWidget(),
                 Positioned.fill(
                   child: InkWell(
                     onTap: canBank ? model.toggleBank : null,

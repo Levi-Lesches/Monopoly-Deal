@@ -56,11 +56,28 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
                     if (model.errorMessage case final String error)
                       Text(error, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center, overflow: TextOverflow.ellipsis),
                     SizedBox(
-                      height: 100,
-                      child: ListView(
+                      height: CardWidget.height,
+                      child: Row(
+                        mainAxisSize: .min,
+                        spacing: 8,
                         children: [
-                          for (final message in model.game.log)
-                            Text(message, textAlign: TextAlign.center),
+                          const SizedBox(width: 8),
+                          EmptyCardWidget(
+                            text: "${model.game.numCards}\nCards Left",
+                            color: Colors.grey.shade800,
+                          ),
+                          if (model.game.discarded case final MCard card)
+                            CardWidget(card)
+                          else
+                            const EmptyCardWidget(),
+                          Expanded(
+                            child: ListView(
+                              children: [
+                                for (final message in model.game.log)
+                                  Text(message, textAlign: TextAlign.center),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     ),

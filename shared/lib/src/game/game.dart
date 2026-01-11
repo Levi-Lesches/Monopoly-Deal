@@ -42,6 +42,7 @@ class Game {
 
   GameState getStateFor(RevealedPlayer player) => GameState(
     player: player,
+    numCards: deck.length,
     otherPlayers: [
       for (final other in players.exceptFor(player))
         other.hidden,
