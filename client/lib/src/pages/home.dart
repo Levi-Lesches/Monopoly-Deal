@@ -12,6 +12,17 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
   @override
   bool get shouldDispose => true;
 
+  String buildPrompt(Choice<void> choice) => switch(choice) {
+    PlayerChoice() => "Choose a player",
+    CardChoice(:final message) => message,
+    PropertyChoice() => "Choose a property",
+    StackChoice() => "Choose a stack",
+    ColorChoice() => "Choose a color",
+    BoolChoice() => "Make a choice",
+    MoneyChoice() => "Make a payment",
+    ConfirmCard() => "Choose a property in that stack",
+  };
+
   @override
   Widget build(BuildContext context, HomeModel model) => Scaffold(
     appBar: AppBar(
@@ -25,7 +36,7 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
       ],
     ),
     floatingActionButtonLocation: .centerFloat,
-    floatingActionButton: model.game.winner == null ? null :  FloatingActionButton.extended(
+    floatingActionButton: model.game.winner == null ? null : FloatingActionButton.extended(
       label: const Text("New game"),
       icon: const Icon(Icons.replay),
       onPressed: () async {
@@ -65,16 +76,19 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
                 ),
               ),
               const Divider(),
+              if (model.choice != null)
+                Text(buildPrompt(model.choice!), style: context.textTheme.bodyLarge),
+              const SizedBox(height: 8),
               if (model.player.name == model.game.currentPlayer)
-              Row(children: [
-                const Spacer(),
-                if (model.canOrganize)
-                  OutlinedButton(
-                    onPressed: model.organize,
-                    child: const Text("Re-arrange properties"),
-                  ),
-                const Spacer(),
-              ],),
+                Row(children: [
+                  const Spacer(),
+                  if (model.canOrganize)
+                    OutlinedButton(
+                      onPressed: model.organize,
+                      child: const Text("Re-arrange properties"),
+                    ),
+                  const Spacer(),
+                ],),
               SizedBox(
                 height: CardWidget.height,
                 child: ListView(

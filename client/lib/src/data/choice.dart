@@ -7,15 +7,19 @@ sealed class Choice<T> {
 }
 
 class CardChoice extends Choice<MCard> {
-  CardChoice.discard(GameState game) : super(game.player.hand);
+  final String message;
 
-  CardChoice.bank(GameState game) : super([
+  CardChoice.discard(GameState game) :
+    message = "Choose cards to discard",
+    super(game.player.hand);
+
+  CardChoice.bank(GameState game) : message = "Choose a card to bank", super([
     for (final card in game.player.hand)
       if (card is! PropertyLike && card is! MoneyCard && card.value > 0)
         card,
   ]);
 
-  CardChoice.play(GameState game) : super([
+  CardChoice.play(GameState game) : message = "Choose a card to play", super([
     for (final card in game.player.hand)
       if (game.canPlay(card))
         card
@@ -39,7 +43,7 @@ class PropertyChoice extends Choice<PropertyLike> {
 class StackChoice extends Choice<PropertyStack> {
   StackChoice.self(GameState game, {List<PropertyColor>? colors}) : super([
     for (final stack in game.player.stacks)
-    if (stack.isNotEmpty && (colors == null || colors.contains(stack.color)))
+      if (stack.isNotEmpty && (colors == null || colors.contains(stack.color)))
         stack,
   ]);
 

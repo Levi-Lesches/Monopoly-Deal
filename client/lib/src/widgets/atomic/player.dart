@@ -165,7 +165,7 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
                     onTap: canBank ? model.toggleBank : null,
                     child: Container(
                       color: Colors.blueGrey
-                        .withAlpha(isPlayer && model.isBanking ? 255 : 100),
+                        .withAlpha(isPlayer && model.isBanking ? 255 : 120),
                       alignment: Alignment.bottomCenter,
                       child: Text(
                         "BANK: \$${player.tableMoney.totalValue}",
@@ -174,6 +174,13 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
                     ),
                   ),
                 ),
+                if (canBank)
+                  const Positioned.fill(
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: Text("PRESS TO BANK", style: TextStyle(color: Colors.white),),
+                    ),
+                  ),
               ],),
               const SizedBox(
                 height: CardWidget.height,
