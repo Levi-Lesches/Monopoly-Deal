@@ -70,36 +70,43 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
 
   @override
   Widget build(BuildContext context, HomeModel model) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
     mainAxisSize: MainAxisSize.min,
     children: [
-      Row(children: [
-        const SizedBox(width: 12),
-        CircleAvatar(
-          radius: isTurn ? 24 : 18,
-          backgroundColor: colors[playerIndex],
-          child: const Icon(Icons.person),
-        ),
-        const SizedBox(width: 12),
-        Text(
-          player.name,
-          style: isTurn ? context.textTheme.titleLarge : null,
-        ),
-        const Spacer(),
-        Text("Net Worth: \$${player.netWorth}"),
-        const Spacer(),
-        Text("Sets: ${player.numSets}"),
-        const Spacer(),
-        Text(
-          "Cards: ${player.handCount}",
-          style: player.handCount > 7 ? const TextStyle(color: Colors.red) : null,
-        ),
-        const Spacer(),
-        if (turnsRemaining != null && turnsRemaining! > 0)
-          Text("Turns Left: $turnsRemaining / 3"),
-        const Spacer(),
-        ?getTrailingButton(context, model),
-        const SizedBox(width: 12),
-      ],),
+      Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        runAlignment: WrapAlignment.spaceAround,
+        spacing: 12,
+        children: [
+          const SizedBox(width: 12),
+          CircleAvatar(
+            radius: isTurn ? 24 : 18,
+            backgroundColor: colors[playerIndex],
+            child: const Icon(Icons.person),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            player.name,
+            style: isTurn ? context.textTheme.titleLarge : null,
+          ),
+          const SizedBox(width: 12),
+          Text("Net Worth: \$${player.netWorth}"),
+          const SizedBox(width: 12),
+          Text("Sets: ${player.numSets}"),
+          const SizedBox(width: 12),
+          Text(
+            "Cards: ${player.handCount}",
+            style: player.handCount > 7 ? const TextStyle(color: Colors.red) : null,
+          ),
+          const SizedBox(width: 12),
+          if (turnsRemaining != null && turnsRemaining! > 0)
+            Text("Turns Left: $turnsRemaining / 3"),
+            const SizedBox(width: 12),
+          ?getTrailingButton(context, model),
+          const SizedBox(width: 12),
+        ],
+      ),
       if (isPlayer)
         ?buildInterruptionTile(model),
       const SizedBox(height: 12),
