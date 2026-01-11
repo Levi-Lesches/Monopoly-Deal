@@ -20,6 +20,7 @@ sealed class Interruption {
     "stealStack" => StealStackInterruption.fromJson(json),
     "color" => ChooseColorInterruption.fromJson(json),
     "discard" => DiscardInterruption.fromJson(json),
+    "justSayNo" => JustSayNoInterruption.fromJson(json),
     _ => throw ArgumentError("Unrecognized interruption: $json"),
   };
 

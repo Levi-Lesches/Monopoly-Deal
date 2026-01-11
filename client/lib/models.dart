@@ -1,3 +1,5 @@
+import "dart:async";
+
 import "package:mdeal/data.dart";
 
 import "";
@@ -39,7 +41,8 @@ class Models extends DataModel {
 
   Future<void> startGame(MDealClient client) async {
     await client.requestState();
-    final state = await client.gameUpdates.first;
+    final state = await client.gameUpdates.first
+      .timeout(const Duration(seconds: 1));
     game = HomeModel(client, state);
     await game.init();
   }

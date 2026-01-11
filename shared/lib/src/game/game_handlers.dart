@@ -67,11 +67,12 @@ extension GameHandlers on Game {
         waitingFor.stacks.remove(stack);
         causedBy.stacks.add(stack);
         log("$causedBy stole $waitingFor's $color set!");
-      case JustSayNoInterruption(:final original):
-        accept(original);
+      case JustSayNoInterruption():
+        return;
       case PaymentInterruption():
       case ChooseColorInterruption():
       case DiscardInterruption():
+        throw GameError.interruptions;
     }
   }
 
