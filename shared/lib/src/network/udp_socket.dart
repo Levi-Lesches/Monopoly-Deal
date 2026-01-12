@@ -2,39 +2,10 @@ import "dart:async";
 import "dart:convert";
 import "dart:io";
 
-import "package:shared/utils.dart";
-
 import "base_udp.dart";
 import "socket.dart";
 import "socket_info.dart";
 import "user.dart";
-
-class UdpServerPacket {
-  final Packet packet;
-  const UdpServerPacket(this.packet);
-
-  UdpServerPacket.fromJson(Json json) :
-    packet = json["packet"];
-
-  Json toJson() => {
-    "packet": packet,
-  };
-}
-
-class UdpClientPacket {
-  final User user;
-  final Packet packet;
-  const UdpClientPacket(this.user, this.packet);
-
-  UdpClientPacket.fromJson(Json json) :
-    user = User.fromJson(json["user"]),
-    packet = json["packet"];
-
-  Json toJson() => {
-    "user": user.toJson(),
-    "packet": packet,
-  };
-}
 
 class UdpClientSocket extends ClientSocket {
   final UdpSocket _udp;
@@ -71,7 +42,7 @@ class UdpClientSocket extends ClientSocket {
 
   @override
   Future<void> send(Packet packet) async {
-    final udpPacket = UdpClientPacket(user, packet);
+    final udpPacket = ClientSocketPacket(user, packet);
     final jsonString = jsonEncode(udpPacket.toJson());
     _udp.send(jsonString.codeUnits, destination: serverInfo);
   }
@@ -79,7 +50,7 @@ class UdpClientSocket extends ClientSocket {
 
 class UdpServerSocket extends ServerSocket {
   final UdpSocket _udp;
-  final _controller = StreamController<UdpClientPacket>.broadcast();
+  final _controller = StreamController<ClientSocketPacket>.broadcast();
   final _clients = <User, SocketInfo>{};
 
   UdpServerSocket({required int port}) :
@@ -110,7 +81,7 @@ class UdpServerSocket extends ServerSocket {
   void parsePacket(Datagram datagram) {
     final jsonString = String.fromCharCodes(datagram.data);
     final json = jsonDecode(jsonString);
-    final packet = UdpClientPacket.fromJson(json);
+    final packet = ClientSocketPacket.fromJson(json);
     _clients[packet.user] = SocketInfo.fromDatagram(datagram);
     _controller.add(packet);
   }
@@ -119,7 +90,7 @@ class UdpServerSocket extends ServerSocket {
   Future<void> send(User user, Packet payload) async {
     final socket = _clients[user];
     if (socket == null) throw ArgumentError("Unrecognized user: $user");
-    final udpPacket = UdpServerPacket(payload);
+    final udpPacket = ServerSocketPacket(payload);
     final jsonString = jsonEncode(udpPacket.toJson());
     _udp.send(jsonString.codeUnits, destination: socket);
   }

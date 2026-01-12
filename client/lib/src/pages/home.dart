@@ -67,7 +67,7 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
                           if (model.game.discarded case final MCard card)
                             CardWidget(card)
                           else
-                            const EmptyCardWidget(),
+                            const EmptyCardWidget(text: "Discard\nPile"),
                           Expanded(
                             child: ListView(
                               reverse: true,

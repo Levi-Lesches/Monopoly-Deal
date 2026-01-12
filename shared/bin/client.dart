@@ -1,13 +1,12 @@
 // ignore_for_file: document_ignores, avoid_print, discarded_futures
 
-import "dart:io";
-
 import "package:shared/network.dart";
 import "package:shared/online.dart";
 
 void main() async {
   final david = User("david");
-  final davidSocket = UdpClientSocket(david, port: 8002, serverInfo: SocketInfo(address: InternetAddress.loopbackIPv4, port: 8000));
+  final uri = Uri.parse("ws://localhost:8011");
+  final davidSocket = ClientWebSocket(uri, david);
   final davidLobby = LobbyClient(davidSocket);
   await davidSocket.init();
   await davidLobby.init();

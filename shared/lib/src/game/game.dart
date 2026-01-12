@@ -128,7 +128,6 @@ class Game {
 
   void interrupt(Interruption interruption) {
     interruptions.add(interruption);
-    log(interruption.toString());
   }
 
   void endTurn() {

@@ -2,6 +2,7 @@ import "dart:async";
 
 import "package:shared/data.dart";
 import "package:shared/game.dart";
+import "package:shared/network.dart";
 
 import "game_client.dart";
 

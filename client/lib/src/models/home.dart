@@ -256,6 +256,7 @@ class HomeModel extends DataModel {
 
   void cancelChoice({bool playCard = true}) {
     winnerPopup = false;
+    isBanking = false;
     notifyListeners();
     for (final chooser in choosers) {
       chooser.cancel();

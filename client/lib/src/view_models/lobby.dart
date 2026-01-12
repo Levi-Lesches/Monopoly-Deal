@@ -18,7 +18,7 @@ class LobbyViewModel extends ViewModel {
 
   final nameController = TextEditingController();
   Map<String, bool> users = <String, bool>{};
-  UdpClientSocket? socket;
+  ClientSocket? socket;
   LobbyClient? client;
   InternetAddress address = addresses.first;
 
@@ -45,9 +45,11 @@ class LobbyViewModel extends ViewModel {
     if (name == null) return;
     final user = User(name);
     isLoading = true;
-    final info = SocketInfo(address: address, port: 8010);
-    socket = UdpClientSocket(user, port: 0, serverInfo: info);
+
+    final uri = Uri.parse("ws://${address.address}:8011");
+    socket = ClientWebSocket(uri, user);
     await socket!.init();
+
     client = LobbyClient(socket!);
     await client!.init();
     client!.lobbyUsers.listen(updateUsers);
