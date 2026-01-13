@@ -1,7 +1,7 @@
 import "dart:async";
 
 import "package:collection/collection.dart";
-import "package:flutter/foundation.dart";
+import "package:flutter/widgets.dart";
 import "package:mdeal/data.dart";
 
 import "chooser.dart";
@@ -53,7 +53,11 @@ class HomeModel extends DataModel {
       return;
     }
     unawaited(handleInterruption(game.interruption));
-    if (game.currentPlayer != player.name) return;
+    if (game.currentPlayer != player.name) {
+      expansionController.collapse();
+      return;
+    }
+    expansionController.expand();
     if (game.interruptions.isEmpty && game.turnsRemaining > 0) {
       choice = CardChoice.play(game);
       notifyListeners();
@@ -88,10 +92,8 @@ class HomeModel extends DataModel {
         final toDiscard = await cards.waitForList();
         final response = DiscardResponse(cards: toDiscard, player: player);
         sendResponse(response);
-      case StealInterruption(:final causedBy, :final toStealName, :final toGiveName):
-        final message = toGiveName == null
-          ? "$causedBy wants to steal $toStealName"
-          : "$causedBy wants to trade $toStealName for $toGiveName";
+      case StealInterruption():
+        final message = interruption.toString();
         final jsn = await promptJustSayNo(message);
         final response = jsn == null
           ? AcceptedResponse(player: player)
@@ -105,7 +107,7 @@ class HomeModel extends DataModel {
           : JustSayNoResponse(justSayNo: jsn, player: player);
         sendResponse(response);
       case ChooseColorInterruption(colors: final choices, :final card):
-        choice = ColorChoice("Choose a color for $card", choices);
+        choice = ColorChoice("Choose a color for $card", choices, canCancel: false);
         notifyListeners();
         final color = await colors.next;
         sendResponse(ColorResponse(color: color, player: player));
@@ -324,6 +326,8 @@ class HomeModel extends DataModel {
   ];
 
   bool isBanking = false;
+
+  final expansionController = ExpansibleController();
   void toggleBank() {
     isBanking = !isBanking;
     choice = isBanking ? CardChoice.bank(game) : CardChoice.play(game);

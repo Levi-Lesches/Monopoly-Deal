@@ -11,9 +11,9 @@ import "view_model.dart";
 
 class LobbyViewModel extends ViewModel {
   static final addresses = <Uri>[
-    Uri.parse("ws://96.232.130.93:9873"),
-    Uri.parse("ws://192.168.1.210:8011"),
-    Uri.parse("ws://localhost:8011"),
+    Uri.parse("wss://deal.forgot-semicolon.com/socket/"),
+    Uri.parse("ws://192.168.1.210:8040"),
+    Uri.parse("ws://localhost:8040"),
   ];
 
   final nameController = TextEditingController();
@@ -83,7 +83,7 @@ class LobbyViewModel extends ViewModel {
     router.goNamed(Routes.game);
   }
 
-  String? get name => nameController.text.nullIfEmpty;
+  String? get name => nameController.text.trim().nullIfEmpty;
   bool get canJoin => name != null && !hasJoined;
   bool get canReady => hasJoined;
 }

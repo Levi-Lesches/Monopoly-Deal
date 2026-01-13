@@ -92,28 +92,30 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
                 ),
               ),
               const Divider(),
-              if (model.choice != null)
-                Text(buildPrompt(model.choice!), style: context.textTheme.bodyLarge),
-              const SizedBox(height: 8),
-              if (model.player.name == model.game.currentPlayer)
-                Row(children: [
-                  const Spacer(),
-                  if (model.canOrganize)
+              ExpansionTile(
+                initiallyExpanded: model.game.currentPlayer == model.player.name,
+                controller: model.expansionController,
+                title: const Text("Your cards"),
+                children: [
+                  if (model.choice != null)
+                    Text(buildPrompt(model.choice!), style: context.textTheme.bodyLarge),
+                  const SizedBox(height: 8),
+                  if (model.player.name == model.game.currentPlayer && model.canOrganize)
                     OutlinedButton(
                       onPressed: model.organize,
                       child: const Text("Re-arrange properties"),
                     ),
-                  const Spacer(),
-                ],),
-              SizedBox(
-                height: CardWidget.height,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    for (final card in model.game.player.hand)
-                      CardWidget(card),
-                  ],
-                ),
+                  SizedBox(
+                    height: CardWidget.height,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        for (final card in model.game.player.hand)
+                          CardWidget(card),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -134,10 +136,11 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
   );
 
   Widget buildPrompter(Choice<void>? choice) => switch (choice) {
-    ColorChoice(:final choices) => Prompter(
+    ColorChoice(:final choices, :final canCancel) => Prompter(
       title: "Choose a color",
       choices: choices,
       onSelected: model.colors.choose,
+      canCancel: canCancel ? .reload : .none,
       builder: (item) => ColoredBox(color: item.flutterColor),
     ),
     BoolChoice(:final choices, :final title) => Prompter(

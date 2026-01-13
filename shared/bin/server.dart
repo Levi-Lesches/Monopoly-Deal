@@ -6,7 +6,7 @@ import "package:shared/online.dart";
 
 void main() async {
   while (true) {
-    final serverSocket = ServerWebSocket(8011);
+    final serverSocket = ServerWebSocket(8040);
     await serverSocket.init();
     final serverLobby = LobbyServer(serverSocket);
     await serverLobby.init();

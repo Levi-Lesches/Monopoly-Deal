@@ -33,21 +33,21 @@ PaymentActionCard debtCollector() => PaymentActionCard(
   value: 3,
 );
 
-MCard slyDeal() => StealingActionCard(
+StealingActionCard slyDeal() => StealingActionCard(
   name: "Sly Deal",
   canChooseSet: false,
   isTrade: false,
   value: 3,
 );
 
-MCard forcedDeal() => StealingActionCard(
+StealingActionCard forcedDeal() => StealingActionCard(
   name: "Forced Deal",
   canChooseSet: false,
   isTrade: true,
   value: 3,
 );
 
-MCard dealBreaker() => StealingActionCard(
+StealingActionCard dealBreaker() => StealingActionCard(
   name: "Deal Breaker",
   canChooseSet: true,
   isTrade: false,

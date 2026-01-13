@@ -14,16 +14,20 @@ class LobbyPage extends ReactiveWidget<LobbyViewModel> {
       padding: const EdgeInsets.all(8),
       child: Column(
         children: [
+          TextField(
+            autofocus: true,
+            readOnly: model.hasJoined,
+            onSubmitted: (value) => model.joinLobby(),
+            controller: model.nameController,
+            decoration: const InputDecoration(
+              label: Text("Username"),
+            ),
+          ),
+          const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(
-                child: TextField(
-                  controller: model.nameController,
-                  decoration: const InputDecoration(
-                    label: Text("Username"),
-                  ),
-                ),
-              ),
+              const Text("Connecting to: "),
+              const Spacer(),
               DropdownButton<Uri>(
                 value: model.address,
                 onChanged: (item) => model.updateAddress(item),

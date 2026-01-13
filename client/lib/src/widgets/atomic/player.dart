@@ -66,13 +66,11 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
       leading: const Icon(Icons.paid, size: 36,),
       title: Text("Needs to pay $causedBy \$$amount"),
     ),
-    StealInterruption(:final causedBy, :final toGiveName, :final toStealName) => ListTile(
+    StealInterruption(:final toGiveName) => ListTile(
       leading: toGiveName != null
         ? const Icon(Icons.swap_horizontal_circle, size: 36,)
         : const Icon(Icons.error, size: 36),
-        title: toGiveName == null
-          ? Text("$causedBy wants to steal $toStealName")
-          : Text("$causedBy wants to steal $toStealName and give $toGiveName"),
+        title: Text(model.game.interruptionFor(player)!.toString()),
     ),
     StealStackInterruption(:final causedBy, :final color) => ListTile(
       leading: const Icon(Icons.error, size: 36),
