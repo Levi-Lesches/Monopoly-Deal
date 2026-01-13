@@ -7,6 +7,8 @@ import "socket.dart";
 import "socket_info.dart";
 import "user.dart";
 
+export "socket_info.dart";
+
 class UdpClientSocket extends ClientSocket {
   final UdpSocket _udp;
   final SocketInfo serverInfo;

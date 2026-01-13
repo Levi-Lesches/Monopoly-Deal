@@ -30,7 +30,7 @@ class MdealApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) => MaterialApp.router(
     scrollBehavior: MyCustomScrollBehavior(),
-    title: "Flutter Demo",
+    title: "Monopoly Deal",
     debugShowCheckedModeBanner: false,
     theme: ThemeData(
       useMaterial3: true,

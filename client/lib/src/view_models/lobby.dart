@@ -1,5 +1,4 @@
 import "dart:async";
-import "dart:io";
 
 import "package:flutter/widgets.dart";
 import "package:mdeal/models.dart";
@@ -11,18 +10,19 @@ import "package:shared/utils.dart";
 import "view_model.dart";
 
 class LobbyViewModel extends ViewModel {
-  static final addresses = <InternetAddress>[
-    InternetAddress("192.168.1.210"),
-    InternetAddress.loopbackIPv4,
+  static final addresses = <Uri>[
+    Uri.parse("ws://96.232.130.93:9873"),
+    Uri.parse("ws://192.168.1.210:8011"),
+    Uri.parse("ws://localhost:8011"),
   ];
 
   final nameController = TextEditingController();
   Map<String, bool> users = <String, bool>{};
   ClientSocket? socket;
   LobbyClient? client;
-  InternetAddress address = addresses.first;
+  Uri address = addresses.first;
 
-  void updateAddress(InternetAddress? value) {
+  void updateAddress(Uri? value) {
     if (value == null) return;
     address = value;
     notifyListeners();
@@ -46,7 +46,7 @@ class LobbyViewModel extends ViewModel {
     final user = User(name);
     isLoading = true;
 
-    final uri = Uri.parse("ws://${address.address}:8011");
+    final uri = address;
     socket = ClientWebSocket(uri, user);
     await socket!.init();
 

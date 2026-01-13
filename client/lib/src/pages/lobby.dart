@@ -1,5 +1,3 @@
-import "dart:io";
-
 import "package:flutter/material.dart";
 import "package:mdeal/view_models.dart";
 import "package:mdeal/widgets.dart";
@@ -26,16 +24,16 @@ class LobbyPage extends ReactiveWidget<LobbyViewModel> {
                   ),
                 ),
               ),
-              DropdownButton<InternetAddress>(
+              DropdownButton<Uri>(
+                value: model.address,
+                onChanged: (item) => model.updateAddress(item),
                 items: [
                   for (final item in LobbyViewModel.addresses)
                     DropdownMenuItem(
                       value: item,
-                      child: Text(item.address),
+                      child: Text(item.toString()),
                     ),
                 ],
-                value: model.address,
-                onChanged: (item) => model.updateAddress(item),
               )
             ],
           ),

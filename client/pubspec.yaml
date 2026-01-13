@@ -36,3 +36,5 @@ flutter_launcher_icons:
   android: true
   windows:
     generate: true
+  web:
+    generate: true
