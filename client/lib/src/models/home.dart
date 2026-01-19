@@ -17,6 +17,7 @@ class HomeModel extends DataModel {
   Choice<dynamic>? choice;
   StreamSubscription<void>? _sub;
 
+
   @override
   Future<void> init() async {
     cancelChoice(playCard: false);
@@ -42,10 +43,21 @@ class HomeModel extends DataModel {
   int? turnsFor(Player player) => player.name == game.currentPlayer
     ? game.turnsRemaining : null;
 
+  Set<EventID> finishedEvents = {};
+  List<GameEvent> eventQueue = [];
+  void addEvents(GameState state) {
+    for (final event in state.log.reversed) {
+      if (finishedEvents.contains(event.id)) continue;
+      if (eventQueue.contains(event)) continue;
+      eventQueue.add(event);
+    }
+  }
+
   bool winnerPopup = false;
   void update(GameState state) {
     cancelChoice(playCard: false);
     game = state;
+    addEvents(state);
     choice = null;
     notifyListeners();
     if (game.winner != null) {

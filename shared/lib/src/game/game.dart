@@ -27,7 +27,7 @@ class Game {
     discardPile = []
   {
     referenceDeck.addAll(deck);
-    log(const SimpleEvent("Starting the game!"));
+    log(SimpleEvent("Starting the game!"));
     dealStartingCards();
     startTurn();
   }

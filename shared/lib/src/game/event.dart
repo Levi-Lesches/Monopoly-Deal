@@ -1,14 +1,23 @@
+// Unclear when explicitly using parameters
+// ignore_for_file: use_super_parameters
+
 import "package:meta/meta.dart";
 import "package:shared/data.dart";
 import "package:shared/utils.dart";
+import "package:uuid/uuid.dart";
 
 import "interruption.dart";
 
+extension type EventID.fromJson(String value) {
+  EventID() : value = const Uuid().v4();
+}
+
 sealed class GameEvent {
   final String type;
-  const GameEvent(this.type);
+  final EventID id;
+  GameEvent(this.type) : id = EventID();
 
-  factory GameEvent.fromJson(Json json) => switch(json["type"]) {
+  factory GameEvent.parse(Json json) => switch(json["type"]) {
     "simple" => SimpleEvent.fromJson(json),
     "deal" => DealEvent.fromJson(json),
     "steal" => StealEvent.fromJson(json),
@@ -22,6 +31,10 @@ sealed class GameEvent {
     _ => throw ArgumentError("Unrecognized event: $json"),
   };
 
+  GameEvent.fromJson(Json json) :
+    id = EventID.fromJson(json["id"]),
+    type = json["type"];
+
   @override
   @mustBeOverridden
   String toString();
@@ -30,14 +43,17 @@ sealed class GameEvent {
   @mustCallSuper
   Json toJson() => {
     "type": type,
+    "id": id.value,
   };
 }
 
 class SimpleEvent extends GameEvent {
   final String message;
-  const SimpleEvent(this.message) : super("simple");
+  SimpleEvent(this.message) : super("simple");
 
-  factory SimpleEvent.fromJson(Json json) => SimpleEvent(json["message"]);
+  SimpleEvent.fromJson(Json json) :
+    message = json["message"],
+    super.fromJson(json);
 
   @override
   Json toJson() => {
@@ -53,15 +69,15 @@ class DealEvent extends GameEvent {
   final int amount;
   final String player;
 
-  const DealEvent({
+  DealEvent({
     required this.amount,
     required this.player,
   }) : super("deal");
 
-  factory DealEvent.fromJson(Json json) => DealEvent(
-    amount: json["amount"],
-    player: json["player"],
-  );
+  DealEvent.fromJson(Json json) :
+    amount = json["amount"],
+    player = json["player"],
+    super.fromJson(json);
 
   @override
   Json toJson() => {
@@ -79,9 +95,9 @@ class StealEvent extends GameEvent {
 
   StealEvent(this.details) : super("steal");
 
-  factory StealEvent.fromJson(Json json) => StealEvent(
-    StealInterruption.fromJson(json["details"]),
-  );
+  StealEvent.fromJson(Json json) :
+    details = StealInterruption.fromJson(json["details"]),
+    super.fromJson(json);
 
   @override
   Json toJson() => {
@@ -99,8 +115,9 @@ class StealStackEvent extends GameEvent {
 
   StealStackEvent(this.details) : super("steal_set");
 
-  factory StealStackEvent.fromJson(Json json) =>
-    StealStackEvent(StealStackInterruption.fromJson(json["details"]));
+  StealStackEvent.fromJson(Json json) :
+    details = StealStackInterruption.fromJson(json["details"]),
+    super.fromJson(json);
 
   @override
   Json toJson() => {
@@ -130,7 +147,7 @@ class BankEvent extends GameEvent {
     card = json["card"],
     wasAlreadyMoney = json["wasAlreadyMoney"],
     value = json["value"],
-    super("bank");
+    super.fromJson(json);
 
   @override
   Json toJson() => {
@@ -187,7 +204,7 @@ class ActionCardEvent extends GameEvent {
     victim = json["victim"],
     color = json.mapNullable("color", PropertyColor.fromJson),
     doubleTheRent = json["doubleTheRent"],
-    super("action");
+    super.fromJson(json);
 
   @override
   Json toJson() => {
@@ -237,7 +254,7 @@ class PropertyEvent extends GameEvent {
     color = PropertyColor.fromJson(json["color"]),
     isModifier = json["isModifier"],
     card = json["card"],
-    super("property");
+    super.fromJson(json);
 
   @override
   Json toJson() => {
@@ -275,7 +292,7 @@ class PaymentEvent extends GameEvent {
     to = json["to"],
     amount = json["amount"],
     cards = json.parseList("cards", cardFromJson),
-    super("payment");
+    super.fromJson(json);
 
   @override
   Json toJson() => {
@@ -302,7 +319,7 @@ class DiscardEvent extends GameEvent {
   DiscardEvent.fromJson(Json json) :
     player = json["player"],
     cards = json.parseList("cards", cardFromJson),
-    super("discard");
+    super.fromJson(json);
 
   @override
   Json toJson() => {
@@ -317,11 +334,11 @@ class DiscardEvent extends GameEvent {
 
 class JustSayNoEvent extends GameEvent {
   final String player;
-  const JustSayNoEvent(this.player) : super("no");
+  JustSayNoEvent(this.player) : super("no");
 
   JustSayNoEvent.fromJson(Json json) :
     player = json["player"],
-    super("no");
+    super.fromJson(json);
 
   @override
   Json toJson() => {

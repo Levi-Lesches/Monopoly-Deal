@@ -1,4 +1,5 @@
 export "src/game/action.dart";
+export "src/game/event.dart";
 export "src/game/game_debug.dart";
 export "src/game/game.dart";
 export "src/game/interruption.dart";

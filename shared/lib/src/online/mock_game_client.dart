@@ -25,6 +25,8 @@ class MockGameClient implements MDealClient {
     // _game.debugAddProperty(player, WildPropertyCard(topColor: .brown, bottomColor: .lightBlue, value: 1), color: .brown);
     // _game.debugAddToHand(player, House());
     // _game.debugAddToHand(player, Hotel());
+
+    _game.log(DealEvent(amount: 2, player: player.name));
   }
 
   @override
