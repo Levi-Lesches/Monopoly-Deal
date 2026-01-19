@@ -66,8 +66,8 @@ class PaymentInterruption extends Interruption {
 
 class StealInterruption extends Interruption {
   // UUIDs of cards instead of the card objects themselves
-  final String toSteal;
-  final String? toGive;
+  final CardUuid toSteal;
+  final CardUuid? toGive;
 
   final String toStealName;
   final String? toGiveName;
@@ -131,7 +131,7 @@ class StealStackInterruption extends Interruption {
 }
 
 class ChooseColorInterruption extends Interruption {
-  final String card;  // uuid
+  final CardUuid card;
   final List<PropertyColor> colors;
   ChooseColorInterruption({
     required WildCard card,

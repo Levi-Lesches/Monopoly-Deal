@@ -4,6 +4,7 @@ import "package:shared/utils.dart";
 
 import "game.dart";
 import "interruption.dart";
+import "event.dart";
 
 sealed class PlayerAction {
   final RevealedPlayer player;
@@ -138,7 +139,7 @@ class MoveAction extends PlayerAction {
         final toStack = player.getStackWithSet(color)!;
         toStack.add(card);
     }
-    game.log("$player moved $card to $color");
+    game.log(SimpleEvent("$player moved $card to $color"));
   }
 }
 
@@ -159,11 +160,7 @@ class BankAction extends OneCardAction {
     if (card.value == 0) throw PlayerException(.noValue);
     if (card is PropertyLike) throw PlayerException(.noColor);
     player.addMoney(card);
-    if (card is MoneyCard) {
-      game.log("$player played $card");
-    } else {
-      game.log("$player banked $card");
-    }
+    game.log(BankEvent(player, card));
   }
 }
 
@@ -201,10 +198,8 @@ class ChargeAction extends OneCardAction {
       if (victim == null) throw PlayerException(.noVictim);
       if (victim.netWorth == 0) throw PlayerException(.noMoney);
       victims = [victim];
-      game.log("$player paid a $card against $victim");
-    } else {
-      game.log("$player paid a $card");
     }
+    game.log(ActionCardEvent.charge(card: card, player: player, victim: victim));
     game.chargePlayers(player, card.amountToPay, victims);
   }
 }
@@ -223,7 +218,7 @@ class PropertyAction extends OneCardAction {
   @override
   void handle(Game game) {
     player.addProperty(card, card.color);
-    game.log("$player played $card");
+    game.log(PropertyEvent(card: card, color: card.color, player: player));
   }
 }
 
@@ -257,7 +252,7 @@ class WildPropertyAction extends OneCardAction {
   void handle(Game game) {
     if (color != card.topColor && color != card.bottomColor) throw PlayerException(.invalidColor);
     player.addProperty(card, color);
-    game.log("$player played a $card as a $color");
+    game.log(PropertyEvent(card: card, color: color, player: player));
   }
 }
 
@@ -292,7 +287,7 @@ class RainbowWildAction extends OneCardAction {
     final stack = player.getStackWithRoom(color);
     if (stack == null) throw PlayerException(.noStack);
     stack.add(card);
-    game.log("$player played a $card as a $color");
+    game.log(PropertyEvent(card: card, color: color, player: player));
   }
 }
 
@@ -327,7 +322,7 @@ class SetModifierAction extends OneCardAction {
     final stack = player.getStackWithSet(color);
     if (stack == null) throw PlayerException(.noSet);
     stack.add(card);
-    game.log("$player added a $card to their $color stack");
+    game.log(PropertyEvent(card: card, color: color, player: player));
   }
 }
 
@@ -386,9 +381,9 @@ class RentAction extends OneCardAction {
       if (!player.hasCardsInHand([doubleTheRent])) throw GameError.notInHand;
       rent *= 2;
       game.discard(player, doubleTheRent);
-      game.log("$player used a double the rent!");
+      game.log(SimpleEvent("$player used a double the rent!"));
     }
-    game.log("$player is charging rent for $color (\$$rent)");
+    game.log(ActionCardEvent.rent(player: player, card: card, color: color, doubleTheRent: doubleTheRent, victim: victim));
     game.chargePlayers(player, rent, victims);
   }
 }
@@ -470,6 +465,5 @@ class PassGoAction extends OneCardAction {
   @override
   void handle(Game game) {
     game.dealToPlayer(player, 2);
-    game.log("$player played a Pass Go");
   }
 }

@@ -3,6 +3,7 @@ import "package:shared/data.dart";
 import "package:shared/utils.dart";
 
 import "interruption.dart";
+import "event.dart";
 
 class GameState {
   final RevealedPlayer player;
@@ -24,7 +25,7 @@ class GameState {
   final int numCards;
 
   final List<Interruption> interruptions;
-  final List<String> log;
+  final List<GameEvent> log;
 
   GameState({
     required this.player,
@@ -58,7 +59,7 @@ class GameState {
     turnsRemaining = json["turnsRemaining"],
     discarded = json.mapNullable("discarded", cardFromJson),
     numCards = json["numCards"],
-    log = (json["log"] as List).cast<String>();
+    log = json.parseList("log", GameEvent.fromJson);
 
   Json toJson() => {
     "player": player.toJson(),
@@ -75,7 +76,10 @@ class GameState {
       for (final interruption in interruptions)
         interruption.toJson(),
     ],
-    "log": log,
+    "log": [
+      for (final event in log)
+        event.toJson(),
+    ],
   };
 
   bool get canPlayWildCard => player.stacks

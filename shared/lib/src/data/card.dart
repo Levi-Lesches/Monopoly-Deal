@@ -6,15 +6,14 @@
 import "package:shared/utils.dart";
 import "package:uuid/uuid.dart";
 
-mixin Stackable on MCard { }
-// sealed class Stackable extends Card {
-//   Stackable({required super.value});
-// }
+extension type CardUuid.fromJson(String value) {
+  CardUuid() : value = const Uuid().v4();
+}
 
+mixin Stackable on MCard { }
 mixin PropertyLike on MCard implements Stackable { }
 mixin WildCard on MCard implements PropertyLike { }
 mixin PropertySetModifier on MCard implements Stackable { }
-// mixin Rentable on Card { }
 sealed class Rentable extends MCard {
   Rentable({required super.value});
 }
@@ -22,10 +21,10 @@ sealed class Rentable extends MCard {
 sealed class MCard {
   String get name;
   final int value;
-  String uuid;
+  CardUuid uuid;
 
   MCard({required this.value}) :
-    uuid = const Uuid().v4();
+    uuid = CardUuid();
 
   @override
   bool operator ==(Object other) => other is MCard

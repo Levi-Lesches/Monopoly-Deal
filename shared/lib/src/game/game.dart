@@ -2,6 +2,7 @@ import "package:collection/collection.dart";
 import "package:shared/data.dart";
 import "package:shared/utils.dart";
 
+import "event.dart";
 import "interruption.dart";
 import "state.dart";
 
@@ -10,7 +11,7 @@ export "game_handlers.dart";
 
 class Game {
   final List<RevealedPlayer> players;
-  final List<String> _log = [];
+  final List<GameEvent> _log = [];
 
   final List<MCard> referenceDeck = [];
   Deck deck;
@@ -26,19 +27,17 @@ class Game {
     discardPile = []
   {
     referenceDeck.addAll(deck);
-    log("Starting the game!");
+    log(const SimpleEvent("Starting the game!"));
     dealStartingCards();
     startTurn();
   }
 
-  T findCard<T extends MCard>(String uuid) => referenceDeck
+  T findCard<T extends MCard>(CardUuid uuid) => referenceDeck
     .firstWhere((card) => card.uuid == uuid)
     as T;
 
   RevealedPlayer findPlayer(String name) => players
     .firstWhere((other) => other.name == name);
-
-  void log(String message) => _log.add(message);
 
   GameState getStateFor(RevealedPlayer player) => GameState(
     player: player,
@@ -66,6 +65,7 @@ class Game {
       }
       player.dealCard(deck.removeLast());
     }
+    log(DealEvent(amount: count, player: currentPlayer.name));
   }
 
   void dealStartingCards() {
@@ -77,8 +77,6 @@ class Game {
   void startTurn() {
     final numCards = currentPlayer.handCount == 0 ? 5 : 2;
     dealToPlayer(currentPlayer, numCards);
-    log("--------------------------------");
-    log("Dealt $currentPlayer $numCards cards to start their turn");
     turnsRemaining = 3;
   }
 
@@ -97,14 +95,14 @@ class Game {
     if (!victim.hasCardsOnTable([toSteal])) throw GameError.notOnTable;
     final toGive = details.toGive.map(findCard) as PropertyLike?;
     victim.removeFromTable(toSteal);
-    log("$stealer stole $toSteal from $victim");
+    log(StealEvent(details));
     final color = promptForColor(stealer, toSteal);
     if (color != null) stealer.addProperty(toSteal, color);
     if (toGive != null) {
       final color2 = promptForColor(victim, toGive);
       stealer.removeFromTable(toGive);
       if (color2 != null) victim.addProperty(toGive, color2);
-      log("$stealer gave $toGive to $victim");
+      log(SimpleEvent("$stealer gave $toGive to $victim"));
     }
   }
 
@@ -126,13 +124,13 @@ class Game {
     }
   }
 
-  void interrupt(Interruption interruption) {
-    interruptions.add(interruption);
-  }
+  void interrupt(Interruption interruption) => interruptions.add(interruption);
+
+  void log(GameEvent event) => _log.add(event);
 
   void endTurn() {
     if (interruptions.isNotEmpty) throw GameError("Resolve all interruptions first");
-    log("$currentPlayer ended their turn");
+    log(SimpleEvent("$currentPlayer ended their turn"));
     turnsRemaining = 0;
     var amountToDiscard = currentPlayer.handCount - 7;
     if (amountToDiscard < 0) amountToDiscard = 0;

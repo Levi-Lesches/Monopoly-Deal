@@ -143,7 +143,7 @@ class DiscardResponse extends InterruptionResponse {
   factory DiscardResponse.fromJson(Game game, Json json) => DiscardResponse(
     cards: [
       for (final card in (json["cards"] as List).cast<String>())
-        game.findCard(card),
+        game.findCard(CardUuid.fromJson(card)),
     ],
     player: game.findPlayer(json["player"]),
   );
