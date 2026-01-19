@@ -16,8 +16,8 @@ sealed class GameEvent {
     "bank" => BankEvent.fromJson(json),
     "action" => ActionCardEvent.fromJson(json),
     "property" => PropertyEvent.fromJson(json),
-    "payment" => PropertyEvent.fromJson(json),
-    "discard" => PropertyEvent.fromJson(json),
+    "payment" => PaymentEvent.fromJson(json),
+    "discard" => DiscardEvent.fromJson(json),
     "no" => JustSayNoEvent.fromJson(json),
     _ => throw ArgumentError("Unrecognized event: $json"),
   };

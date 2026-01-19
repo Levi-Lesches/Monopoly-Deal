@@ -65,7 +65,7 @@ class Game {
       }
       player.dealCard(deck.removeLast());
     }
-    log(DealEvent(amount: count, player: currentPlayer.name));
+    log(DealEvent(amount: count, player: player.name));
   }
 
   void dealStartingCards() {

@@ -189,12 +189,12 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
   List<Widget> buildStacks(HomeModel model) {
     final choice = model.choice;
     return switch (choice) {
-      PropertyChoice() when isPlayer => [
+      PropertyChoice(:final chooseOwn) when chooseOwn && isPlayer => [
         for (final stack in player.tableStacks)
           for (final card in stack.cards)
               CardWidget(card),
       ],
-      PropertyChoice() => [
+      PropertyChoice(:final chooseOthers) when !isPlayer && chooseOthers => [
         for (final stack in player.tableStacks)
           if (stack.isSet)
             StackWidget(stack)

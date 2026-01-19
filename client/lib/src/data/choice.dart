@@ -27,17 +27,26 @@ class CardChoice extends Choice<MCard> {
 }
 
 class PropertyChoice extends Choice<PropertyLike> {
-  PropertyChoice.self(GameState game) : super([
-    for (final stack in game.player.stacks)
-        ...stack.cards,
-  ]);
+  final bool chooseOwn;
+  final bool chooseOthers;
 
-  PropertyChoice.others(GameState game) : super([
-    for (final player in game.otherPlayers)
-      for (final stack in player.stacks)
-        if (!stack.isSet)
+  PropertyChoice.self(GameState game) :
+    chooseOwn = true,
+    chooseOthers = false,
+    super([
+      for (final stack in game.player.stacks)
           ...stack.cards,
-  ]);
+    ]);
+
+  PropertyChoice.others(GameState game) :
+    chooseOwn = false,
+    chooseOthers = true,
+    super([
+      for (final player in game.otherPlayers)
+        for (final stack in player.stacks)
+          if (!stack.isSet)
+            ...stack.cards,
+    ]);
 }
 
 class StackChoice extends Choice<PropertyStack> {
