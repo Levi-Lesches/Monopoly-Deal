@@ -13,10 +13,10 @@ class HomeModel extends DataModel {
   late GameState game;
   HomeModel(this.client, this.game);
 
+  final scrollController = ScrollController();
   RevealedPlayer get player => game.player;
   Choice<dynamic>? choice;
   StreamSubscription<void>? _sub;
-
 
   @override
   Future<void> init() async {
@@ -24,6 +24,7 @@ class HomeModel extends DataModel {
     _sub = client.gameUpdates.listen(update, onError: setError);
     await client.requestState();
     cards.addListener(notifyListeners);
+    scrollController.addListener(notifyListeners);
   }
 
   @override
@@ -345,4 +346,9 @@ class HomeModel extends DataModel {
     choice = isBanking ? CardChoice.bank(game) : CardChoice.play(game);
     notifyListeners();
   }
+
+  late final Map<String, GlobalKey> playerKeys = {
+    for (final player in game.allPlayers)
+      player.name: GlobalKey(),
+  };
 }

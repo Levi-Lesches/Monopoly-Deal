@@ -9,6 +9,7 @@ export "src/widgets/generic/reactive_widget.dart";
 export "src/widgets/atomic/card.dart";
 export "src/widgets/atomic/player.dart";
 export "src/widgets/atomic/stack.dart";
+export "src/widgets/animation/animation.dart";
 
 /// Helpful methods on [BuildContext].
 extension ContextUtils on BuildContext {

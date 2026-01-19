@@ -105,6 +105,7 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
               tileColor: canChoose ? Colors.blueGrey.withAlpha(100) : null,
               onTap: canChoose ? () => model.players.choose(player) : null,
               leading: CircleAvatar(
+                key: model.playerKeys[player.name],
                 radius: isTurn ? 24 : 18,
                 backgroundColor: colors[playerIndex],
                 child: const Icon(Icons.person),

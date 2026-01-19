@@ -57,6 +57,7 @@ class CardWidget extends ReusableReactiveWidget<HomeModel> {
   @override
   Widget build(BuildContext context, HomeModel model) => Padding(
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+    // padding: EdgeInsets.zero,
     child: SizedBox(
       height: height,
       width: width,
@@ -89,12 +90,14 @@ class CardWidget extends ReusableReactiveWidget<HomeModel> {
 class EmptyCardWidget extends StatelessWidget {
   final String text;
   final Color? color;
-  const EmptyCardWidget({this.text = "Empty", this.color});
+  final GlobalKey? gkey;
+  const EmptyCardWidget({this.text = "Empty", this.color, this.gkey});
 
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
     child: SizedBox(
+      key: gkey,
       height: CardWidget.height,
       width: CardWidget.width,
       child: Container(

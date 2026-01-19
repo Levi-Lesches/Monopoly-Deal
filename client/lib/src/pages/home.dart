@@ -52,6 +52,8 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
             children: [
               Expanded(
                 child: ListView(
+                  key: listViewKey,
+                  controller: model.scrollController,
                   children: [
                     if (model.errorMessage case final String error)
                       Text(error, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center, overflow: TextOverflow.ellipsis),
@@ -65,9 +67,9 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
                             color: Colors.grey.shade800,
                           ),
                           if (model.game.discarded case final MCard card)
-                            CardWidget(card)
+                            Container(key: discardPileKey, child: CardWidget(card))
                           else
-                            const EmptyCardWidget(text: "Discard\nPile"),
+                            EmptyCardWidget(text: "Discard\nPile", gkey: discardPileKey),
                           Expanded(
                             child: ListView(
                               reverse: true,
@@ -121,6 +123,7 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
           ),
         ),
         Positioned.fill(child: buildPrompter(model.choice)),
+        // AnimationLayer(model.playerKeys["You"]!),
         if (model.game.winner case final Player player)
           if (model.winnerPopup) Positioned.fill(
             child: Prompter(
