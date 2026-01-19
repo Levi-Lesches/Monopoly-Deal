@@ -46,10 +46,13 @@ class HomeModel extends DataModel {
 
   Set<EventID> finishedEvents = {};
   List<GameEvent> eventQueue = [];
+  final _eventsController = StreamController<GameEvent>.broadcast();
+  Stream<GameEvent> get events => _eventsController.stream;
   void addEvents(GameState state) {
     for (final event in state.log.reversed) {
       if (finishedEvents.contains(event.id)) continue;
       if (eventQueue.contains(event)) continue;
+      _eventsController.add(event);
       eventQueue.add(event);
     }
   }
@@ -348,6 +351,11 @@ class HomeModel extends DataModel {
   }
 
   late final Map<String, GlobalKey> playerKeys = {
+    for (final player in game.allPlayers)
+      player.name: GlobalKey(),
+  };
+
+  late final Map<String, GlobalKey> bankKeys = {
     for (final player in game.allPlayers)
       player.name: GlobalKey(),
   };

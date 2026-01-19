@@ -123,7 +123,7 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
           ),
         ),
         Positioned.fill(child: buildPrompter(model.choice)),
-        // AnimationLayer(model.playerKeys["You"]!),
+        AnimationLayer(),
         if (model.game.winner case final Player player)
           if (model.winnerPopup) Positioned.fill(
             child: Prompter(

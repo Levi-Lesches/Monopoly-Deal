@@ -6,6 +6,7 @@ import "package:mdeal/widgets.dart";
 class CardWidget extends ReusableReactiveWidget<HomeModel> {
   static const width = 100.0;
   static const height = 200.0;
+  static const size = Size(width, height);
 
   static const colors = <Color>[
     Colors.blueGrey,
@@ -18,7 +19,8 @@ class CardWidget extends ReusableReactiveWidget<HomeModel> {
 
   final MCard card;
   final PropertyColor? fallbackColor;
-  CardWidget(this.card, {this.fallbackColor}) :
+  final GlobalKey? gkey;
+  CardWidget(this.card, {this.gkey, this.fallbackColor}) :
     super(models.game, key: ValueKey(card.uuid));
 
   bool get canChoose {
@@ -57,10 +59,9 @@ class CardWidget extends ReusableReactiveWidget<HomeModel> {
   @override
   Widget build(BuildContext context, HomeModel model) => Padding(
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-    // padding: EdgeInsets.zero,
-    child: SizedBox(
-      height: height,
-      width: width,
+    child: SizedBox.fromSize(
+      key: gkey,
+      size: size,
       child: Material(
         elevation: canChoose ? 16 : 24,
         color: color,
@@ -96,10 +97,9 @@ class EmptyCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-    child: SizedBox(
+    child: SizedBox.fromSize(
       key: gkey,
-      height: CardWidget.height,
-      width: CardWidget.width,
+      size: CardWidget.size,
       child: Container(
         decoration: BoxDecoration(color: color, border: Border.all()),
         alignment: .center,

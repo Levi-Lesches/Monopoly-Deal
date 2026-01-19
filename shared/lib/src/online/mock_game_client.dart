@@ -25,8 +25,6 @@ class MockGameClient implements MDealClient {
     // _game.debugAddProperty(player, WildPropertyCard(topColor: .brown, bottomColor: .lightBlue, value: 1), color: .brown);
     // _game.debugAddToHand(player, House());
     // _game.debugAddToHand(player, Hotel());
-
-    _game.log(DealEvent(amount: 2, player: player.name));
   }
 
   @override
@@ -40,7 +38,11 @@ class MockGameClient implements MDealClient {
   void update() => _gameController.add(state);
 
   @override
-  Future<void> requestState() async => update();
+  Future<void> requestState() async {
+    _game.log(BankEvent(player, dealBreaker()));
+
+    update();
+  }
 
   @override
   Future<void> sendAction(PlayerAction action) async {

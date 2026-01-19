@@ -161,7 +161,7 @@ class BankEvent extends GameEvent {
   @override
   String toString() => wasAlreadyMoney
     ? "$player added $card to their bank"
-    : "$player banked a(n) $card for \$$value";
+    : "$player banked $card for \$$value";
 }
 
 class ActionCardEvent extends GameEvent {
