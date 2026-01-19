@@ -8,7 +8,8 @@ class StackWidget extends StatelessWidget {
   static const verticalSpacing = 20.0;
 
   final PropertyStack stack;
-  const StackWidget(this.stack);
+  final GlobalKey? gkey;
+  const StackWidget(this.stack, {this.gkey});
 
   bool get canChoose {
     final choice2 = models.game.choice;
@@ -44,6 +45,7 @@ class StackWidget extends StatelessWidget {
         Positioned(
           bottom: 10,
           left: 8,
+          key: gkey,
           child: Container(
             alignment: Alignment.bottomCenter,
             color: Colors.black.withAlpha(100),

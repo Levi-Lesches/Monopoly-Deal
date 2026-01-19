@@ -217,8 +217,8 @@ class PropertyAction extends OneCardAction {
 
   @override
   void handle(Game game) {
-    player.addProperty(card, card.color);
-    game.log(PropertyEvent(card: card, color: card.color, player: player));
+    final index = player.addProperty(card, card.color);
+    game.log(PropertyEvent(card: card, color: card.color, player: player, stackIndex: index));
   }
 }
 
@@ -251,8 +251,8 @@ class WildPropertyAction extends OneCardAction {
   @override
   void handle(Game game) {
     if (color != card.topColor && color != card.bottomColor) throw PlayerException(.invalidColor);
-    player.addProperty(card, color);
-    game.log(PropertyEvent(card: card, color: color, player: player));
+    final index = player.addProperty(card, color);
+    game.log(PropertyEvent(card: card, color: color, player: player, stackIndex: index));
   }
 }
 
@@ -287,7 +287,7 @@ class RainbowWildAction extends OneCardAction {
     final stack = player.getStackWithRoom(color);
     if (stack == null) throw PlayerException(.noStack);
     stack.add(card);
-    game.log(PropertyEvent(card: card, color: color, player: player));
+    game.log(PropertyEvent(card: card, color: color, player: player, stackIndex: player.tableStacks.indexOf(stack)));
   }
 }
 
@@ -322,7 +322,7 @@ class SetModifierAction extends OneCardAction {
     final stack = player.getStackWithSet(color);
     if (stack == null) throw PlayerException(.noSet);
     stack.add(card);
-    game.log(PropertyEvent(card: card, color: color, player: player));
+    game.log(PropertyEvent(card: card, color: color, player: player, stackIndex: player.tableStacks.indexOf(stack)));
   }
 }
 

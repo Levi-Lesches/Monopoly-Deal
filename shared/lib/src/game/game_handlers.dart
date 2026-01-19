@@ -35,8 +35,8 @@ extension GameHandlers on Game {
         if (interruption is! ChooseColorInterruption) throw GameError.wrongResponse;
         final card = findCard(interruption.card) as WildCard;
         response.validate(card);
-        response.player.addProperty(card, color);
-        log(PropertyEvent(player: response.player, card: card, color: color));
+        final index = response.player.addProperty(card, color);
+        log(PropertyEvent(player: response.player, card: card, color: color, stackIndex: index));
       case DiscardResponse(:final cards):
         if (interruption is! DiscardInterruption) throw GameError.wrongResponse;
         response.validate(interruption.amount);

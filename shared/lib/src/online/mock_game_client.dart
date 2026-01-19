@@ -35,19 +35,23 @@ class MockGameClient implements MDealClient {
   @override
   Stream<GameState> get gameUpdates => _gameController.stream;
 
-  void update() => _gameController.add(state);
+  void update() => _gameController.add(GameState.fromJson(state.toJson()));
 
   @override
   Future<void> requestState() async {
-    _game.log(BankEvent(player, dealBreaker()));
-
+    // final card = PropertyCard(color: .brown, name: "Baltic Avenue", value: 1);
+    // _game.debugAddToHand(player, card);
+    // await Future<void>.delayed(Duration(seconds: 1));
+    // _game.handleAction(PropertyAction(card: card, player: player));
+    // _game.log(PropertyEvent(card: card, color: player.stacks.first.color, player: player, stackIndex: 0));
+    // _game.log(BankEvent(player, player.hand.first));
     update();
   }
 
   @override
   Future<void> sendAction(PlayerAction action) async {
     try {
-      _game.handleAction(action);
+      _game.handleAction(PlayerAction.fromJson(_game, action.toJson()));
     } catch (error) {
       _gameController.addError(error);
     }
@@ -57,7 +61,7 @@ class MockGameClient implements MDealClient {
   @override
   Future<void> sendResponse(InterruptionResponse response) async {
     try {
-    _game.handleResponse(response);
+    _game.handleResponse(InterruptionResponse.fromJson(_game, response.toJson()));
     } catch (error) {
       _gameController.addError(error);
     }

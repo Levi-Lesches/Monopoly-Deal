@@ -113,7 +113,7 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
                       scrollDirection: Axis.horizontal,
                       children: [
                         for (final card in model.game.player.hand)
-                          CardWidget(card),
+                          CardWidget(card, gkey: model.getCardKey(card)),
                       ],
                     ),
                   ),

@@ -45,24 +45,24 @@ class HomeModel extends DataModel {
     ? game.turnsRemaining : null;
 
   Set<EventID> finishedEvents = {};
-  List<GameEvent> eventQueue = [];
   final _eventsController = StreamController<GameEvent>.broadcast();
   Stream<GameEvent> get events => _eventsController.stream;
-  void addEvents(GameState state) {
+  Future<void> addEvents(GameState state) async {
+    var wait = false;
     for (final event in state.log.reversed) {
       if (finishedEvents.contains(event.id)) continue;
-      if (eventQueue.contains(event)) continue;
       _eventsController.add(event);
-      eventQueue.add(event);
+      finishedEvents.add(event.id);
+      if (event.isAnimated) wait = true;
     }
+    if (wait) await Future<void>.delayed(const Duration(milliseconds: 400));
   }
 
   bool winnerPopup = false;
-  void update(GameState state) {
+  Future<void> update(GameState state) async {
     cancelChoice(playCard: false);
+    await addEvents(state);
     game = state;
-    addEvents(state);
-    choice = null;
     notifyListeners();
     if (game.winner != null) {
       winnerPopup = true;
@@ -275,6 +275,7 @@ class HomeModel extends DataModel {
   void cancelChoice({bool playCard = true}) {
     winnerPopup = false;
     isBanking = false;
+    choice = null;
     notifyListeners();
     for (final chooser in choosers) {
       chooser.cancel();
@@ -358,5 +359,20 @@ class HomeModel extends DataModel {
   late final Map<String, GlobalKey> bankKeys = {
     for (final player in game.allPlayers)
       player.name: GlobalKey(),
+  };
+
+  late final Map<String, GlobalKey> stackKeys = {
+    for (final player in game.allPlayers)
+      player.name: GlobalKey(),
+  };
+
+  final Map<CardUuid, GlobalKey> _cardKeys = {};
+  GlobalKey getCardKey(MCard card) => _cardKeys.putIfAbsent(card.uuid, GlobalKey.new);
+}
+
+extension on GameEvent {
+  bool get isAnimated => switch (this) {
+    BankEvent() || PropertyEvent() || DiscardEvent() => true,
+    _ => false,
   };
 }

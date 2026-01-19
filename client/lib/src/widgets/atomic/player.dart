@@ -175,9 +175,10 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
                     ),
                   ),
               ],),
-              const SizedBox(
+              SizedBox(
                 height: CardWidget.height,
-                child: VerticalDivider(),
+                key: model.stackKeys[player.name],
+                child: const VerticalDivider(),
               ),
               ...buildStacks(model),
             ],

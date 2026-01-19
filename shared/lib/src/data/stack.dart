@@ -32,6 +32,9 @@ class PropertyStack {
     "hotel": hotel?.toJson(),
   };
 
+  @override
+  String toString() => "$color stack";
+
   bool get isSet => cards.length == color.setNumber;
   bool get hasRoom => cards.length < color.setNumber;
   bool get isEmpty => cards.isEmpty;

@@ -67,8 +67,8 @@ abstract class Player {
   Iterable<MCard> get cardsWithValue =>
     _onTable.where((card) => card.value > 0);
 
-  Iterable<PropertyStack> get tableStacks => stacks
-    .where((s) => s.isNotEmpty);
+  List<PropertyStack> get tableStacks => stacks
+    .where((s) => s.isNotEmpty).toList();
 
   PropertyStack? getStackWithSet(PropertyColor color) => stacks
     .firstWhereOrNull((stack) => stack.color == color && stack.isSet);
@@ -79,15 +79,16 @@ abstract class Player {
   PropertyStack getStackWithCard(Stackable card) => stacks
     .firstWhere((s) => s.allCards.contains(card));
 
-  void addProperty(Stackable card, PropertyColor color) {
-    final stack = getStackWithRoom(color);
+  int addProperty(Stackable card, PropertyColor color) {
+    var stack = getStackWithRoom(color);
     if (stack == null) {
-      final newStack = PropertyStack(color);
-      newStack.add(card);
-      stacks.add(newStack);
+      stack = PropertyStack(color);
+      stack.add(card);
+      stacks.add(stack);
     } else {
       stack.add(card);
     }
+    return tableStacks.indexOf(stack);
   }
 
   void addMoney(MCard card) => switch (card) {

@@ -131,20 +131,19 @@ class StealStackEvent extends GameEvent {
 
 class BankEvent extends GameEvent {
   final String player;
-  final String card;
+  final MCard card;
   final bool wasAlreadyMoney;
   final int value;
 
-  BankEvent(Player player, MCard card) :
+  BankEvent(Player player, this.card) :
     player = player.name,
-    card = card.name,
     wasAlreadyMoney = card is MoneyCard,
     value = card.value,
     super("bank");
 
   BankEvent.fromJson(Json json) :
     player = json["player"],
-    card = json["card"],
+    card = cardFromJson(json["card"]),
     wasAlreadyMoney = json["wasAlreadyMoney"],
     value = json["value"],
     super.fromJson(json);
@@ -153,7 +152,7 @@ class BankEvent extends GameEvent {
   Json toJson() => {
     ...super.toJson(),
     "player": player,
-    "card": card,
+    "card": card.toJson(),
     "wasAlreadyMoney": wasAlreadyMoney,
     "value": value,
   };
@@ -235,16 +234,17 @@ class ActionCardEvent extends GameEvent {
 
 class PropertyEvent extends GameEvent {
   final String player;
-  final String card;
+  final MCard card;
   final PropertyColor color;
   final bool isModifier;
+  final int stackIndex;
 
   PropertyEvent({
     required Player player,
     required this.color,
-    required Stackable card,
+    required this.stackIndex,
+    required Stackable this.card,
   }) :
-    card = card.name,
     player = player.name,
     isModifier = card is PropertySetModifier,
     super("property");
@@ -253,7 +253,8 @@ class PropertyEvent extends GameEvent {
     player = json["player"],
     color = PropertyColor.fromJson(json["color"]),
     isModifier = json["isModifier"],
-    card = json["card"],
+    card = cardFromJson(json["card"]),
+    stackIndex = json["stackIndex"],
     super.fromJson(json);
 
   @override
@@ -262,7 +263,8 @@ class PropertyEvent extends GameEvent {
     "player": player,
     "color": color.toJson(),
     "isModifier": isModifier,
-    "card": card,
+    "card": card.toJson(),
+    "stackIndex": stackIndex,
   };
 
   @override
@@ -273,7 +275,6 @@ class PropertyEvent extends GameEvent {
 
 class PaymentEvent extends GameEvent {
   final List<MCard> cards;
-  final int amount;
   final String from;
   final String to;
 
@@ -284,22 +285,21 @@ class PaymentEvent extends GameEvent {
   }) :
     from = from.name,
     to = to.name,
-    amount = cards.totalValue,
     super("payment");
 
   PaymentEvent.fromJson(Json json) :
     from = json["from"],
     to = json["to"],
-    amount = json["amount"],
     cards = json.parseList("cards", cardFromJson),
     super.fromJson(json);
+
+  int get amount => cards.totalValue;
 
   @override
   Json toJson() => {
     ...super.toJson(),
     "from": from,
     "to": to,
-    "amount": amount,
     "cards": [
       for (final card in cards)
         card.toJson(),
