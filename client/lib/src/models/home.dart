@@ -4,6 +4,10 @@ import "package:collection/collection.dart";
 import "package:flutter/widgets.dart";
 import "package:mdeal/data.dart";
 
+import "package:mdeal/src/widgets/animation/animation.dart";
+
+import "audio.dart";
+
 import "chooser.dart";
 import "model.dart";
 
@@ -21,10 +25,15 @@ class HomeModel extends DataModel {
   @override
   Future<void> init() async {
     cancelChoice(playCard: false);
+    // unawaited(client.requestState());
     _sub = client.gameUpdates.listen(update, onError: setError);
-    await client.requestState();
     cards.addListener(notifyListeners);
     scrollController.addListener(notifyListeners);
+    expansionController.addListener(notifyListeners);
+    if (game.currentPlayer == player.name) {
+      expansionController.expand();
+    }
+    unawaited(update(game));
   }
 
   @override
@@ -45,23 +54,33 @@ class HomeModel extends DataModel {
     ? game.turnsRemaining : null;
 
   Set<EventID> finishedEvents = {};
-  final _eventsController = StreamController<GameEvent>.broadcast();
+  final List<GameEvent> _eventsQueue = [];
+  late final _eventsController = StreamController<GameEvent>.broadcast(
+    onListen: _flushEvents,
+  );
   Stream<GameEvent> get events => _eventsController.stream;
-  Future<void> addEvents(GameState state) async {
-    var wait = false;
-    for (final event in state.log.reversed) {
+  Future<void> addEvents(Iterable<GameEvent> events) async {
+    if (!_eventsController.hasListener) {
+      _eventsQueue.addAll(events);
+      return;
+    }
+    for (final event in events) {
       if (finishedEvents.contains(event.id)) continue;
       _eventsController.add(event);
       finishedEvents.add(event.id);
-      if (event.isAnimated) wait = true;
+      await Future<void>.delayed(event.animationDelay);
     }
-    if (wait) await Future<void>.delayed(const Duration(milliseconds: 400));
   }
+
+  Future<void> _flushEvents() async {
+    await addEvents(_eventsQueue);
+  }
+
 
   bool winnerPopup = false;
   Future<void> update(GameState state) async {
     cancelChoice(playCard: false);
-    await addEvents(state);
+    await addEvents(state.log.reversed);
     game = state;
     notifyListeners();
     if (game.winner != null) {
@@ -371,8 +390,13 @@ class HomeModel extends DataModel {
 }
 
 extension on GameEvent {
-  bool get isAnimated => switch (this) {
-    BankEvent() || PropertyEvent() || DiscardEvent() => true,
-    _ => false,
+  Duration get animationDelay => switch (this) {
+    BankEvent() || PropertyEvent() => AnimationLayerState.cardDelay,
+    DealEvent(:final amount) => AudioModel.cardDelay * amount,
+    DiscardEvent(:final cards) => AnimationLayerState.cardDelay * cards.length,
+    StealEvent(:final details) => Duration(milliseconds: details.isTrade ? 2000 : 1500),
+    PaymentEvent(:final amount) => AnimationLayerState.cardDelay * amount,
+    ActionCardEvent() => const Duration(milliseconds: 800),
+    _ => Duration.zero,
   };
 }

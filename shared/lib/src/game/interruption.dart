@@ -66,11 +66,16 @@ class PaymentInterruption extends Interruption {
 
 class StealInterruption extends Interruption {
   // UUIDs of cards instead of the card objects themselves
-  final CardUuid toSteal;
-  final CardUuid? toGive;
+  final CardUuid toStealUuid;
+  final CardUuid? toGiveUuid;
 
   final String toStealName;
   final String? toGiveName;
+
+  MCard get toSteal => cardFromJson({"uuid": toStealUuid, "name": toStealName});
+  MCard? get toGive => toGiveName == null ? null : cardFromJson({"uuid": toGiveUuid, "name": toGiveName});
+
+  bool get isTrade => toGiveName != null;
 
   StealInterruption({
     required PropertyLike toSteal,
@@ -78,20 +83,20 @@ class StealInterruption extends Interruption {
     required super.waitingFor,
     required super.causedBy,
   }) :
-    toSteal = toSteal.uuid,
+    toStealUuid = toSteal.uuid,
     toStealName = toSteal.name,
-    toGive = toGive?.uuid,
+    toGiveUuid = toGive?.uuid,
     toGiveName = toGive?.name;
 
   StealInterruption.fromJson(Json json) :
-    toSteal = json["toSteal"],
-    toGive = json["toGive"],
+    toStealUuid = json["toSteal"],
+    toGiveUuid = json["toGive"],
     toStealName = json["toStealName"],
     toGiveName = json["toGiveName"],
     super.fromJson(json);
 
   @override
-  String toString() => toGive == null
+  String toString() => toGiveUuid == null
     ? "$causedBy wants to steal $toStealName from $waitingFor"
     : "$causedBy wants to steal $toStealName and give $toGiveName";
 
@@ -99,8 +104,8 @@ class StealInterruption extends Interruption {
   Json toJson() => {
     ...super.toJson(),
     "type": "stealOne",
-    "toSteal": toSteal,
-    "toGive": toGive,
+    "toSteal": toStealUuid,
+    "toGive": toGiveUuid,
     "toStealName": toStealName,
     "toGiveName": toGiveName,
   };

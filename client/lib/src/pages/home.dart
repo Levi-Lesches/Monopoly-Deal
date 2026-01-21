@@ -69,6 +69,7 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
                           EmptyCardWidget(
                             text: "${model.game.numCards}\nCards Left",
                             color: Colors.grey.shade800,
+                            gkey: pickPileKey,
                           ),
                           if (model.game.discarded case final MCard card)
                             Container(key: discardPileKey, child: CardWidget(card))
@@ -97,11 +98,22 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
                   ],
                 ),
               ),
-              const Divider(),
+              if (model.expansionController.isExpanded)
+                const SizedBox(height: 280),
+            ],
+          ),
+        ),
+        Positioned.fill(child: buildPrompter(model.choice)),
+        AnimationLayer(),
+        Positioned.fill(
+          child: Column(
+            children: [
+              const Spacer(),
               ExpansionTile(
-                initiallyExpanded: model.game.currentPlayer == model.player.name,
                 controller: model.expansionController,
                 title: const Text("Your cards"),
+                backgroundColor: context.colorScheme.surfaceDim,
+                collapsedBackgroundColor: context.colorScheme.surfaceDim,
                 children: [
                   if (model.choice != null)
                     Text(buildPrompt(model.choice!), style: context.textTheme.bodyLarge),
@@ -126,8 +138,6 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
             ],
           ),
         ),
-        Positioned.fill(child: buildPrompter(model.choice)),
-        AnimationLayer(),
         if (model.game.winner case final Player player)
           if (model.winnerPopup) Positioned.fill(
             child: Prompter(

@@ -25,6 +25,11 @@ class MockGameClient implements MDealClient {
     // _game.debugAddProperty(player, WildPropertyCard(topColor: .brown, bottomColor: .lightBlue, value: 1), color: .brown);
     // _game.debugAddToHand(player, House());
     // _game.debugAddToHand(player, Hotel());
+
+    // final toSteal = PropertyCard(color: .brown, name: "Baltic Avenue", value: 1);
+    // final toGive = RainbowWildCard();
+    // _game.debugAddProperty(player, toSteal);
+    // _game.debugAddToHand(player, toGive);
   }
 
   @override
@@ -45,7 +50,17 @@ class MockGameClient implements MDealClient {
   }
 
   void debug() {
-    _game.log(BankEvent(_other, _other.hand.first));
+    // _game.log(DealEvent(amount: 2, player: player.name));
+    // _game.log(PaymentEvent(cards: [debtCollector(), Hotel()], from: _other, to: player));
+    // _game.log(BankEvent(player, player.hand.first));
+    // return;
+    // final toSteal = player.tableStacks.first.cards.first;
+    // final toGive = _other.tableStacks.first.cards.first;
+    // _game.log(StealEvent(StealInterruption(causedBy: _other, waitingFor: player, toSteal: toSteal, toGive: toGive)));
+    // _game.log(StealStackEvent(StealStackInterruption(causedBy: _other, waitingFor: player, color: .brown)));
+    // _game.log(ActionCardEvent.charge(player: player, card: player.hand.first as PaymentActionCard));
+    // _game.log(PropertyEvent(card: player.hand.last as PropertyLike, color: .brown, player: player, stackIndex: 0));
+    _game.log(JustSayNoEvent(player.name));
   }
 
   @override

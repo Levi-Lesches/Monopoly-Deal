@@ -6,6 +6,7 @@ import "package:mdeal/models.dart";
 import "package:mdeal/widgets.dart";
 
 final GlobalKey discardPileKey = GlobalKey();
+final GlobalKey pickPileKey = GlobalKey();
 final GlobalKey listViewKey = GlobalKey();
 
 class Animated {
@@ -51,7 +52,7 @@ class Animated {
     .evaluate(CurvedAnimation(parent: animation, curve: curve));
 
   double get opacity => shouldFade
-    ? Tween<double>(begin: 1, end: 0).evaluate(animation)
+    ? Tween<double>(begin: 1, end: 0).evaluate(CurvedAnimation(parent: animation, curve: curve))
     : 1;
 }
 
@@ -61,6 +62,7 @@ class AnimationLayer extends StatefulWidget {
 }
 
 class AnimationLayerState extends State<AnimationLayer> with TickerProviderStateMixin {
+  static const cardDelay = Duration(milliseconds: 250);
   StreamSubscription<void>? sub;
 
   final List<Animated> animations = [];
@@ -94,43 +96,99 @@ class AnimationLayerState extends State<AnimationLayer> with TickerProviderState
 
   Future<void> animateEvent(GameEvent event) async {
     switch (event) {
+      case DealEvent(:final amount, :final player):
+        models.audio.playCard(amount);
+        for (final _ in range(amount)) {
+          animate((controller) => Animated.move(
+            animation: controller,
+            widget: const EmptyCardWidget(color: Colors.blueGrey, text: "Deal"),
+            startAt: pickPileKey,
+            endAt: playerKey(player),
+            offset: const Offset(0, CardWidget.height * -1/2),
+          ));
+          await Future<void>.delayed(AudioModel.cardDelay);
+        }
       case BankEvent(:final player, :final value, :final card):
+        models.audio.playMoney();
         animate((controller) => Animated.move(
           animation: controller,
           widget: CardWidget(card),
           startAt: fromHand(player, card),
           endAt: bankKey(player),
         ));
-        animate((controller) => Animated.fade(
+        await Future<void>.delayed(cardDelay);
+        animate(duration: const Duration(seconds: 2), (controller) => Animated.fade(
           startAt: bankKey(player),
           widget: Text("\$$value", style: context.textTheme.displaySmall?.copyWith(color: Colors.white)),
           animation: controller,
         ));
       case StealEvent(:final details):
-        animate((controller) => Animated.fade(
+        models.audio.playSteal();
+        animate(duration: const Duration(milliseconds: 1000), (controller) => Animated.fade(
           startAt: playerKey(details.waitingFor),
-          widget: CardWidget(details.toGive == null ? slyDeal() : forcedDeal()),
+          widget: CardWidget(details.toGiveUuid == null ? slyDeal() : forcedDeal()),
           animation: controller,
+          curve: Curves.easeIn,
         ));
+        await Future<void>.delayed(const Duration(milliseconds: 1000));
+        models.audio.playCard(1);
+        animate(duration: const Duration(milliseconds: 500), (controller) => Animated.move(
+          animation: controller,
+          startAt: playerKey(details.waitingFor),
+          endAt: playerKey(details.causedBy),
+          widget: CardWidget(details.toSteal),
+        ));
+        if (details.toGive case final MCard card) {
+          await Future<void>.delayed(const Duration(milliseconds: 500));
+          models.audio.playCard(1);
+          animate(duration: const Duration(milliseconds: 500), (controller) => Animated.move(
+            animation: controller,
+            startAt: playerKey(details.causedBy),
+            endAt: playerKey(details.waitingFor),
+            widget: CardWidget(card),
+          ));
+        }
       case StealStackEvent(:final details):
-        animate((controller) => Animated.fade(
+        models.audio.playSteal();
+        animate(duration: const Duration(seconds: 1), (controller) => Animated.fade(
           startAt: playerKey(details.waitingFor),
           widget: CardWidget(dealBreaker()),
           animation: controller,
+          curve: Curves.easeIn,
         ));
-      case PaymentEvent(:final to, :final amount):
-        animate((controller) => Animated.fade(
+        await Future<void>.delayed(const Duration(milliseconds: 1000));
+        // TODO: Didn't work with multiple stacks
+        animate((controller) => Animated.move(
+          animation: controller,
+          startAt: playerKey(details.waitingFor),
+          endAt: playerKey(details.causedBy),
+          widget: StackWidget(models.game.game.allPlayers.firstWhere((p) => p.name == details.waitingFor).getStackWithSet(details.color)!)
+        ));
+      case PaymentEvent(:final to, :final amount, :final cards, :final from):
+        models.audio.playMoney();
+        for (final card in cards) {
+          animate((controller) => Animated.move(
+            animation: controller,
+            startAt: bankKey(from),
+            endAt: bankKey(to),
+            widget: CardWidget(card),
+          ));
+          await Future<void>.delayed(cardDelay);
+        }
+        animate(duration: const Duration(seconds: 2), (controller) => Animated.fade(
           startAt: bankKey(to),
           widget: Text("\$$amount", style: context.textTheme.displaySmall?.copyWith(color: Colors.white)),
           animation: controller,
         ));
       case JustSayNoEvent(:final player):
-        animate((controller) => Animated.fade(
+        models.audio.playNo();
+        animate(duration: const Duration(seconds: 1), (controller) => Animated.fade(
           startAt: playerKey(player),
           widget: CardWidget(JustSayNo()),
           animation: controller,
         ));
       case DiscardEvent(:final player, :final cards):
+        models.audio.playCard(cards.length);
         for (final card in cards) {
           animate((controller) => Animated.move(
             widget: CardWidget(card),
@@ -138,22 +196,33 @@ class AnimationLayerState extends State<AnimationLayer> with TickerProviderState
             endAt: discardPileKey,
             animation: controller,
           ));
-          await Future<void>.delayed(const Duration(milliseconds: 250));
+          await Future<void>.delayed(cardDelay);
         }
       case PropertyEvent(:final card, :final player, :final stackIndex):
-        animate((controller) => Animated.move(
+        models.audio.playCard(1);
+        animate(duration: const Duration(milliseconds: 800), (controller) => Animated.move(
           animation: controller,
           startAt: fromHand(player, card),
           endAt: models.game.stackKeys[player]!,
           offset: const Offset(16, 0) + (const Offset(CardWidget.width + 32, 0) * stackIndex.toDouble()),
           widget: CardWidget(card),
         ));
-      case _:
+      case ActionCardEvent(:final card, :final player):
+        models.audio.playCard(1);
+        animate(duration: const Duration(milliseconds: 800), (controller) => Animated.move(
+          startAt: fromHand(player, card),
+          endAt: discardPileKey,
+          widget: CardWidget(card),
+          animation: controller,
+          // curve: Curves.easeIn,
+        ));
+      case SimpleEvent():
+      // TODO: Pass go
     }
   }
 
-  void animate(Animated Function(AnimationController) func) {
-    final controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 400));
+  void animate(Animated Function(AnimationController) func, {Duration duration = const Duration(milliseconds: 400)}) {
+    final controller = AnimationController(vsync: this, duration: duration);
     setState(() => animations.add(func(controller)));
     controller.addListener(() => setState(() { }));
     controller.addStatusListener((status) => onDone(controller, status));

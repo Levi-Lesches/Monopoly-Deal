@@ -91,9 +91,9 @@ class Game {
   void steal(StealInterruption details) {
     final stealer = findPlayer(details.causedBy);
     final victim = findPlayer(details.waitingFor);
-    final toSteal = findCard(details.toSteal) as PropertyLike;
+    final toSteal = findCard(details.toStealUuid) as PropertyLike;
     if (!victim.hasCardsOnTable([toSteal])) throw GameError.notOnTable;
-    final toGive = details.toGive.map(findCard) as PropertyLike?;
+    final toGive = details.toGiveUuid.map(findCard) as PropertyLike?;
     victim.removeFromTable(toSteal);
     log(StealEvent(details));
     final color = promptForColor(stealer, toSteal);
