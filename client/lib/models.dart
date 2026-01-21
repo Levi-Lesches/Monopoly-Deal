@@ -5,6 +5,7 @@ import "package:mdeal/data.dart";
 import "";
 export "src/models/home.dart";
 export "src/models/model.dart";
+export "src/models/audio.dart";
 
 /// A [DataModel] to manage all other data models.
 class Models extends DataModel {
@@ -13,15 +14,17 @@ class Models extends DataModel {
 
   // List your models here
   late HomeModel game;
+  final audio = AudioModel();
 
 	/// A list of all models to manage.
-	List<DataModel> get models => [game];
+	List<DataModel> get models => [game, audio];
 
   Future<void> resetGame() async {
     final user = User("test1");
     final mockClient = MockGameClient(user);
     await mockClient.init();
     game = HomeModel(mockClient, mockClient.state);
+    await audio.init();
   }
 
 	@override

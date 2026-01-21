@@ -293,7 +293,9 @@ class PaymentEvent extends GameEvent {
     cards = json.parseList("cards", cardFromJson),
     super.fromJson(json);
 
-  int get amount => cards.totalValue;
+  int get amount => cards
+    .where((card) => card is! PropertyLike)
+    .totalValue;
 
   @override
   Json toJson() => {

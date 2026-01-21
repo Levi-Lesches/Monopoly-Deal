@@ -31,7 +31,11 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
         IconButton(
           icon: const Icon(Icons.restore),
           tooltip: "Cancel / Restore",
-          onPressed: () => model.cancelChoice(),
+          onPressed: () {
+            final client = model.client;
+            if (client is MockGameClient) client.debug();
+            model.cancelChoice();
+          }
         ),
       ],
     ),

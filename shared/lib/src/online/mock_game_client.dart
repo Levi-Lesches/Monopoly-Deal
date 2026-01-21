@@ -35,17 +35,17 @@ class MockGameClient implements MDealClient {
   @override
   Stream<GameState> get gameUpdates => _gameController.stream;
 
-  void update() => _gameController.add(GameState.fromJson(state.toJson()));
+  void update() {
+    _gameController.add(GameState.fromJson(state.toJson()));
+  }
 
   @override
   Future<void> requestState() async {
-    // final card = PropertyCard(color: .brown, name: "Baltic Avenue", value: 1);
-    // _game.debugAddToHand(player, card);
-    // await Future<void>.delayed(Duration(seconds: 1));
-    // _game.handleAction(PropertyAction(card: card, player: player));
-    // _game.log(PropertyEvent(card: card, color: player.stacks.first.color, player: player, stackIndex: 0));
-    // _game.log(BankEvent(player, player.hand.first));
     update();
+  }
+
+  void debug() {
+    _game.log(BankEvent(_other, _other.hand.first));
   }
 
   @override

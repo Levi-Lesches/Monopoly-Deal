@@ -6,6 +6,7 @@ import "package:mdeal/pages.dart";
 import "package:mdeal/services.dart";
 
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await services.init();
   await models.init();
   await models.initFromOthers();

@@ -160,6 +160,6 @@ Deck buildDeck() => [
 
 Deck shuffleDeck() => buildDeck().shuffled();
 
-extension DeckUtils on Deck {
+extension DeckUtils on Iterable<MCard> {
   int get totalValue => map((card) => card.value).sum;
 }
