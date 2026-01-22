@@ -6,7 +6,7 @@ import "package:flutter/animation.dart";
 import "service.dart";
 
 class AudioService extends Service {
-  bool silent = false;
+  bool silent = true;
 
   @override
   Future<void> init() async {

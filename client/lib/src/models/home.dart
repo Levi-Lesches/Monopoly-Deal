@@ -22,7 +22,6 @@ class HomeModel extends DataModel {
   @override
   Future<void> init() async {
     cancelChoice(playCard: false);
-    // unawaited(client.requestState());
     _sub = client.gameUpdates.listen(update, onError: setError);
     models.audio.addListener(notifyListeners);
     cards.addListener(notifyListeners);
@@ -51,27 +50,24 @@ class HomeModel extends DataModel {
   int? turnsFor(Player player) => player.name == game.currentPlayer
     ? game.turnsRemaining : null;
 
-  Set<EventID> finishedEvents = {};
-  final List<GameEvent> _eventsQueue = [];
-  late final _eventsController = StreamController<GameEvent>.broadcast(
-    onListen: _flushEvents,
-  );
-  Stream<GameEvent> get events => _eventsController.stream;
-  Future<void> addEvents(Iterable<GameEvent> events) async {
-    if (!_eventsController.hasListener) {
-      _eventsQueue.addAll(events);
-      return;
-    }
-    for (final event in events) {
-      if (finishedEvents.contains(event.id)) continue;
-      _eventsController.add(event);
-      finishedEvents.add(event.id);
-      await Future<void>.delayed(event.animationDelay);
-    }
+  bool enableAnimations = false;
+  void toggleAnimations() {
+    enableAnimations = !enableAnimations;
+    notifyListeners();
   }
 
-  Future<void> _flushEvents() async {
-    await addEvents(_eventsQueue);
+  Set<EventID> finishedEvents = {};
+  final _eventsController = StreamController<GameEvent>.broadcast();
+  Stream<GameEvent> get events => _eventsController.stream;
+  Future<void> addEvents(Iterable<GameEvent> events) async {
+    for (final event in events) {
+      if (finishedEvents.contains(event.id)) continue;
+      finishedEvents.add(event.id);
+      if (enableAnimations) {
+        _eventsController.add(event);
+        await Future<void>.delayed(event.animationDelay);
+      }
+    }
   }
 
   bool winnerPopup = false;
@@ -388,13 +384,13 @@ class HomeModel extends DataModel {
 
 extension on GameEvent {
   Duration get animationDelay => switch (this) {
-    BankEvent() || PropertyEvent() => AnimationLayerState.cardDelay,
+    BankEvent() => AnimationLayerState.cardDelay,
+    PropertyEvent() => const Duration(milliseconds: 800),
     DealEvent(:final amount) => AudioModel.cardDelay * amount,
     DiscardEvent(:final cards) => AnimationLayerState.cardDelay * cards.length,
     StealEvent(:final details) => Duration(milliseconds: details.isTrade ? 2000 : 1500),
     PaymentEvent(:final amount) => AnimationLayerState.cardDelay * amount,
     ActionCardEvent() => const Duration(milliseconds: 800),
-    // _ => Duration.zero,
     SimpleEvent() => Duration.zero,
     StealStackEvent() => const Duration(milliseconds: 1400),
     JustSayNoEvent() => const Duration(seconds: 1),

@@ -88,6 +88,10 @@ class AnimationLayerState extends State<AnimationLayer> with TickerProviderState
   @override
   void dispose() {
     unawaited(sub?.cancel());
+    for (final animation in animations) {
+      animation.animation.dispose();
+    }
+    animations.clear();
     super.dispose();
   }
 
@@ -234,6 +238,7 @@ class AnimationLayerState extends State<AnimationLayer> with TickerProviderState
   }
 
   void animate(Animated Function(AnimationController) func, {Duration duration = const Duration(milliseconds: 400)}) {
+    if (!context.mounted) return;
     final controller = AnimationController(vsync: this, duration: duration);
     setState(() => animations.add(func(controller)));
     controller.addListener(() => setState(() { }));

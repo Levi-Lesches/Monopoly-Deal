@@ -29,6 +29,13 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
       title: Text("${model.player}'s Game"),
       actions: [
         IconButton(
+          icon: model.enableAnimations
+            ? const Icon(Icons.pause_circle_outline)
+            : const Icon(Icons.play_circle_outline),
+          tooltip: "Toggle Animations",
+          onPressed: model.toggleAnimations,
+        ),
+        IconButton(
           icon: models.audio.silent
             ? const Icon(Icons.volume_off)
             : const Icon(Icons.volume_up),
@@ -106,12 +113,15 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
                 ),
               ),
               if (model.expansionController.isExpanded)
-                const SizedBox(height: 280),
+                const SizedBox(height: 280)
+              else
+                const SizedBox(height: 50),
             ],
           ),
         ),
         Positioned.fill(child: buildPrompter(model.choice)),
-        AnimationLayer(),
+        if (model.enableAnimations)
+          AnimationLayer(),
         Positioned.fill(
           child: Column(
             children: [
