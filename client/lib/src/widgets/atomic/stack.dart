@@ -5,6 +5,10 @@ import "package:mdeal/models.dart";
 import "card.dart";
 
 class StackWidget extends StatelessWidget {
+  static Size getSizeFor(PropertyStack stack) => Size(
+    CardWidget.width + 16,
+    CardWidget.height + (verticalSpacing * stack.allCards.length),
+  );
   static const verticalSpacing = 20.0;
 
   final PropertyStack stack;
@@ -21,9 +25,8 @@ class StackWidget extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-    width: CardWidget.width + 16,
-    height: CardWidget.height + (verticalSpacing * stack.allCards.length),
+  Widget build(BuildContext context) => SizedBox.fromSize(
+    size: getSizeFor(stack),
     child: Stack(
       children: [
         if (stack.isSet)

@@ -28,6 +28,7 @@ sealed class GameEvent {
     "payment" => PaymentEvent.fromJson(json),
     "discard" => DiscardEvent.fromJson(json),
     "no" => JustSayNoEvent.fromJson(json),
+    "go" => PassGoEvent.fromJson(json),
     _ => throw ArgumentError("Unrecognized event: $json"),
   };
 
@@ -350,4 +351,25 @@ class JustSayNoEvent extends GameEvent {
 
   @override
   String toString() => "$player used a Just Say No!";
+}
+
+class PassGoEvent extends GameEvent {
+  final String player;
+  final MCard card;
+  PassGoEvent(this.player, this.card) : super("go");
+
+  @override
+  Json toJson() => {
+    ...super.toJson(),
+    "player": player,
+    "card": card.toJson(),
+  };
+
+  PassGoEvent.fromJson(Json json) :
+    player = json["player"],
+    card = cardFromJson(json["card"]),
+    super.fromJson(json);
+
+  @override
+  String toString() => "$player played a Pass Go";
 }

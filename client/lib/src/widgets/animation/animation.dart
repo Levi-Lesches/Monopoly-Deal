@@ -23,6 +23,7 @@ class Animated {
   final Offset end;
   final bool shouldFade;
   final Curve curve;
+  final Size size;
   final AnimationController animation;
 
   Animated.fade({
@@ -33,6 +34,7 @@ class Animated {
   }) :
     begin = getPosition(startAt),
     end = getPosition(startAt) + moveBy,
+    size = CardWidget.size,
     shouldFade = true;
 
   Animated.move({
@@ -41,6 +43,7 @@ class Animated {
     required GlobalKey endAt,
     required this.animation,
     Offset offset = Offset.zero,
+    this.size = CardWidget.size,
     this.curve = Curves.easeOutQuart,
   }) :
     begin = getPosition(startAt),
@@ -97,9 +100,9 @@ class AnimationLayerState extends State<AnimationLayer> with TickerProviderState
   Future<void> animateEvent(GameEvent event) async {
     switch (event) {
       case DealEvent(:final amount, :final player):
-        models.audio.playCard(amount);
+        models.audio.playCard(amount, speed: 1.2);
         for (final _ in range(amount)) {
-          animate((controller) => Animated.move(
+          animate(duration: const Duration(milliseconds: 400 ~/ 1.2), (controller) => Animated.move(
             animation: controller,
             widget: const EmptyCardWidget(color: Colors.blueGrey, text: "Deal"),
             startAt: pickPileKey,
@@ -157,12 +160,15 @@ class AnimationLayerState extends State<AnimationLayer> with TickerProviderState
           curve: Curves.easeIn,
         ));
         await Future<void>.delayed(const Duration(milliseconds: 1000));
-        // TODO: Didn't work with multiple stacks
+        final stack = models.game.game.allPlayers
+          .firstWhere((p) => p.name == details.waitingFor)
+          .getStackWithSet(details.color)!;
         animate((controller) => Animated.move(
           animation: controller,
           startAt: playerKey(details.waitingFor),
           endAt: playerKey(details.causedBy),
-          widget: StackWidget(models.game.game.allPlayers.firstWhere((p) => p.name == details.waitingFor).getStackWithSet(details.color)!)
+          widget: StackWidget(stack),
+          size: StackWidget.getSizeFor(stack),
         ));
       case PaymentEvent(:final to, :final amount, :final cards, :final from):
         models.audio.playMoney();
@@ -214,10 +220,16 @@ class AnimationLayerState extends State<AnimationLayer> with TickerProviderState
           endAt: discardPileKey,
           widget: CardWidget(card),
           animation: controller,
-          // curve: Curves.easeIn,
+        ));
+      case PassGoEvent(:final player, :final card):
+        models.audio.playCard(1);
+        animate(duration: const Duration(milliseconds: 800), (controller) => Animated.move(
+          startAt: fromHand(player, card),
+          endAt: discardPileKey,
+          widget: CardWidget(card),
+          animation: controller,
         ));
       case SimpleEvent():
-      // TODO: Pass go
     }
   }
 
@@ -239,7 +251,7 @@ class AnimationLayerState extends State<AnimationLayer> with TickerProviderState
           child: Opacity(
             opacity: animation.opacity,
             child: SizedBox.fromSize(
-              size: CardWidget.size,
+              size: animation.size,
               child: Center(child: animation.widget),
             ),
           ),

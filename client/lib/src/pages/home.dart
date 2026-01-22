@@ -29,6 +29,13 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
       title: Text("${model.player}'s Game"),
       actions: [
         IconButton(
+          icon: models.audio.silent
+            ? const Icon(Icons.volume_off)
+            : const Icon(Icons.volume_up),
+          tooltip: "Mute / Unmute",
+          onPressed: models.audio.toggleMute,
+        ),
+        IconButton(
           icon: const Icon(Icons.restore),
           tooltip: "Cancel / Restore",
           onPressed: () {

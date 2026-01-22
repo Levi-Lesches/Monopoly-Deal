@@ -3,13 +3,10 @@ import "dart:async";
 import "package:collection/collection.dart";
 import "package:flutter/widgets.dart";
 import "package:mdeal/data.dart";
-
-import "package:mdeal/src/widgets/animation/animation.dart";
-
-import "audio.dart";
+import "package:mdeal/models.dart";
+import "package:mdeal/widgets.dart";
 
 import "chooser.dart";
-import "model.dart";
 
 /// The view model for the home page.
 class HomeModel extends DataModel {
@@ -27,6 +24,7 @@ class HomeModel extends DataModel {
     cancelChoice(playCard: false);
     // unawaited(client.requestState());
     _sub = client.gameUpdates.listen(update, onError: setError);
+    models.audio.addListener(notifyListeners);
     cards.addListener(notifyListeners);
     scrollController.addListener(notifyListeners);
     expansionController.addListener(notifyListeners);
@@ -75,7 +73,6 @@ class HomeModel extends DataModel {
   Future<void> _flushEvents() async {
     await addEvents(_eventsQueue);
   }
-
 
   bool winnerPopup = false;
   Future<void> update(GameState state) async {
@@ -397,6 +394,10 @@ extension on GameEvent {
     StealEvent(:final details) => Duration(milliseconds: details.isTrade ? 2000 : 1500),
     PaymentEvent(:final amount) => AnimationLayerState.cardDelay * amount,
     ActionCardEvent() => const Duration(milliseconds: 800),
-    _ => Duration.zero,
+    // _ => Duration.zero,
+    SimpleEvent() => Duration.zero,
+    StealStackEvent() => const Duration(milliseconds: 1400),
+    JustSayNoEvent() => const Duration(seconds: 1),
+    PassGoEvent() => const Duration(milliseconds: 800),
   };
 }

@@ -464,6 +464,7 @@ class PassGoAction extends OneCardAction {
 
   @override
   void handle(Game game) {
+    game.log(PassGoEvent(player.name, card));
     game.dealToPlayer(player, 2);
   }
 }

@@ -22,14 +22,9 @@ class MockGameClient implements MDealClient {
     // Do whatever you want here to make a fake game setup.
     // For example, this code makes a brown set and gives the player a house and hotel
     // _game.debugAddProperty(player, PropertyCard(color: .brown, name: "Baltic Avenue", value: 1));
-    // _game.debugAddProperty(player, WildPropertyCard(topColor: .brown, bottomColor: .lightBlue, value: 1), color: .brown);
+    // _game.debugAddProperty(player, WildPropertyCard(topColor: .lightBlue, bottomColor: .brown, value: 1), color: .brown);
     // _game.debugAddToHand(player, House());
     // _game.debugAddToHand(player, Hotel());
-
-    // final toSteal = PropertyCard(color: .brown, name: "Baltic Avenue", value: 1);
-    // final toGive = RainbowWildCard();
-    // _game.debugAddProperty(player, toSteal);
-    // _game.debugAddToHand(player, toGive);
   }
 
   @override
@@ -60,7 +55,11 @@ class MockGameClient implements MDealClient {
     // _game.log(StealStackEvent(StealStackInterruption(causedBy: _other, waitingFor: player, color: .brown)));
     // _game.log(ActionCardEvent.charge(player: player, card: player.hand.first as PaymentActionCard));
     // _game.log(PropertyEvent(card: player.hand.last as PropertyLike, color: .brown, player: player, stackIndex: 0));
-    _game.log(JustSayNoEvent(player.name));
+    // _game.log(JustSayNoEvent(player.name));
+    // final card = player.hand.firstWhere((c) => c is PassGo);
+    // _game.log(PassGoEvent(player.name, card));
+
+    _game.interrupt(StealStackInterruption(causedBy: _other, waitingFor: player, color: .red));
   }
 
   @override
