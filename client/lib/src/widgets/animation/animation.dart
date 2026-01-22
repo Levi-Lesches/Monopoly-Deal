@@ -5,17 +5,7 @@ import "package:mdeal/data.dart";
 import "package:mdeal/models.dart";
 import "package:mdeal/widgets.dart";
 
-final GlobalKey discardPileKey = GlobalKey();
-final GlobalKey pickPileKey = GlobalKey();
-final GlobalKey listViewKey = GlobalKey();
-
 class Animated {
-  static Offset getPosition(GlobalKey key) {
-    final box = key.currentContext?.findRenderObject() as RenderBox?;
-    final scrollable = listViewKey.currentContext?.findRenderObject() as RenderBox?;
-    if (box == null || scrollable == null) return Offset.zero;
-    return box.localToGlobal(Offset.zero, ancestor: scrollable);
-  }
   static const Offset moveBy = Offset(0, -100);
 
   final Widget widget;
@@ -164,14 +154,15 @@ class AnimationLayerState extends State<AnimationLayer> with TickerProviderState
           curve: Curves.easeIn,
         ));
         await Future<void>.delayed(const Duration(milliseconds: 1000));
-        final stack = models.game.game.allPlayers
-          .firstWhere((p) => p.name == details.waitingFor)
+        final player = models.game.game.allPlayers
+          .firstWhere((p) => p.name == details.waitingFor);
+        final stack = player
           .getStackWithSet(details.color)!;
         animate((controller) => Animated.move(
           animation: controller,
           startAt: playerKey(details.waitingFor),
           endAt: playerKey(details.causedBy),
-          widget: StackWidget(stack),
+          widget: StackWidget(stack, index: -1, player: player),
           size: StackWidget.getSizeFor(stack),
         ));
       case PaymentEvent(:final to, :final amount, :final cards, :final from):

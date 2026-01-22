@@ -6,9 +6,10 @@ import "package:mdeal/models.dart";
 
 import "animations.dart";
 import "game_choices.dart";
+export "hints.dart";
 
 /// The view model for the home page.
-class HomeModel extends DataModel with AnimationModel, GameChoices {
+class HomeModel extends DataModel with AnimationModel, GameChoices, HintsModel {
   @override
   final MDealClient client;
 
@@ -33,6 +34,8 @@ class HomeModel extends DataModel with AnimationModel, GameChoices {
     cards.addListener(notifyListeners);
     scrollController.addListener(notifyListeners);
     expansionController.addListener(notifyListeners);
+    bankNotifier.addListener(notifyListeners);
+    stackNotifier.addListener(notifyListeners);
     if (game.currentPlayer == player.name) {
       expansionController.expand();
     }

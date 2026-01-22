@@ -10,6 +10,7 @@ export "src/widgets/atomic/card.dart";
 export "src/widgets/atomic/player.dart";
 export "src/widgets/atomic/stack.dart";
 export "src/widgets/animation/animation.dart";
+export "src/widgets/animation/hints.dart";
 
 /// Helpful methods on [BuildContext].
 extension ContextUtils on BuildContext {
@@ -45,3 +46,14 @@ Color textColorFor(Color background) => switch(ThemeData.estimateBrightnessForCo
   .dark => Colors.white,
   .light => Colors.black,
 };
+
+final GlobalKey discardPileKey = GlobalKey();
+final GlobalKey pickPileKey = GlobalKey();
+final GlobalKey listViewKey = GlobalKey();
+
+Offset getPosition(GlobalKey key) {
+  final box = key.currentContext?.findRenderObject() as RenderBox?;
+  final scrollable = listViewKey.currentContext?.findRenderObject() as RenderBox?;
+  if (box == null || scrollable == null) return Offset.zero;
+  return box.localToGlobal(Offset.zero, ancestor: scrollable);
+}

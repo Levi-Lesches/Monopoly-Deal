@@ -167,6 +167,15 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
                     ),
                   ),
                 ),
+                Positioned.fill(
+                  child: GestureDetector(
+                    behavior: .translucent,
+                    onLongPress: () => models.game.showBankHint(player),
+                    onLongPressEnd: (_) => models.game.clearHint(),
+                    onSecondaryTapDown: (_) => models.game.showBankHint(player),
+                    onSecondaryTapUp: (_) => models.game.clearHint(),
+                  ),
+                ),
                 if (canBank)
                   const Positioned.fill(
                     child: Align(
@@ -197,9 +206,9 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
               CardWidget(card),
       ],
       PropertyChoice(:final chooseOthers) when !isPlayer && chooseOthers => [
-        for (final stack in player.tableStacks)
+        for (final (index, stack) in player.tableStacks.indexed)
           if (stack.isSet)
-            StackWidget(stack)
+            StackWidget(stack, index: index, player: player)
           else
             for (final card in stack.cards)
               CardWidget(card),
@@ -209,8 +218,8 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
           CardWidget(card),
       ],
       _ => [
-        for (final stack in player.tableStacks)
-          StackWidget(stack),
+        for (final (index, stack) in player.tableStacks.indexed)
+          StackWidget(stack, index: index, player: player),
       ],
     };
   }

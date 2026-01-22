@@ -13,7 +13,9 @@ class StackWidget extends StatelessWidget {
 
   final PropertyStack stack;
   final GlobalKey? gkey;
-  const StackWidget(this.stack, {this.gkey});
+  final int index;
+  final Player player;
+  const StackWidget(this.stack, {required this.player, required this.index, this.gkey});
 
   bool get canChoose {
     final choice2 = models.game.choice;
@@ -45,6 +47,19 @@ class StackWidget extends StatelessWidget {
               child: ColoredBox(color: Colors.blueGrey.withAlpha(100)),
             ),
           ),
+        Positioned.fill(
+          child: GestureDetector(
+            behavior: .translucent,
+            onLongPress: () => models.game.showStackHint(
+              StackHint(player: player, stack: stack, index: index),
+            ),
+            onLongPressEnd: (_) => models.game.clearHint(),
+            onSecondaryTapDown: (_) => models.game.showStackHint(
+              StackHint(player: player, stack: stack, index: index),
+            ),
+            onSecondaryTapUp: (_) => models.game.clearHint(),
+          ),
+        ),
         Positioned(
           bottom: 10,
           left: 8,
