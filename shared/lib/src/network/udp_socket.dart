@@ -75,6 +75,8 @@ class UdpServerSocket extends ServerSocket {
     _sub = null;
   }
 
+  @override
+  final Stream<User> disconnects = const Stream<User>.empty();
 
   @override
   StreamSubscription<void> listen(ServerCallback func) => _controller.stream

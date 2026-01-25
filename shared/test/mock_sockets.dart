@@ -36,6 +36,9 @@ class MockServerSocket extends ServerSocket {
   }
 
   @override
+  Stream<User> get disconnects => const Stream.empty();
+
+  @override
   Future<void> send(User user, Packet packet) async =>
     serverControllers[user]!.add(packet);
 

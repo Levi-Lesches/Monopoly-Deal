@@ -7,7 +7,10 @@ import "package:shelf_web_socket/shelf_web_socket.dart";
 import "package:web_socket_channel/status.dart" as status;
 import "package:web_socket_channel/web_socket_channel.dart";
 
-import "package:shared/network.dart";
+import "package:shared/utils.dart";
+
+import "socket.dart";
+import "user.dart";
 
 class ClientWebSocket extends ClientSocket {
   final Uri _uri;
@@ -45,6 +48,7 @@ class ServerWebSocket extends ServerSocket {
 
   final _userSockets = <User, WebSocketChannel>{};
   final _controller = StreamController<ClientSocketPacket>.broadcast();
+  final _disconnectsController = StreamController<User>.broadcast();
   HttpServer? _server;
 
   @override
@@ -57,20 +61,34 @@ class ServerWebSocket extends ServerSocket {
   Future<void> dispose() async {
     await _server?.close();
     await _controller.close();
+    await _disconnectsController.close();
     for (final socket in _userSockets.values) {
       await socket.sink.close(status.normalClosure);
     }
     _userSockets.clear();
   }
 
-  void _handleConnection(WebSocketChannel socket, _) =>
-    socket.stream.listen((packet) => _onClientPacket(socket, packet));
+  @override
+  Stream<User> get disconnects => _disconnectsController.stream;
 
-  void _onClientPacket(WebSocketChannel socket, dynamic packet) {
+  void _handleConnection(WebSocketChannel socket, _) {
+    socket.stream.listen(
+      (packet) => _onClientPacket(socket, packet),
+      onDone: () => _onClientDisconnect(socket),
+    );
+  }
+
+  void _onClientPacket(WebSocketChannel socket, String packet) {
     final packetJson = jsonDecode(packet);
     final clientPacket = ClientSocketPacket.fromJson(packetJson);
     _userSockets[clientPacket.user] = socket;
     _controller.add(clientPacket);
+  }
+
+  void _onClientDisconnect(WebSocketChannel socket) {
+    final user = _userSockets.inverted[socket];
+    if (user == null) return;
+    _disconnectsController.add(user);
   }
 
   @override

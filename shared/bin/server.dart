@@ -8,6 +8,8 @@ void main() async {
   while (true) {
     final serverSocket = ServerWebSocket(8040);
     await serverSocket.init();
+    serverSocket.disconnects.listen((user) => print("$user disconnected"));
+
     final serverLobby = LobbyServer(serverSocket);
     await serverLobby.init();
     print("Server lobby waiting");

@@ -12,6 +12,11 @@ abstract class Serializable {
 extension MapUtils<K, V> on Map<K, V> {
   /// Gets all the keys and values as 2-element records.
 	Iterable<(K, V)> get records => entries.map((entry) => (entry.key, entry.value));
+
+  Map<V, K> get inverted => {
+    for (final (key, value) in records)
+      value: key,
+  };
 }
 
 /// Zips two lists, like Python

@@ -11,6 +11,7 @@ abstract class ServerSocket {
   Future<void> init();
   Future<void> dispose();
   Future<void> send(User user, Packet payload);
+  Stream<User> get disconnects;
   StreamSubscription<void> listen(ServerCallback func);
 }
 
