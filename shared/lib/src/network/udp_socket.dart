@@ -80,7 +80,7 @@ class UdpServerSocket extends ServerSocket {
 
   @override
   StreamSubscription<void> listen(ServerCallback func) => _controller.stream
-    .listen((udpPacket) => func(udpPacket.user, udpPacket.packet));
+    .listen((udpPacket) => func(udpPacket.user, udpPacket.data));
 
   void parsePacket(Datagram datagram) {
     final jsonString = String.fromCharCodes(datagram.data);
@@ -94,7 +94,7 @@ class UdpServerSocket extends ServerSocket {
   Future<void> send(User user, Packet payload) async {
     final socket = _clients[user];
     if (socket == null) throw ArgumentError("Unrecognized user: $user");
-    final udpPacket = ServerSocketPacket(payload);
+    final udpPacket = ServerSocketPacket(data: payload);
     final jsonString = jsonEncode(udpPacket.toJson());
     _udp.send(jsonString.codeUnits, destination: socket);
   }

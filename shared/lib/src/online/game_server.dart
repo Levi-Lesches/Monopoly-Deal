@@ -19,23 +19,24 @@ class Server {
     game = Game([for (final user in users) RevealedPlayer(user.name)]);
 
   Future<void> init() async {
-    socket.listen(handlePacket);
+    socket.packets.listen(handlePacket);
   }
 
   Future<void> get isFinished => _finishedCompleter.future;
 
-  Future<void> handlePacket(User user, Packet packet) async {
-    final clientPacket = safely(() => GamePacket.fromJson(packet, GameClientPacketType.fromJson));
-    if (clientPacket == null) return;
-    switch (clientPacket.type) {
+  Future<void> handlePacket(ClientSocketPacket clientPacket) async {
+    final ClientSocketPacket(:user, data:packet) = clientPacket;
+    final gamePacket = safely(() => GamePacket.fromJson(packet, GameClientPacketType.fromJson));
+    if (gamePacket == null) return;
+    switch (gamePacket.type) {
       case .game:
         await broadcastTo(user);
       case .action:
-        final action = PlayerAction.fromJson(game, clientPacket.data);
+        final action = PlayerAction.fromJson(game, gamePacket.data);
         if (action.player.name != user.name) return;
         await handleAction(user, action);
       case .response:
-        final response = InterruptionResponse.fromJson(game, clientPacket.data);
+        final response = InterruptionResponse.fromJson(game, gamePacket.data);
         if (response.player.name != user.name) return;
         await handleResponse(user, response);
     }

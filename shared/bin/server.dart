@@ -9,6 +9,7 @@ void main() async {
     final serverSocket = ServerWebSocket(8040);
     await serverSocket.init();
     serverSocket.disconnects.listen((user) => print("$user disconnected"));
+    serverSocket.connections.listen((user) => print("$user re-connected"));
 
     final serverLobby = LobbyServer(serverSocket);
     await serverLobby.init();

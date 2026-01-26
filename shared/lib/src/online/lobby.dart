@@ -1,5 +1,6 @@
 import "dart:async";
 
+import "package:shared/data.dart";
 import "package:shared/network.dart";
 import "package:shared/utils.dart";
 
@@ -16,11 +17,11 @@ class LobbyClient {
   Future<void> get gameStarted => _startCompleter.future;
   Stream<Map<String, bool>> get lobbyUsers => _playersController.stream;
 
-  Completer<bool>? _joinCompleter;
+  Completer<void>? _joinCompleter;
   StreamSubscription<void>? _sub;
 
   Future<void> init() async {
-    _sub = socket.listen(_parsePacket);
+    _sub = socket.packets.listen(_parsePacket, onError: _handlePacketError);
   }
 
   Future<void> dispose() async {
@@ -54,14 +55,19 @@ class LobbyClient {
   void _parsePacket(Packet packet) {
     final response = LobbyServerPacket.fromJson(packet);
     switch (response) {
-      case LobbyAcceptPacket(:final isAccepted):
-        _joinCompleter?.complete(isAccepted);
+      case LobbyAcceptPacket():
+        _joinCompleter?.complete(null);
         _joinCompleter = null;
       case LobbyStartPacket():
         _startCompleter.complete();
       case LobbyDetailsPacket(:final players):
         _playersController.add(players);
     }
+  }
+
+  void _handlePacketError(GameError error) {
+    _joinCompleter?.completeError(error);
+    _joinCompleter = null;
   }
 }
 
@@ -78,7 +84,7 @@ class LobbyServer {
   Future<void> get gameStarted => _startCompleter.future;
 
   Future<void> init() async {
-    _sub = socket.listen(parsePacket);
+    _sub = socket.packets.listen(parsePacket);
   }
 
   Future<void> dispose() async {
@@ -97,20 +103,15 @@ class LobbyServer {
 
   bool get isReady => users.values.every((isReady) => isReady);
 
-  Future<void> parsePacket(User user, Packet packet) async {
+  Future<void> parsePacket(ClientSocketPacket clientPacket) async {
+    final ClientSocketPacket(:user, data:packet) = clientPacket;
     final request = LobbyJoinPacket.fromJson(packet);
-    final isConflict = users.keys.any((other) => other.name == user.name && other.password != user.password);
-    if (isConflict) {
-      final response = LobbyAcceptPacket(isAccepted: false);
-      await socket.send(user, response.toJson());
-    } else {
-      users[user] = request.isReady;
-      _controller.add(user);
-      final response = LobbyAcceptPacket(isAccepted: true);
-      await socket.send(user, response.toJson());
-      if (users.length > 1 && isReady) {
-        await start();
-      }
+    users[user] = request.isReady;
+    _controller.add(user);
+    final response = LobbyAcceptPacket();
+    await socket.send(user, response.toJson());
+    if (users.length > 1 && isReady) {
+      await start();
     }
     final details = LobbyDetailsPacket({
       for (final (user, isReady) in users.records)

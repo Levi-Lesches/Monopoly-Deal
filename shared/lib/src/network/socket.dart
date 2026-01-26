@@ -1,21 +1,21 @@
 import "dart:async";
 
+import "package:shared/data.dart";
 import "package:shared/utils.dart";
 
 import "user.dart";
 
 typedef Packet = Json;
 
-typedef ServerCallback = void Function(User, Packet);
 abstract class ServerSocket {
   Future<void> init();
   Future<void> dispose();
   Future<void> send(User user, Packet payload);
+  Stream<User> get connections;
   Stream<User> get disconnects;
-  StreamSubscription<void> listen(ServerCallback func);
+  Stream<ClientSocketPacket> get packets;
 }
 
-typedef ClientCallback = void Function(Packet);
 abstract class ClientSocket {
   final User user;
   ClientSocket(this.user);
@@ -23,32 +23,35 @@ abstract class ClientSocket {
   Future<void> init();
   Future<void> dispose();
   Future<void> send(Packet payload);
-  StreamSubscription<void> listen(ClientCallback func);
+  Stream<Packet> get packets;
 }
 
 class ServerSocketPacket {
-  final Packet packet;
-  const ServerSocketPacket(this.packet);
+  final Packet? data;
+  final GameError? error;
+  const ServerSocketPacket({this.data, this.error});
 
   ServerSocketPacket.fromJson(Json json) :
-    packet = json["packet"];
+    data = json["data"],
+    error = json.mapNullable("error", GameError.fromJson);
 
   Json toJson() => {
-    "packet": packet,
+    "data": data,
+    "error": error?.toJson(),
   };
 }
 
 class ClientSocketPacket {
   final User user;
-  final Packet packet;
-  const ClientSocketPacket(this.user, this.packet);
+  final Packet data;
+  const ClientSocketPacket(this.user, this.data);
 
   ClientSocketPacket.fromJson(Json json) :
     user = User.fromJson(json["user"]),
-    packet = json["packet"];
+    data = json["data"];
 
   Json toJson() => {
     "user": user.toJson(),
-    "packet": packet,
+    "data": data,
   };
 }

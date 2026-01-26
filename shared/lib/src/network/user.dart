@@ -1,11 +1,12 @@
-import "package:meta/meta.dart";
+// Users are considered equal based on name alone
+// ignore_for_file: avoid_equals_and_hash_code_on_mutable_classes
+
 import "package:shared/utils.dart";
 import "package:uuid/uuid.dart";
 
-@immutable
 class User {
   final String name;
-  final String password;
+  String password;
 
   User(this.name) :
     password = const Uuid().v4();
@@ -27,6 +28,5 @@ class User {
 
   @override
   bool operator ==(Object other) => other is User
-    && other.name == name
-    && other.password == password;
+    && other.name == name;
 }

@@ -2,11 +2,13 @@ import "dart:async";
 import "dart:convert";
 import "dart:io";
 
+import "package:collection/collection.dart";
 import "package:shelf/shelf_io.dart";
 import "package:shelf_web_socket/shelf_web_socket.dart";
 import "package:web_socket_channel/status.dart" as status;
 import "package:web_socket_channel/web_socket_channel.dart";
 
+import "package:shared/data.dart";
 import "package:shared/utils.dart";
 
 import "socket.dart";
@@ -16,19 +18,30 @@ class ClientWebSocket extends ClientSocket {
   final Uri _uri;
   ClientWebSocket(this._uri, super.user);
 
-  late final Stream<dynamic> _stream;
+  final _packetsController = StreamController<Packet>.broadcast();
   WebSocketChannel? _channel;
+  StreamSubscription<void>? _sub;
 
   @override
   Future<void> init() async {
     _channel = WebSocketChannel.connect(_uri);
     await _channel!.ready;
-    _stream = _channel!.stream.asBroadcastStream();
+    _sub = _channel!.stream.listen(_handlePacket);
+  }
+
+  void _handlePacket(dynamic data) {
+    final packet = ServerSocketPacket.fromJson(jsonDecode(data));
+    if (packet.error case final GameError error) {
+      _packetsController.addError(error);
+    } else if (packet.data case final Packet packet) {
+      _packetsController.add(packet);
+    }
   }
 
   @override
   Future<void> dispose() async {
     await _channel?.sink.close(status.normalClosure);
+    await _sub?.cancel();
   }
 
   @override
@@ -38,8 +51,7 @@ class ClientWebSocket extends ClientSocket {
   }
 
   @override
-  StreamSubscription<void> listen(ClientCallback callback) =>
-    _stream.asBroadcastStream().listen((data) => callback(jsonDecode(data)));
+  Stream<Packet> get packets => _packetsController.stream;
 }
 
 class ServerWebSocket extends ServerSocket {
@@ -49,6 +61,7 @@ class ServerWebSocket extends ServerSocket {
   final _userSockets = <User, WebSocketChannel>{};
   final _controller = StreamController<ClientSocketPacket>.broadcast();
   final _disconnectsController = StreamController<User>.broadcast();
+  final _connectionsController = StreamController<User>.broadcast();
   HttpServer? _server;
 
   @override
@@ -62,6 +75,7 @@ class ServerWebSocket extends ServerSocket {
     await _server?.close();
     await _controller.close();
     await _disconnectsController.close();
+    await _connectionsController.close();
     for (final socket in _userSockets.values) {
       await socket.sink.close(status.normalClosure);
     }
@@ -70,6 +84,9 @@ class ServerWebSocket extends ServerSocket {
 
   @override
   Stream<User> get disconnects => _disconnectsController.stream;
+
+  @override
+  Stream<User> get connections => _connectionsController.stream;
 
   void _handleConnection(WebSocketChannel socket, _) {
     socket.stream.listen(
@@ -81,23 +98,33 @@ class ServerWebSocket extends ServerSocket {
   void _onClientPacket(WebSocketChannel socket, String packet) {
     final packetJson = jsonDecode(packet);
     final clientPacket = ClientSocketPacket.fromJson(packetJson);
-    _userSockets[clientPacket.user] = socket;
+    final existingUser = _userSockets.keys.firstWhereOrNull((user) => user.name == clientPacket.user.name);
+    if (existingUser == null) {
+      _userSockets[clientPacket.user] = socket;
+      _connectionsController.add(clientPacket.user);
+    } else if (existingUser.password != clientPacket.user.password) {
+      final error = GameError("Invalid password");
+      final response = ServerSocketPacket(error: error);
+      socket.sink.add(jsonEncode(response.toJson()));
+      return;
+    }
     _controller.add(clientPacket);
   }
 
   void _onClientDisconnect(WebSocketChannel socket) {
     final user = _userSockets.inverted[socket];
     if (user == null) return;
+    _userSockets.remove(user);
     _disconnectsController.add(user);
   }
 
   @override
   Future<void> send(User user, Packet payload) async {
     final socket = _userSockets[user]!;
-    socket.sink.add(jsonEncode(payload));
+    final body = ServerSocketPacket(data: payload);
+    socket.sink.add(jsonEncode(body));
   }
 
   @override
-  StreamSubscription<void> listen(ServerCallback func) =>
-    _controller.stream.listen((packet) => func(packet.user, packet.packet));
+  Stream<ClientSocketPacket> get packets => _controller.stream;
 }

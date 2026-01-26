@@ -22,6 +22,9 @@ class GameError extends MDealError {
   // Is an error -- cannot be fixed without code change
   GameError(super.message);
 
+  GameError.fromJson(Json json) :
+    super(json["message"]);
+
   static final interruptions = GameError("Resolve interruptions first");
   static final wrongResponse = GameError("There is no interruption for that response");
   static final notInHand = GameError("Player doesn't have that card in their hand");

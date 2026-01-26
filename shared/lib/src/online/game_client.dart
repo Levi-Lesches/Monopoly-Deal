@@ -18,7 +18,7 @@ class MDealClient {
 
   StreamSubscription<void>? _sub;
   Future<void> init() async {
-    _sub = _socket.listen(_handlePacket);
+    _sub = _socket.packets.listen(_handlePacket);
   }
 
   Future<void> dispose() async {

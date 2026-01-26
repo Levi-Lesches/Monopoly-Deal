@@ -13,7 +13,7 @@ class LobbyJoinPacket {
 sealed class LobbyServerPacket {
   LobbyServerPacket();
   factory LobbyServerPacket.fromJson(Json json) => switch (json["type"]) {
-    "accept" => LobbyAcceptPacket.fromJson(json),
+    "accept" => LobbyAcceptPacket(),
     "start" => LobbyStartPacket(),
     "details" => LobbyDetailsPacket.fromJson(json),
     _ => throw ArgumentError("Invalid packet: $json"),
@@ -21,13 +21,9 @@ sealed class LobbyServerPacket {
 }
 
 class LobbyAcceptPacket extends LobbyServerPacket {
-  final bool isAccepted;
-  LobbyAcceptPacket({required this.isAccepted});
+  LobbyAcceptPacket();
 
-  LobbyAcceptPacket.fromJson(Json json) :
-    isAccepted = json["isAccepted"] ?? false;
-
-  Json toJson() => {"type": "accept", "isAccepted": isAccepted};
+  Json toJson() => {"type": "accept"};
 }
 
 class LobbyStartPacket extends LobbyServerPacket {
