@@ -72,14 +72,14 @@ class ServerWebSocket extends ServerSocket {
 
   @override
   Future<void> dispose() async {
-    await _server?.close();
     await _controller.close();
     await _disconnectsController.close();
     await _connectionsController.close();
-    for (final socket in _userSockets.values) {
+    for (final socket in _userSockets.values.toList()) {
       await socket.sink.close(status.normalClosure);
     }
     _userSockets.clear();
+    await _server?.close();
   }
 
   @override

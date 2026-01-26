@@ -100,6 +100,10 @@ class StealInterruption extends Interruption {
     ? "$causedBy wants to steal $toStealName from $waitingFor"
     : "$causedBy wants to steal $toStealName and give $toGiveName";
 
+  String wideString() => toGiveName == null
+    ? "$causedBy\nwants to steal your\n$toStealName"
+    : "$causedBy\nwants to steal your\n$toStealName\nand give you\n $toGiveName";
+
   @override
   Json toJson() => {
     ...super.toJson(),

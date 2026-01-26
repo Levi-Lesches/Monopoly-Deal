@@ -147,7 +147,7 @@ mixin GameChoices on ChangeNotifier {
         final response = DiscardResponse(cards: toDiscard, player: player);
         sendResponse(response);
       case StealInterruption():
-        final message = interruption.toString();
+        final message = interruption.wideString();
         final jsn = await promptJustSayNo(message);
         final response = jsn == null
           ? AcceptedResponse(player: player)
