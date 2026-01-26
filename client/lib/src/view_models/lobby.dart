@@ -12,8 +12,8 @@ import "view_model.dart";
 class LobbyViewModel extends ViewModel {
   static final addresses = <Uri>[
     Uri.parse("wss://deal.forgot-semicolon.com/socket/"),
-    Uri.parse("ws://192.168.1.210:8040"),
-    Uri.parse("ws://localhost:8040"),
+    Uri.parse("ws://192.168.1.210:8040/socket"),
+    Uri.parse("ws://localhost:8040/socket"),
   ];
 
   final nameController = TextEditingController();
@@ -53,9 +53,16 @@ class LobbyViewModel extends ViewModel {
     client = LobbyClient(socket!);
     await client!.init();
     client!.lobbyUsers.listen(updateUsers);
-    final result = await safelyAsync(() => client!.join());
-    if (result == null) {isLoading = false; notifyListeners(); return; }
-    hasJoined = result;
+    try {
+      await client!.join();
+    } catch (error) {
+      errorText = error.toString();
+      isLoading = false;
+      notifyListeners();
+      return;
+    }
+    errorText = null;
+    hasJoined = true;
     unawaited(client!.gameStarted.then((_) => startGame()));
     isLoading = false;
     notifyListeners();

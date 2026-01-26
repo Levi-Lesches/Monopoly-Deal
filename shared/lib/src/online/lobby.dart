@@ -36,16 +36,16 @@ class LobbyClient {
     await _playersController.close();
   }
 
-  Future<bool> join() async {
+  Future<void> join() async {
     final packet = const LobbyJoinPacket(isReady: false).toJson();
     await socket.send(packet);
-    final completer = Completer<bool>();
+    final completer = Completer<void>();
     _joinCompleter = completer;
     return completer.future.timeout(const Duration(seconds: 1));
   }
 
-  Future<bool> markReady({required bool isReady}) async {
-    final completer = Completer<bool>();
+  Future<void> markReady({required bool isReady}) async {
+    final completer = Completer<void>();
     _joinCompleter = completer;
     final packet = LobbyJoinPacket(isReady: isReady);
     await socket.send(packet.toJson());
@@ -65,9 +65,11 @@ class LobbyClient {
     }
   }
 
-  void _handlePacketError(GameError error) {
-    _joinCompleter?.completeError(error);
-    _joinCompleter = null;
+  void _handlePacketError(Object error) {
+    if (error is GameError) {
+      _joinCompleter?.completeError(error);
+      _joinCompleter = null;
+    }
   }
 }
 

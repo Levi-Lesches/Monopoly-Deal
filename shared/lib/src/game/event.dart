@@ -222,11 +222,11 @@ class ActionCardEvent extends GameEvent {
     final buffer = StringBuffer();
     if (color == null) {
       buffer.write("$player played ${card.name} ");
-      if (victim != null) buffer.write("against $victim");
+      if (victim != null) buffer.write("against $victim ");
       buffer.write("for \$$amount");
     } else {
       buffer.write("$player is charging rent for $color ");
-      if (victim != null) buffer.write("against $victim");
+      if (victim != null) buffer.write("against $victim ");
       buffer.write("for the $color set (\$$amount)");
     }
     return buffer.toString();

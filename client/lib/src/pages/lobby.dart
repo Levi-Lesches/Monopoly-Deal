@@ -44,6 +44,8 @@ class LobbyPage extends ReactiveWidget<LobbyViewModel> {
           const SizedBox(height: 12),
           if (model.hasJoined)
             Text(model.isReady ? "Ready" : "Not Ready"),
+          if (model.errorText case final String error)
+            Text(error, style: const TextStyle(color: Colors.red)),
           const Divider(),
           for (final (user, isReady) in model.users.records)
             ListTile(

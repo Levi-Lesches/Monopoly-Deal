@@ -26,7 +26,7 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
   @override
   Widget build(BuildContext context, HomeModel model) => Scaffold(
     backgroundColor: model.stackNotifier.value == null && model.bankNotifier.value == null
-      ? null : const Color.fromARGB(94, 255, 255, 255),
+      ? null : context.colorScheme.outlineVariant,
     appBar: AppBar(
       title: Text("${model.player}'s Game"),
       actions: [

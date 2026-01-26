@@ -20,6 +20,13 @@ class Server {
 
   Future<void> init() async {
     socket.packets.listen(handlePacket);
+    socket.disconnects.listen((user) => log("$user disconnected"));
+    socket.connections.listen((user) => log("$user connected"));
+  }
+
+  void log(String message) {
+    game.log(SimpleEvent(message));
+    unawaited(broadcastToAll());
   }
 
   Future<void> get isFinished => _finishedCompleter.future;
