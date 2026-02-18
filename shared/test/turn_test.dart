@@ -76,8 +76,13 @@ void main() => test("One full turn", () {
   expect(alice.hand.length, 9);  // 8 - 1 + 2 = 9
   expect(game.turnsRemaining, 0);
 
-  // End of Alice's turn, they need to discard 2 cards
+  // Alice is allowed to re-arrange her cards until she says she is done.
+  expect(game.interruptions, isEmpty);
+  final doneAction = EndTurnAction(player: alice);
+  game.handleAction(doneAction);
   expect(game.interruptions, isNotEmpty);
+
+  // End of Alice's turn, they need to discard 2 cards
   final discardInterruption = game.interruptions.first;
   expect(discardInterruption, isA<DiscardInterruption>());
   if (discardInterruption is! DiscardInterruption) return;

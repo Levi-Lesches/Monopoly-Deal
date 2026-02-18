@@ -17,20 +17,26 @@ import "package:test/test.dart";
 import "mock_sockets.dart";
 
 void main() => test("Server test", () async {
-  final aliceClient = MDealClient(MockClientSocket(aliceUser));
-  await aliceClient.init();
+  final aliceSocket = MockClientSocket(aliceUser);
+  final aliceClient = MDealClient(aliceSocket, 1);
+  aliceClient.init();
 
-  final bobClient = MDealClient(MockClientSocket(bobUser));
-  await bobClient.init();
+  final bobClient = MDealClient(MockClientSocket(bobUser), 1);
+  bobClient.init();
 
-  aliceClient.expectUpdate();
-  bobClient.expectUpdate();
-  final server = Server([aliceUser, bobUser], MockServerSocket());
-  await server.init();
+  final socket = MockServerSocket();
+  await socket.init();
+
+  final server = GameServer([aliceUser, bobUser], socket);
+  socket.packets.listen(server.handlePacket);
+  // socket.packets.listen(print);
 
   final game = server.game;
   final alice = game.findPlayer(aliceUser.name);
   final bob = game.findPlayer(bobUser.name);
+
+  aliceClient.expectUpdate();
+  bobClient.expectUpdate();
 
   // Check the game was set up normally
   expect(game.interruptions, isEmpty);
@@ -57,7 +63,8 @@ void main() => test("Server test", () async {
   aliceClient.expectUpdate();
   bobClient.expectUpdate();
   final action = ChargeAction(card: card, player: alice, victim: bob);
-  await aliceClient.sendAction(action);
+  aliceClient.sendAction(action);
+  await Future<void>.delayed(Duration.zero);
   expect(alice.hand.length, 7);
   expect(game.turnsRemaining, 2);
 
@@ -73,7 +80,8 @@ void main() => test("Server test", () async {
   aliceClient.expectUpdate();
   bobClient.expectUpdate();
   final response = PaymentResponse(cards: [money2, money3], player: bob);
-  await bobClient.sendResponse(response);
+  bobClient.sendResponse(response);
+  await Future<void>.delayed(Duration.zero);
   expect(bob.netWorth, 0);
   expect(game.interruptions, isEmpty);
 
@@ -84,7 +92,8 @@ void main() => test("Server test", () async {
   final birthdayAction = ChargeAction(card: birthday, player: alice);
   aliceClient.expectUpdate();
   bobClient.expectUpdate();
-  await aliceClient.sendAction(birthdayAction);
+  aliceClient.sendAction(birthdayAction);
+  await Future<void>.delayed(Duration.zero);
   expect(alice.hand.length, 7);
   expect(game.turnsRemaining, 1);
   expect(game.interruptions, isEmpty);
@@ -96,9 +105,16 @@ void main() => test("Server test", () async {
   final passGoAction = PassGoAction(card: passGo, player: alice);
   aliceClient.expectUpdate();
   bobClient.expectUpdate();
-  await aliceClient.sendAction(passGoAction);
+  aliceClient.sendAction(passGoAction);
+  await Future<void>.delayed(Duration.zero);
   expect(alice.hand.length, 9);  // 8 - 1 + 2 = 9
   expect(game.turnsRemaining, 0);
+
+  // End of Alice's turn. They may re-organize cards until they finish
+  expect(game.interruptions, isEmpty);
+  final endAction = EndTurnAction(player: alice);
+  aliceClient.sendAction(endAction);
+  await Future<void>.delayed(Duration.zero);
 
   // End of Alice's turn, they need to discard 2 cards
   expect(game.interruptions, isNotEmpty);
@@ -113,7 +129,8 @@ void main() => test("Server test", () async {
   final discardResponse = DiscardResponse(cards: cards, player: alice);
   aliceClient.expectUpdate();
   bobClient.expectUpdate();
-  await aliceClient.sendResponse(discardResponse);
+  aliceClient.sendResponse(discardResponse);
+  await Future<void>.delayed(Duration.zero);
 
   // Now there should be no more interruptions, and Bob can start
   expect(game.interruptions, isEmpty);

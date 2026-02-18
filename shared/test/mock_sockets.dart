@@ -1,29 +1,28 @@
 import "dart:async";
 
-import "package:shared/network.dart";
-import "package:shared/utils.dart";
+import "package:shared/network_data.dart";
+import "package:shared/network_sockets.dart";
 
 final aliceUser = User("Alice");
 final bobUser = User("Bob");
 
-Map<User, StreamController<Packet>> clientControllers = {
+Map<User, StreamController<WrappedPacket>> clientControllers = {
   aliceUser: StreamController(),
   bobUser: StreamController(),
 };
-Map<User, StreamController<Packet>> serverControllers = {
+Map<User, StreamController<NetworkPacket>> serverControllers = {
   aliceUser: StreamController(),
   bobUser: StreamController(),
 };
 
 class MockServerSocket extends ServerSocket {
   final _subs = <StreamSubscription<void>>[];
-  final _controller = StreamController<(User, Packet)>.broadcast();
+  final _controller = StreamController<WrappedPacket>.broadcast();
 
   @override
   Future<void> init() async {
-    for (final (user, controller) in clientControllers.records) {
-      void callback(Packet packet) => _controller.add( (user, packet) );
-      _subs.add(controller.stream.listen(callback));
+    for (final controller in clientControllers.values) {
+      _subs.add(controller.stream.listen(_controller.add));
     }
   }
 
@@ -36,15 +35,14 @@ class MockServerSocket extends ServerSocket {
   }
 
   @override
-  Stream<User> get disconnects => const Stream.empty();
+  Stream<DisconnectionEvent> get disconnections => const Stream.empty();
 
   @override
-  Future<void> send(User user, Packet packet) async =>
+  void sendToUser(User user, NetworkPacket packet) =>
     serverControllers[user]!.add(packet);
 
   @override
-  StreamSubscription<void> listen(void Function(User, Packet) func) =>
-    _controller.stream.listen((record) => func(record.$1, record.$2));
+  Stream<WrappedPacket> get packets => _controller.stream;
 }
 
 class MockClientSocket extends ClientSocket {
@@ -53,10 +51,9 @@ class MockClientSocket extends ClientSocket {
   @override Future<void> init() async { }
   @override Future<void> dispose() async { }
 
-  @override Future<void> send(Packet packet) async =>
-    clientControllers[user]!.add(packet);
+  @override void send(NetworkPacket packet)  =>
+    clientControllers[user]!.add(wrap(packet));
 
   @override
-  StreamSubscription<void> listen(void Function(Packet) func) =>
-    serverControllers[user]!.stream.listen(func);
+  Stream<NetworkPacket> get packets => serverControllers[user]!.stream;
 }

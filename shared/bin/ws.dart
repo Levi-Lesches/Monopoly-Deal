@@ -1,7 +1,8 @@
 // Prints used to show the demo
 // ignore_for_file: avoid_print
 
-import "package:shared/network.dart";
+import "package:shared/network_data.dart";
+import "package:shared/network_sockets.dart";
 
 void main() async {
   final server = ServerWebSocket(8011);
@@ -12,12 +13,12 @@ void main() async {
   final socket = ClientWebSocket(uri, user);
   await socket.init();
 
-  socket.listen((data) => print("Client got $data"));
-  server.listen((user, packet) => print("Server got message from $user: $packet"));
+  socket.packets.listen((packet) => print("Client got message from server: ${packet.data}"));
+  server.packets.listen((wrapper) => print("Server got message from ${wrapper.user}: ${wrapper.packet.data}"));
 
-  await socket.send({"Hello from": "$user"});
+  socket.send(NetworkPacket("test", {"Hello from": "$user"}));
   await Future<void>.delayed(const Duration(seconds: 1));
-  await server.send(user, {"Hello from": "server"});
+  server.sendToUser(user, const NetworkPacket("test", {"Hello from": "server"}));
 
   await Future<void>.delayed(const Duration(seconds: 1));
   await socket.dispose();

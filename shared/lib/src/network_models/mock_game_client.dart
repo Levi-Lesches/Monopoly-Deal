@@ -2,7 +2,7 @@ import "dart:async";
 
 import "package:shared/data.dart";
 import "package:shared/game.dart";
-import "package:shared/network.dart";
+import "package:shared/network_data.dart";
 
 import "game_client.dart";
 
@@ -15,6 +15,8 @@ class MockGameClient implements MDealClient {
 
   late final Game _game = Game([player, _other]);
 
+  @override
+  final int roomCode = 0;
   MockGameClient(this.user);
 
   @override
