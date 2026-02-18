@@ -1,5 +1,9 @@
 import "package:shared/utils.dart";
 
+class RoomJoinPacket {
+  static const name = "room_join";
+}
+
 class RoomDetailsPacket {
   static const name = "room_details";
 

@@ -17,19 +17,18 @@ import "package:test/test.dart";
 import "mock_sockets.dart";
 
 void main() => test("Server test", () async {
-  final aliceSocket = MockClientSocket(aliceUser);
-  final aliceClient = MDealClient(aliceSocket, 1);
-  aliceClient.init();
-
-  final bobClient = MDealClient(MockClientSocket(bobUser), 1);
-  bobClient.init();
-
   final socket = MockServerSocket();
   await socket.init();
 
   final server = GameServer([aliceUser, bobUser], socket);
   socket.packets.listen(server.handlePacket);
-  // socket.packets.listen(print);
+
+  final aliceSocket = MockClientSocket(aliceUser, socket);
+  final aliceClient = MDealClient(aliceSocket, 1);
+  aliceClient.init();
+
+  final bobClient = MDealClient(MockClientSocket(bobUser, socket), 1);
+  bobClient.init();
 
   final game = server.game;
   final alice = game.findPlayer(aliceUser.name);
@@ -142,10 +141,6 @@ void main() => test("Server test", () async {
   await aliceClient.dispose();
   await bobClient.dispose();
   await server.dispose();
-  final controllers = [...clientControllers.values, ...serverControllers.values];
-  for (final controller in controllers) {
-    await controller.close();
-  }
 });
 
 extension on MDealClient {

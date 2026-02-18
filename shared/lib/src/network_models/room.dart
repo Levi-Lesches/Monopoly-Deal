@@ -20,7 +20,7 @@ abstract class RoomEntity {
   void broadcastToAll();
   void sendToAll(NetworkPacket packet) {
     for (final user in allUsers) {
-      socket.sendToUser(user, packet);
+      socket.send(user, packet);
     }
   }
 }
@@ -47,7 +47,7 @@ class Room {
       .listen(handleDisconnection);
 
     final lobby = LobbyServer(roomCode, socket);
-    unawaited(lobby.gameStarted.then(startGame));
+    unawaited(lobby.gameStarted.then(startGame, onError: dispose));
     currentEntity = lobby;
   }
 
@@ -104,7 +104,7 @@ class Room {
 
   void sendToAll(NetworkPacket packet) {
     for (final user in users) {
-      socket.sendToUser(user, packet);
+      socket.send(user, packet);
     }
   }
 

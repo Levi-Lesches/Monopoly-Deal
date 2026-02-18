@@ -71,11 +71,10 @@ class GameServer extends RoomEntity {
     final player = game.findPlayer(user.name);
     final state = game.getStateFor(player);
     final packet = NetworkPacket("game_state", state.toJson());
-    socket.sendToUser(user, packet);
+    socket.send(user, packet);
   }
 
   void sendError(User user, MDealError error) {
-    final packet = NetworkPacket("error", error.toJson());
-    socket.sendToUser(user, packet);
+    socket.sendError(user, error);
   }
 }

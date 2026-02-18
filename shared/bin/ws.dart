@@ -18,7 +18,7 @@ void main() async {
 
   socket.send(NetworkPacket("test", {"Hello from": "$user"}));
   await Future<void>.delayed(const Duration(seconds: 1));
-  server.sendToUser(user, const NetworkPacket("test", {"Hello from": "server"}));
+  server.send(user, const NetworkPacket("test", {"Hello from": "server"}));
 
   await Future<void>.delayed(const Duration(seconds: 1));
   await socket.dispose();

@@ -1,21 +1,22 @@
 import "dart:async";
 
+import "package:shared/data.dart";
 import "package:shared/network_data.dart";
 import "package:shared/network_sockets.dart";
 
 final aliceUser = User("Alice");
 final bobUser = User("Bob");
 
-Map<User, StreamController<WrappedPacket>> clientControllers = {
-  aliceUser: StreamController(),
-  bobUser: StreamController(),
-};
-Map<User, StreamController<NetworkPacket>> serverControllers = {
-  aliceUser: StreamController(),
-  bobUser: StreamController(),
-};
-
 class MockServerSocket extends ServerSocket {
+  final Map<User, StreamController<WrappedPacket>> clientControllers = {
+    aliceUser: StreamController.broadcast(),
+    bobUser: StreamController.broadcast(),
+  };
+  final Map<User, StreamController<NetworkPacket>> serverControllers = {
+    aliceUser: StreamController.broadcast(),
+    bobUser: StreamController.broadcast(),
+  };
+
   final _subs = <StreamSubscription<void>>[];
   final _controller = StreamController<WrappedPacket>.broadcast();
 
@@ -32,28 +33,38 @@ class MockServerSocket extends ServerSocket {
       await sub.cancel();
     }
     await _controller.close();
+    for (final controller in [...clientControllers.values, ...serverControllers.values]) {
+      await controller.close();
+    }
   }
 
   @override
   Stream<DisconnectionEvent> get disconnections => const Stream.empty();
 
   @override
-  void sendToUser(User user, NetworkPacket packet) =>
+  void send(User user, NetworkPacket packet) {
     serverControllers[user]!.add(packet);
+  }
+
+  @override
+  void sendError(User user, MDealError error) {
+    serverControllers[user]!.addError(error);
+  }
 
   @override
   Stream<WrappedPacket> get packets => _controller.stream;
 }
 
 class MockClientSocket extends ClientSocket {
-  MockClientSocket(super.user);
+  final MockServerSocket server;
+  MockClientSocket(super.user, this.server);
 
   @override Future<void> init() async { }
   @override Future<void> dispose() async { }
 
   @override void send(NetworkPacket packet)  =>
-    clientControllers[user]!.add(wrap(packet));
+    server.clientControllers[user]!.add(wrap(packet));
 
   @override
-  Stream<NetworkPacket> get packets => serverControllers[user]!.stream;
+  Stream<NetworkPacket> get packets => server.serverControllers[user]!.stream;
 }

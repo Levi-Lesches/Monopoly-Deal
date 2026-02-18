@@ -11,7 +11,7 @@ class Router {
 
   void init() {
     socket.packets
-      .where((packet) => packet.packet.type == "room_join")
+      .where((packet) => packet.packet.type == RoomJoinPacket.name)
       .listen(joinRoom);
   }
 
@@ -25,8 +25,7 @@ class Router {
       room = rooms[wrapper.roomCode];
     }
     if (room == null) {
-      final response = NetworkPacket("error", GameError("Room not found").toJson());
-      socket.sendToUser(wrapper.user, response);
+      socket.sendError(wrapper.user, GameError("Room not found"));
     } else {
       room.join(wrapper.user);
     }

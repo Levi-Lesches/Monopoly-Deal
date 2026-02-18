@@ -66,7 +66,7 @@ class ServerWebSocket extends ServerSocket {
   }
 
   @override
-  void sendToUser(User user, NetworkPacket payload) {
+  void send(User user, NetworkPacket payload) {
     final socket = _userSockets[user];
     socket?.sink.add(jsonEncode(payload));
   }

@@ -50,7 +50,7 @@ class UdpServerSocket extends ServerSocket {
   }
 
   @override
-  Future<void> sendToUser(User user, NetworkPacket packet) async {
+  Future<void> send(User user, NetworkPacket packet) async {
     final socket = _clients[user];
     if (socket == null) throw ArgumentError("Unrecognized user: $user");
     final jsonString = jsonEncode(packet);

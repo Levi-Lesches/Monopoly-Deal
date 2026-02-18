@@ -1,5 +1,6 @@
 import "dart:async";
 
+import "package:shared/data.dart";
 import "package:shared/network_data.dart";
 
 abstract class ClientSocket {
@@ -33,8 +34,8 @@ abstract class ServerSocket {
   Future<void> dispose();
 
   Stream<WrappedPacket> get packets;
-  void sendToUser(User user, NetworkPacket packet);
-  // void sendToRoom(RoomID room, NetworkPacket packet) { }
+  void send(User user, NetworkPacket packet);
+  void sendError(User user, MDealError error) => send(user, NetworkPacket("error", error.toJson()));
 
   Stream<DisconnectionEvent> get disconnections;
 }
