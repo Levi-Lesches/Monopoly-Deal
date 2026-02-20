@@ -28,7 +28,7 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
     backgroundColor: model.stackNotifier.value == null && model.bankNotifier.value == null
       ? null : context.colorScheme.outlineVariant,
     appBar: AppBar(
-      title: Text("${model.player}'s Game"),
+      title: ListTile(title: Text("Room #${model.client.roomCode}"), subtitle: Text(model.player.name)),
       actions: [
         IconButton(
           icon: model.enableAnimations

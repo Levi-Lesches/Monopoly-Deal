@@ -1,5 +1,6 @@
 import "dart:async";
 import "package:collection/collection.dart";
+import "package:shared/data.dart";
 
 import "package:shared/network_data.dart";
 import "package:shared/network_sockets.dart";
@@ -65,27 +66,31 @@ class Room {
     currentEntity.handlePacket(packet);
   }
 
-  bool join(User user) {
+  void join(User user) {
     final name = user.name;
     final other = getUser(name);
     if (other == null) {
       // A new user is joining
       if (currentEntity case final LobbyServer lobby) {
+        user.roomCode = roomCode;
+        user.isConnected = true;
         users.add(user);
         lobby.join(user);
       } else {
-        return false;
+        socket.sendError(user, GameError("The game has already started"));
+        return;
       }
     } else if (other.isConnected) {
       // User is trying to take another's place!
-      return false;
+      socket.sendError(user, GameError("That room already has a user named $name"));
+      return;
     } else {
       // User is re-joining after disconnecting
       other.isConnected = true;
+      other.id = user.id;
     }
     currentEntity.broadcastToAll();
     broadcastRoomDetails();
-    return true;
   }
 
   void _handleDisconnection(DisconnectionEvent event) {
@@ -94,7 +99,7 @@ class Room {
     if (!user.isConnected) return;
     user.isConnected = false;
     broadcastRoomDetails();
-    if (users.isEmpty) unawaited(dispose());
+    if (users.every((u) => !u.isConnected)) unawaited(dispose());
   }
 
   void broadcastRoomDetails() {

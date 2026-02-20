@@ -105,21 +105,23 @@ class LandingPage extends ReactiveWidget<LandingViewModel> {
       ),
       const SizedBox(height: 24),
       Text(
-        "Join a room",
-        style: context.textTheme.displaySmall,
+        "Enter a room code",
+        style: context.textTheme.titleLarge,
       ),
-      const SizedBox(height: 24),
+      const SizedBox(height: 12),
       SizedBox(
         width: 150,
         child: textField(
           controller: model.roomController,
-          error: model.roomError,
           formatter: FilteringTextInputFormatter.digitsOnly,
           hint: "0001-9999",
           type: const .numberWithOptions(signed: false, decimal: false),
           style: context.textTheme.titleLarge,
         ),
       ),
+      const SizedBox(height: 12),
+      if (model.roomError != null)
+        Text(model.roomError!, style: const TextStyle(color: Colors.red)),
       const Spacer(),
       Row(
         children: [
@@ -145,7 +147,7 @@ class LandingPage extends ReactiveWidget<LandingViewModel> {
       const SizedBox(height: 16),
       const Divider(),
       if (model.users.length > 1)
-        Text("Waiting for ${model.unreadyCount} to ready up...")
+        Text("Waiting for ${model.unreadyCount} more players to ready up...")
       else
         const Text("Waiting for more players..."),
       for (final (user, isReady) in model.users.records)

@@ -37,7 +37,7 @@ class LobbyClient {
 
   Future<RoomID> join(RoomID? roomCode) {
     socket.roomCode = roomCode ?? 0;
-    socket.send(const NetworkPacket("room_join", {}));
+    socket.send(const NetworkPacket(RoomJoinPacket.name, {}));
     final completer = Completer<RoomID>();
     _joinCompleter = completer;
     return completer.future.timeout(const Duration(seconds: 1));

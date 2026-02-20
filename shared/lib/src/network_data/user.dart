@@ -1,35 +1,29 @@
-// Users are compared by passwords (userIDs), which don't change
-// ignore_for_file: must_be_immutable
-
-import "package:meta/meta.dart";
 import "package:shared/utils.dart";
 import "package:uuid/uuid.dart";
 
-@immutable
+extension type UserID(String value) {
+  UserID.unique() : value = const Uuid().v4();
+  UserID.fromJson(this.value);
+}
+
 class User {
   final String name;
-  final String password;
+  UserID id;
   bool isConnected = false;
+  int roomCode = 0;
 
   User(this.name) :
-    password = const Uuid().v4();
+    id = UserID.unique();
 
   User.fromJson(Json json) :
     name = json["name"],
-    password = json["password"];
+    id = UserID.fromJson(json["id"]);
 
   @override
   String toString() => name;
 
-  @override
-  bool operator ==(Object other) => other is User
-    && other.password == password;
-
-  @override
-  int get hashCode => password.hashCode;
-
   Json toJson() => {
     "name": name,
-    "password": password,
+    "id": id,
   };
 }
