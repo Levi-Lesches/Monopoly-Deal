@@ -59,6 +59,7 @@ class LobbyClient {
       socket.roomCode = details.roomCode;
       _joinCompleter?.complete(details.roomCode);
       _joinCompleter = null;
+      if (details.gameStarted) _startCompleter.complete();
     }
   }
 

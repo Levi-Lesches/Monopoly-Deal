@@ -17,10 +17,16 @@ class ClientWebSocket extends ClientSocket {
   StreamSubscription<void>? _sub;
 
   @override
+  bool get isConnected => _channel != null && _channel!.closeCode == null;
+
+  @override
   Future<void> init() async {
-    _channel = WebSocketChannel.connect(_uri);
+    _channel = WebSocketChannel.connect(
+      _uri,
+      protocols: [protocolName],
+    );
     await _channel!.ready;
-    _sub = _channel!.stream.listen(_handlePacket);
+    _sub = _channel!.stream.listen(_handlePacket, onDone: dispose);
   }
 
   void _handlePacket(dynamic data) {
@@ -37,6 +43,7 @@ class ClientWebSocket extends ClientSocket {
   Future<void> dispose() async {
     await _channel?.sink.close(status.normalClosure);
     await _sub?.cancel();
+    await _packetsController.close();
   }
 
   @override

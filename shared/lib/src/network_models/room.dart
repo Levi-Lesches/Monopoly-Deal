@@ -96,7 +96,10 @@ class Room {
   }
 
   void broadcastRoomDetails() {
-    final packet = RoomDetailsPacket(roomCode, {
+    final packet = RoomDetailsPacket(
+      gameStarted: hasStarted,
+      roomCode: roomCode,
+      userStatus: {
       for (final user in users)
         user.name: user.isConnected,
     });

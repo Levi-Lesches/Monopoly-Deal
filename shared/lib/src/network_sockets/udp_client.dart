@@ -25,6 +25,9 @@ class UdpClientSocket extends ClientSocket {
   }
 
   @override
+  bool get isConnected => true;
+
+  @override
   Future<void> dispose() async {
     await _udpSub?.cancel();
     _udpSub = null;

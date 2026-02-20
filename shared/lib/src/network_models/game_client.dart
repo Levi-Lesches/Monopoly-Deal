@@ -12,12 +12,13 @@ class MDealClient {
   MDealClient(this._socket, this.roomCode) :
     user = _socket.user
   {
-    _sub = _socket.packets.listen(_handlePacket);
+    _sub = _socket.packets.listen(_handlePacket, onDone: dispose);
   }
 
   final _gameController = StreamController<GameState>.broadcast();
   Stream<GameState> get gameUpdates => _gameController.stream;
 
+  bool get isStillPlaying => _socket.isConnected;
   StreamSubscription<void>? _sub;
   RoomDetailsPacket? _roomDetails;
   bool isConnected(Player player) => _roomDetails?.userStatus[player.name] ?? true;
@@ -47,6 +48,8 @@ class MDealClient {
   void sendAction(PlayerAction action) =>
     _socket.send(NetworkPacket("game_action", action.toJson()));
 
-  void requestState() =>
+  void requestState() {
+    if (!isStillPlaying) return;
     _socket.send(const NetworkPacket("game_request_state", {}));
+  }
 }

@@ -30,7 +30,7 @@ class LandingPage extends ReactiveWidget<LandingViewModel> {
           child: Column(
             children: [
               ...header(context),
-              const Spacer(),
+              const SizedBox(height: 100),
               Expanded(
                 flex: 3,
                 child: PageView(

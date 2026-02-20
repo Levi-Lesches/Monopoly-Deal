@@ -31,7 +31,7 @@ class HomeModel extends DataModel with AnimationModel, GameChoices, HintsModel {
   Future<void> init() async {
     cancelChoice(playCard: false);
     enableAnimations = services.prefs.animations;
-    _sub = client.gameUpdates.listen(update, onError: setError);
+    _sub = client.gameUpdates.listen(update, onError: setError, onDone: _onDisconnect);
     models.audio.addListener(notifyListeners);
     cards.addListener(notifyListeners);
     scrollController.addListener(notifyListeners);
@@ -52,6 +52,8 @@ class HomeModel extends DataModel with AnimationModel, GameChoices, HintsModel {
     super.dispose();
   }
 
+  void _onDisconnect() => setError("The server has disconnected");
+
   void setError(Object error) {
     cancelChoice();
     errorMessage = error.toString();
@@ -64,6 +66,8 @@ class HomeModel extends DataModel with AnimationModel, GameChoices, HintsModel {
   bool winnerPopup = false;
   Future<void> update(GameState state) async {
     cancelChoice(playCard: false);
+    if (!client.isStillPlaying) errorMessage = "The server has disconnected";
+    notifyListeners();
     await addEvents(state.log.reversed);
     game = state;
     notifyListeners();
@@ -126,6 +130,11 @@ class HomeModel extends DataModel with AnimationModel, GameChoices, HintsModel {
     notifyListeners();
     for (final chooser in choosers) {
       chooser.cancel();
+    }
+    if (!client.isStillPlaying) {
+      errorMessage = "The server has disconnected";
+      notifyListeners();
+      return;
     }
     if (playCard) {
       client.requestState();

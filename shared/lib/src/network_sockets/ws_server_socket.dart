@@ -24,7 +24,11 @@ class ServerWebSocket extends ServerSocket {
 
   @override
   Future<void> init() async {
-    final handler = webSocketHandler(_handleConnection);
+    final handler = webSocketHandler(
+      _handleConnection,
+      pingInterval: const Duration(seconds: 1),
+      protocols: [protocolName],
+    );
     _server = await serve(handler, "0.0.0.0", _port);
   }
 
@@ -51,6 +55,7 @@ class ServerWebSocket extends ServerSocket {
     final packetJson = jsonDecode(packet);
     final wrapper = WrappedPacket.fromJson(packetJson);
     _users.putIfAbsent(wrapper.user.id, () => wrapper.user);
+    _users[wrapper.user.id]!.roomCode = wrapper.roomCode;
     _userSockets.putIfAbsent(wrapper.user.id, () => socket);
     _controller.add(wrapper);
   }

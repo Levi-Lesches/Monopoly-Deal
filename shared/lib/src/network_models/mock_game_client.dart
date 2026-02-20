@@ -30,6 +30,9 @@ class MockGameClient implements MDealClient {
   bool isConnected(Player player) => true;
 
   @override
+  bool isStillPlaying = false;
+
+  @override
   Future<void> dispose() async { }
 
   final _gameController = StreamController<GameState>.broadcast();

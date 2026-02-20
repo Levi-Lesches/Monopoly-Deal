@@ -3,15 +3,19 @@ import "dart:async";
 import "package:shared/data.dart";
 import "package:shared/network_data.dart";
 
+const protocolName = "monopoly-deal.forgot-semicolon.com";
+
 abstract class ClientSocket {
   final User user;
-  int roomCode = 0;
   ClientSocket(this.user);
+
+  int roomCode = 0;
 
   Future<void> init();
   Future<void> dispose();
   void send(NetworkPacket payload);
   Stream<NetworkPacket> get packets;
+  bool get isConnected;
 
   WrappedPacket wrap(NetworkPacket packet) => WrappedPacket(
     packet: packet,

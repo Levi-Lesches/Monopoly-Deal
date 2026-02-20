@@ -38,6 +38,7 @@ class LandingViewModel extends ViewModel {
     roomController.dispose();
     unawaited(client?.dispose());
     unawaited(lobbySub?.cancel());
+    unawaited(socketSub?.cancel());
     super.dispose();
   }
 
@@ -74,6 +75,7 @@ class LandingViewModel extends ViewModel {
   ClientSocket? socket;
   LobbyClient? client;
   StreamSubscription<void>? lobbySub;
+  StreamSubscription<void>? socketSub;
 
   Future<void> gotoPage(int index) => pageController.animateToPage(
     index,
@@ -89,6 +91,7 @@ class LandingViewModel extends ViewModel {
     try {
       socket = ClientWebSocket(uri, user!);
       await socket!.init().timeout(const Duration(seconds: 2));
+      socketSub = socket!.packets.listen((_) { }, onDone: backToName);
       services.prefs.uri = uri.toString();
       services.prefs.name = username;
       client = LobbyClient(socket!);
@@ -109,6 +112,12 @@ class LandingViewModel extends ViewModel {
     await gotoPage(0);
     await client?.dispose();
     await socket?.dispose();
+    await lobbySub?.cancel();
+    roomError = null;
+    errorText = "The server closed unexpectedly";
+    isReady = false;
+    roomController.clear();
+    uriError = null;
   }
 
   String? roomError;

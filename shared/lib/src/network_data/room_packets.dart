@@ -9,11 +9,21 @@ class RoomDetailsPacket {
 
   final int roomCode;
   final Map<String, bool> userStatus;
-  const RoomDetailsPacket(this.roomCode, this.userStatus);
+  final bool gameStarted;
+  const RoomDetailsPacket({
+    required this.roomCode,
+    required this.userStatus,
+    required this.gameStarted,
+  });
 
   RoomDetailsPacket.fromJson(Json json) :
     userStatus = (json["userStatus"] as Json).cast<String, bool>(),
-    roomCode = json["roomCode"];
+    roomCode = json["roomCode"],
+    gameStarted = json["gameStarted"];
 
-  Json toJson() => {"roomCode": roomCode, "userStatus": userStatus};
+  Json toJson() => {
+    "roomCode": roomCode,
+    "userStatus": userStatus,
+    "gameStarted": gameStarted,
+  };
 }

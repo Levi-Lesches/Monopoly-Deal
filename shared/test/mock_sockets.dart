@@ -74,6 +74,9 @@ class MockClientSocket extends ClientSocket {
     await Future<void>.delayed(Duration.zero);
   }
 
+  @override
+  bool get isConnected => true;
+
   @override void send(NetworkPacket packet) =>
     server.clientControllers[user]!.add(wrap(packet));
 
