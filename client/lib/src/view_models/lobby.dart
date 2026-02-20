@@ -113,6 +113,7 @@ class LandingViewModel extends ViewModel {
     await client?.dispose();
     await socket?.dispose();
     await lobbySub?.cancel();
+    await socketSub?.cancel();
     roomError = null;
     errorText = "The server closed unexpectedly";
     isReady = false;
