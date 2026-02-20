@@ -22,7 +22,9 @@ class LandingViewModel extends ViewModel {
 
   @override
   Future<void> init() async {
-    uriController.text = services.prefs.uri ?? uri.toString();
+    final uriString = services.prefs.uri;
+    if (uriString != null) uri = Uri.parse(uriString);
+    uriController.text = uri.toString();
     uriController.addListener(setUri);
     usernameController.text = services.prefs.name ?? "";
     usernameController.addListener(notifyListeners);
