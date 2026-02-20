@@ -131,6 +131,11 @@ class LandingViewModel extends ViewModel {
     } on MDealError catch (error) {
       roomError = error.toString();
       notifyListeners();
+    } catch (error) {
+      roomError = kDebugMode
+        ? error.toString()
+        : "Something went wrong";
+      notifyListeners();
     }
   }
 

@@ -12,17 +12,9 @@ abstract class RoomEntity {
   final ServerSocket socket;
   RoomEntity(this.socket);
 
-  Iterable<User> get allUsers;
-
   Future<void> dispose() async { }
-
   void handlePacket(WrappedPacket wrapper);
   void broadcastToAll();
-  void sendToAll(NetworkPacket packet) {
-    for (final user in allUsers) {
-      socket.send(user, packet);
-    }
-  }
 }
 
 typedef RoomCallback = void Function(RoomID);
@@ -47,7 +39,7 @@ class Room {
       .where((event) => event.roomCode == roomCode)
       .listen(_handleDisconnection);
 
-    final lobby = LobbyServer(roomCode, socket);
+    final lobby = LobbyServer(this, socket);
     unawaited(lobby.gameStarted.then(startGame, onError: dispose));
     currentEntity = lobby;
   }
@@ -61,6 +53,7 @@ class Room {
 
   bool get isEmpty => users.isEmpty;
   User? getUser(String name) => users.firstWhereOrNull((other) => other.name == name);
+  bool get hasStarted => currentEntity is GameServer;
 
   void handlePacket(WrappedPacket packet) {
     currentEntity.handlePacket(packet);
@@ -71,14 +64,13 @@ class Room {
     final other = getUser(name);
     if (other == null) {
       // A new user is joining
-      if (currentEntity case final LobbyServer lobby) {
+      if (hasStarted) {
+        socket.sendError(user, GameError("The game has already started"));
+        return;
+      } else {
         user.roomCode = roomCode;
         user.isConnected = true;
         users.add(user);
-        lobby.join(user);
-      } else {
-        socket.sendError(user, GameError("The game has already started"));
-        return;
       }
     } else if (other.isConnected) {
       // User is trying to take another's place!
@@ -96,7 +88,6 @@ class Room {
   void _handleDisconnection(DisconnectionEvent event) {
     final user = getUser(event.user.name);
     if (user == null) return;
-    if (!user.isConnected) return;
     user.isConnected = false;
     broadcastRoomDetails();
     if (users.every((u) => !u.isConnected)) unawaited(dispose());

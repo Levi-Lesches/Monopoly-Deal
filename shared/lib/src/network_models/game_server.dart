@@ -11,7 +11,6 @@ class GameServer extends RoomEntity {
   final _finishedCompleter = Completer<void>();
   final Game game;
 
-  @override
   final List<User> allUsers;
 
   GameServer(this.allUsers, super.socket) :

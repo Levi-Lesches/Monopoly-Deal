@@ -10,6 +10,7 @@ class User {
   final String name;
   UserID id;
   bool isConnected = false;
+  bool isReady = false;
   int roomCode = 0;
 
   User(this.name) :

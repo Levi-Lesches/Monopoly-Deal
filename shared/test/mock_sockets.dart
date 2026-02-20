@@ -19,12 +19,21 @@ class MockServerSocket extends ServerSocket {
 
   final _subs = <StreamSubscription<void>>[];
   final _controller = StreamController<WrappedPacket>.broadcast();
+  final _disconnects = StreamController<DisconnectionEvent>.broadcast();
 
   @override
   Future<void> init() async {
     for (final controller in clientControllers.values) {
       _subs.add(controller.stream.listen(_controller.add));
+      _subs.add(controller.stream.where((w) => w.packet.type == "disconnect").listen(_onDisconnect));
     }
+  }
+
+  void _onDisconnect(WrappedPacket packet) {
+    _disconnects.add(DisconnectionEvent(
+      roomCode: packet.roomCode,
+      user: packet.user,
+    ));
   }
 
   @override
@@ -39,7 +48,7 @@ class MockServerSocket extends ServerSocket {
   }
 
   @override
-  Stream<DisconnectionEvent> get disconnections => const Stream.empty();
+  Stream<DisconnectionEvent> get disconnections => _disconnects.stream;
 
   @override
   void send(User user, NetworkPacket packet) {
@@ -60,9 +69,12 @@ class MockClientSocket extends ClientSocket {
   MockClientSocket(super.user, this.server);
 
   @override Future<void> init() async { }
-  @override Future<void> dispose() async { }
+  @override Future<void> dispose() async {
+    server.clientControllers[user]!.add(wrap(const NetworkPacket("disconnect", {})));
+    await Future<void>.delayed(Duration.zero);
+  }
 
-  @override void send(NetworkPacket packet)  =>
+  @override void send(NetworkPacket packet) =>
     server.clientControllers[user]!.add(wrap(packet));
 
   @override

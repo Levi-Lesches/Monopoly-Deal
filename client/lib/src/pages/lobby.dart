@@ -12,78 +12,90 @@ class LandingPage extends ReactiveWidget<LandingViewModel> {
   @override
   LandingViewModel createModel() => LandingViewModel();
 
+  List<Widget> header(BuildContext context) => [
+    const SizedBox(height: 32),
+    Image.asset("images/banner.png"),
+    const SizedBox(height: 12),
+    Text("Monopoly Deal and all associated trademarks are the intellectual property of Hasbro Inc. This application is not affiliated or endorsed by them in any way.", style: context.textTheme.labelSmall),
+  ];
+
   @override
   Widget build(BuildContext context, LandingViewModel model) => Scaffold(
-    body: Center(
-      child: ConstrainedBox(
-        constraints: BoxConstraints.loose(const Size.fromWidth(500)),
-        child: Column(
-          children: [
-            const SizedBox(height: 32),
-            Image.asset("images/banner.png"),
-            const Spacer(),
-            Expanded(
-              flex: 3,
-              child: PageView(
-                controller: model.pageController,
-                physics: const NeverScrollableScrollPhysics(),
-                children: [
-                  _nameAndUri(context, model),
-                  _roomChoice(context, model),
-                  _lobby(context, model),
-                ],
+    appBar: AppBar(),
+    body: Padding(
+      padding: const EdgeInsets.all(8),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints.loose(const Size.fromWidth(500)),
+          child: Column(
+            children: [
+              ...header(context),
+              const Spacer(),
+              Expanded(
+                flex: 3,
+                child: PageView(
+                  controller: model.pageController,
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: [
+                    _nameAndUri(context, model),
+                    _roomChoice(context, model),
+                    _lobby(context, model),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     ),
   );
 
-  Widget _nameAndUri(BuildContext context, LandingViewModel model) => Column(
-    children: [
-      Text(
-        "Enter your name",
-        style: context.textTheme.displaySmall,
-      ),
-      const SizedBox(height: 24),
-      textField(
-        controller: model.usernameController,
-        autocorrect: true,
-        capitalization: .words,
-        type: .name,
-        style: context.textTheme.titleLarge
-      ),
-      const SizedBox(height: 12),
-      if (model.errorText != null)
-        Text(model.errorText!, style: const TextStyle(color: Colors.red)),
-      const SizedBox(height: 12),
-      Align(
-        alignment: .bottomRight,
-        child: ElevatedButton(
-          onPressed: model.canConnect ? model.connect : null,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: monopolyGreen,
-            foregroundColor: Colors.white,
-          ),
-          child: const Text("Connect"),
+  Widget _nameAndUri(BuildContext context, LandingViewModel model) => SingleChildScrollView(
+    child: Column(
+      children: [
+        Text(
+          "Enter your name",
+          style: context.textTheme.displaySmall,
         ),
-      ),
-      const Spacer(),
-      ExpansionTile(
-        title: Text("Connecting to: ${model.uri}", style: context.textTheme.labelLarge),
-        children: [
-          textField(
-            controller: model.uriController,
-            autofocus: true,
-            type: .url,
-            hint: "ws://localhost:8040",
-            error: model.uriError,
+        const SizedBox(height: 24),
+        textField(
+          controller: model.usernameController,
+          autocorrect: true,
+          capitalization: .words,
+          type: .name,
+          style: context.textTheme.titleLarge
+        ),
+        const SizedBox(height: 12),
+        if (model.errorText != null)
+          Text(model.errorText!, style: const TextStyle(color: Colors.red)),
+        const SizedBox(height: 12),
+        Align(
+          alignment: .bottomRight,
+          child: ElevatedButton(
+            onPressed: model.canConnect ? model.connect : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: monopolyGreen,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text("Connect"),
           ),
-        ],
-      ),
-      const SizedBox(height: 32),
-    ],
+        ),
+        // const Spacer(),
+        ExpansionTile(
+          title: Text("Connecting to: ${model.uri}", style: context.textTheme.labelLarge),
+          children: [
+            textField(
+              controller: model.uriController,
+              autofocus: true,
+              type: .url,
+              hint: "ws://localhost:8040",
+              error: model.uriError,
+            ),
+          ],
+        ),
+        const SizedBox(height: 32),
+      ],
+    ),
   );
 
   Widget _roomChoice(BuildContext context, LandingViewModel model) => Column(

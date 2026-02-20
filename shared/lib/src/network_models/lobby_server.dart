@@ -1,23 +1,19 @@
 import "dart:async";
 
 import "package:shared/network_data.dart";
-import "package:shared/utils.dart";
 
 import "room.dart";
 
 class LobbyServer extends RoomEntity {
-  final Map<User, bool> users = {};
   final _startCompleter = Completer<void>();
 
-  final RoomID roomCode;
-  LobbyServer(this.roomCode, super.socket);
+  final Room room;
+  LobbyServer(this.room, super.socket);
+  RoomID get roomCode => room.roomCode;
 
   StreamSubscription<void>? _sub;
 
   Future<void> get gameStarted => _startCompleter.future;
-
-  @override
-  Iterable<User> get allUsers => users.keys;
 
   @override
   Future<void> dispose() async {
@@ -29,24 +25,20 @@ class LobbyServer extends RoomEntity {
 
   void start() {
     const packet = NetworkPacket("lobby_start", {});
-    sendToAll(packet);
+    room.sendToAll(packet);
     _startCompleter.complete();
   }
 
-  bool get isReady => users.values.every((isReady) => isReady);
-
-  void join(User user) {
-    users[user] = false;
-  }
+  bool get isReady => room.users.every((user) => user.isReady);
 
   @override
   void broadcastToAll() {
     final details = LobbyDetailsPacket({
-      for (final (user, isReady) in users.records)
-        user.name: isReady,
+      for (final user in room.users)
+        user.name: user.isReady,
     });
     final detailsPacket = NetworkPacket(LobbyDetailsPacket.name, details.toJson());
-    sendToAll(detailsPacket);
+    room.sendToAll(detailsPacket);
   }
 
   @override
@@ -54,8 +46,8 @@ class LobbyServer extends RoomEntity {
     final user = wrapper.user;
     if (wrapper.packet.type != LobbyReadyPacket.name) return;
     final request = LobbyReadyPacket.fromJson(wrapper.packet.data);
-    users[user] = request.isReady;
-    if (users.length > 1 && isReady) {
+    room.getUser(user.name)?.isReady = request.isReady;
+    if (room.users.length > 1 && isReady) {
       start();
     }
     broadcastToAll();

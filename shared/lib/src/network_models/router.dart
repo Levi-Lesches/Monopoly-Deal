@@ -55,7 +55,7 @@ class Router {
   }
 
   Future<void> dispose() async {
-    for (final room in rooms.values) {
+    for (final room in rooms.values.toList()) {
       await room.dispose();
     }
   }
