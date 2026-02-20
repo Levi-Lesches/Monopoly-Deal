@@ -22,7 +22,6 @@ class Models extends DataModel {
   Future<void> resetGame() async {
     final user = User("test1");
     final mockClient = MockGameClient(user);
-    await mockClient.init();
     game = HomeModel(mockClient, mockClient.state);
     await audio.init();
   }

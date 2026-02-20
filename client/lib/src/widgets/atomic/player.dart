@@ -97,6 +97,8 @@ class PlayerWidget extends ReusableReactiveWidget<HomeModel> {
     crossAxisAlignment: CrossAxisAlignment.start,
     mainAxisSize: MainAxisSize.min,
     children: [
+      if (!model.client.isConnected(player))
+        const Center(child: Text("DISCONNECTED", style: TextStyle(color: Colors.red))),
       Row(
         spacing: 12,
         children: [

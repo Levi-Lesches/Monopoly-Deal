@@ -98,59 +98,64 @@ class LandingPage extends ReactiveWidget<LandingViewModel> {
     ),
   );
 
-  Widget _roomChoice(BuildContext context, LandingViewModel model) => Column(
-    children: [
-      ElevatedButton(
-        onPressed: model.createRoom,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: monopolyBlue,
-          foregroundColor: Colors.black,
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-          textStyle: context.textTheme.headlineSmall,
+  Widget _roomChoice(BuildContext context, LandingViewModel model) => SingleChildScrollView(
+    child: Column(
+      children: [
+        ElevatedButton(
+          onPressed: model.createRoom,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: monopolyBlue,
+            foregroundColor: Colors.black,
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            textStyle: context.textTheme.headlineSmall,
+          ),
+          child: const Text("Create a room"),
         ),
-        child: const Text("Create a room"),
-      ),
-      const SizedBox(height: 24),
-      Text(
-        "OR",
-        style: context.textTheme.displaySmall,
-      ),
-      const SizedBox(height: 24),
-      Text(
-        "Enter a room code",
-        style: context.textTheme.titleLarge,
-      ),
-      const SizedBox(height: 12),
-      SizedBox(
-        width: 150,
-        child: textField(
-          controller: model.roomController,
-          formatter: FilteringTextInputFormatter.digitsOnly,
-          hint: "0001-9999",
-          type: const .numberWithOptions(signed: false, decimal: false),
+        const SizedBox(height: 24),
+        Text(
+          "OR",
+          style: context.textTheme.displaySmall,
+        ),
+        const SizedBox(height: 24),
+        Text(
+          "Enter a room code",
           style: context.textTheme.titleLarge,
         ),
-      ),
-      const SizedBox(height: 12),
-      if (model.roomError != null)
-        Text(model.roomError!, style: const TextStyle(color: Colors.red)),
-      const Spacer(),
-      Row(
-        children: [
-          TextButton(
-            onPressed: model.backToName,
-            child: const Text("Back"),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: 150,
+          child: textField(
+            controller: model.roomController,
+            formatter: FilteringTextInputFormatter.digitsOnly,
+            hint: "0001-9999",
+            type: const .numberWithOptions(signed: false, decimal: false),
+            style: context.textTheme.titleLarge,
           ),
-          const Spacer(),
-          ElevatedButton(
-            onPressed: model.joinRoom,
-            style: ElevatedButton.styleFrom(backgroundColor: monopolyGreen, foregroundColor: Colors.white),
-            child: const Text("Join"),
+        ),
+        const SizedBox(height: 12),
+        if (model.roomError != null)
+          Text(model.roomError!, style: const TextStyle(color: Colors.red)),
+        // const Spacer(),
+        SizedBox(
+          height: 48,
+          child: Row(
+            children: [
+              TextButton(
+                onPressed: model.backToName,
+                child: const Text("Back"),
+              ),
+              const Spacer(),
+              ElevatedButton(
+                onPressed: model.joinRoom,
+                style: ElevatedButton.styleFrom(backgroundColor: monopolyGreen, foregroundColor: Colors.white),
+                child: const Text("Join"),
+              ),
+            ],
           ),
-        ],
-      ),
-      const SizedBox(height: 12),
-    ],
+        ),
+        const SizedBox(height: 12),
+      ],
+    ),
   );
 
   Widget _lobby(BuildContext context, LandingViewModel model) => Column(

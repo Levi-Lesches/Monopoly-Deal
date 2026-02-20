@@ -41,7 +41,6 @@ void main() async {
   print("Starting game client...");
 
   final game = MDealClient(lobby1.socket, roomCode);
-  game.init();
 
   final state = await game.gameUpdates.first;
   print("Got the game: ${state.player.name} has ${state.player.hand}");

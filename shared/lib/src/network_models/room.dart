@@ -89,6 +89,8 @@ class Room {
     final user = getUser(event.user.name);
     if (user == null) return;
     user.isConnected = false;
+    user.isReady = false;
+    currentEntity.broadcastToAll();
     broadcastRoomDetails();
     if (users.every((u) => !u.isConnected)) unawaited(dispose());
   }

@@ -10,15 +10,17 @@ class MDealClient {
   final int roomCode;
   final ClientSocket _socket;
   MDealClient(this._socket, this.roomCode) :
-    user = _socket.user;
+    user = _socket.user
+  {
+    _sub = _socket.packets.listen(_handlePacket);
+  }
 
   final _gameController = StreamController<GameState>.broadcast();
   Stream<GameState> get gameUpdates => _gameController.stream;
 
   StreamSubscription<void>? _sub;
-  void init() {
-    _sub = _socket.packets.listen(_handlePacket);
-  }
+  RoomDetailsPacket? _roomDetails;
+  bool isConnected(Player player) => _roomDetails?.userStatus[player.name] ?? true;
 
   Future<void> dispose() async {
     await _gameController.close();
@@ -33,6 +35,9 @@ class MDealClient {
       case "game_state":
         final game = GameState.fromJson(packet.data);
         _gameController.add(game);
+      case RoomDetailsPacket.name:
+        _roomDetails = RoomDetailsPacket.fromJson(packet.data);
+        requestState();
     }
   }
 

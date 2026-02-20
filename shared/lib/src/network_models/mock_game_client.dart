@@ -17,10 +17,7 @@ class MockGameClient implements MDealClient {
 
   @override
   final int roomCode = 0;
-  MockGameClient(this.user);
-
-  @override
-  Future<void> init() async {
+  MockGameClient(this.user) {
     // Do whatever you want here to make a fake game setup.
     // For example, this code makes a brown set and gives the player a house and hotel
     // _game.debugAddProperty(player, PropertyCard(color: .brown, name: "Baltic Avenue", value: 1));
@@ -28,6 +25,9 @@ class MockGameClient implements MDealClient {
     // _game.debugAddToHand(player, House());
     // _game.debugAddToHand(player, Hotel());
   }
+
+  @override
+  bool isConnected(Player player) => true;
 
   @override
   Future<void> dispose() async { }

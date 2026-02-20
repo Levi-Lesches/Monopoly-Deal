@@ -25,10 +25,8 @@ void main() => test("Server test", () async {
 
   final aliceSocket = MockClientSocket(aliceUser, socket);
   final aliceClient = MDealClient(aliceSocket, 1);
-  aliceClient.init();
 
   final bobClient = MDealClient(MockClientSocket(bobUser, socket), 1);
-  bobClient.init();
 
   final game = server.game;
   final alice = game.findPlayer(aliceUser.name);

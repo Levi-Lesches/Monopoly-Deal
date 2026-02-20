@@ -165,7 +165,6 @@ class LandingViewModel extends ViewModel {
   Future<void> _startGame(_) async {
     await client?.dispose();
     final gameClient = MDealClient(client!.socket, socket!.roomCode);
-    gameClient.init();
     await models.startGame(gameClient);
     router.goNamed(Routes.game);
   }
