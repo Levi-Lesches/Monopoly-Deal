@@ -14,7 +14,7 @@ class Routes {
 
 /// The router for the app.
 final router = GoRouter(
-  initialLocation: kDebugMode ? Routes.game : Routes.landing,
+  initialLocation: kDebugMode ? Routes.landing : Routes.landing,
   routes: [
     GoRoute(
       path: Routes.landing,

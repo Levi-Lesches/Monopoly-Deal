@@ -3,6 +3,7 @@ import "dart:async";
 import "package:flutter/widgets.dart";
 import "package:mdeal/data.dart";
 import "package:mdeal/models.dart";
+import "package:mdeal/services.dart";
 
 import "animations.dart";
 import "game_choices.dart";
@@ -29,6 +30,7 @@ class HomeModel extends DataModel with AnimationModel, GameChoices, HintsModel {
   @override
   Future<void> init() async {
     cancelChoice(playCard: false);
+    enableAnimations = services.prefs.animations;
     _sub = client.gameUpdates.listen(update, onError: setError);
     models.audio.addListener(notifyListeners);
     cards.addListener(notifyListeners);

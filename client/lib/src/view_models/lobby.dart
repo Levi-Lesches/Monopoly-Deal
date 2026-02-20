@@ -4,6 +4,7 @@ import "package:flutter/widgets.dart";
 
 import "package:mdeal/models.dart";
 import "package:mdeal/pages.dart";
+import "package:mdeal/services.dart";
 import "package:shared/shared.dart";
 
 import "view_model.dart";
@@ -21,8 +22,9 @@ class LandingViewModel extends ViewModel {
 
   @override
   Future<void> init() async {
-    uriController.text = uri.toString();
+    uriController.text = services.prefs.uri ?? uri.toString();
     uriController.addListener(setUri);
+    usernameController.text = services.prefs.name ?? "";
     usernameController.addListener(notifyListeners);
   }
 
@@ -85,6 +87,8 @@ class LandingViewModel extends ViewModel {
     try {
       socket = ClientWebSocket(uri, user!);
       await socket!.init().timeout(const Duration(seconds: 2));
+      services.prefs.uri = uri.toString();
+      services.prefs.name = username;
       client = LobbyClient(socket!);
       unawaited(client!.gameStarted.then(_startGame));
       lobbySub = client!.lobbyUsers.listen(updateUsers);

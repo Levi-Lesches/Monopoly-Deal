@@ -2,6 +2,7 @@ import "dart:async";
 
 import "package:flutter/widgets.dart";
 import "package:mdeal/data.dart";
+import "package:mdeal/services.dart";
 import "package:mdeal/widgets.dart";
 
 import "audio.dart";
@@ -10,6 +11,7 @@ mixin AnimationModel on ChangeNotifier {
   bool enableAnimations = false;
   void toggleAnimations() {
     enableAnimations = !enableAnimations;
+    services.prefs.animations = enableAnimations;
     notifyListeners();
   }
 
