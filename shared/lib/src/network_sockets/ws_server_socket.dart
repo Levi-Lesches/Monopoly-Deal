@@ -26,7 +26,6 @@ class ServerWebSocket extends ServerSocket {
   Future<void> init() async {
     final handler = webSocketHandler(
       _handleConnection,
-      pingInterval: const Duration(seconds: 5),
       protocols: [protocolName],
     );
     _server = await serve(handler, "0.0.0.0", _port);
