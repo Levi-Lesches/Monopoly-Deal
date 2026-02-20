@@ -1,5 +1,6 @@
 import "package:flutter/foundation.dart";
 import "package:go_router/go_router.dart";
+import "package:mdeal/models.dart";
 export "package:go_router/go_router.dart";
 
 import "src/pages/home.dart";
@@ -25,6 +26,8 @@ final router = GoRouter(
       path: Routes.game,
       name: Routes.game,
       builder: (_, state) => HomePage(),
+      redirect: (context, state) => models.game.client.isStillPlaying
+        ? null : Routes.landing,
     ),
   ],
 );

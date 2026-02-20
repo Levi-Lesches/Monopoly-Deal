@@ -115,7 +115,7 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
                 ),
               ),
               if (model.expansionController.isExpanded)
-                const SizedBox(height: 280)
+                const SizedBox(height: 250)
               else
                 const SizedBox(height: 50),
             ],
@@ -132,18 +132,23 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
               const Spacer(),
               ExpansionTile(
                 controller: model.expansionController,
-                title: const Text("Your cards"),
+                title: Row(
+                  children: [
+                    const Text("Your cards"),
+                    const Spacer(),
+                    if (model.choice != null)
+                      Text(buildPrompt(model.choice!), style: context.textTheme.bodyLarge),
+                    const Spacer(),
+                    if (model.player.name == model.game.currentPlayer && model.canOrganize)
+                      OutlinedButton(
+                        onPressed: model.organize,
+                        child: const Text("Re-arrange properties"),
+                      ),
+                  ],
+                ),
                 backgroundColor: context.colorScheme.surfaceDim,
                 collapsedBackgroundColor: context.colorScheme.surfaceDim,
                 children: [
-                  if (model.choice != null)
-                    Text(buildPrompt(model.choice!), style: context.textTheme.bodyLarge),
-                  const SizedBox(height: 8),
-                  if (model.player.name == model.game.currentPlayer && model.canOrganize)
-                    OutlinedButton(
-                      onPressed: model.organize,
-                      child: const Text("Re-arrange properties"),
-                    ),
                   SizedBox(
                     height: CardWidget.height,
                     child: ListView(
