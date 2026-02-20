@@ -43,7 +43,7 @@ class Models extends DataModel {
   }
 
   Future<void> startGame(MDealClient client) async {
-    await client.requestState();
+    client.requestState();
     final state = await client.gameUpdates.first
       .timeout(const Duration(seconds: 1));
     game = HomeModel(client, state);

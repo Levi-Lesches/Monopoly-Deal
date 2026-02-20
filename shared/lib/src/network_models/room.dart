@@ -1,5 +1,4 @@
 import "dart:async";
-import "dart:math";
 import "package:collection/collection.dart";
 
 import "package:shared/network_data.dart";
@@ -25,14 +24,15 @@ abstract class RoomEntity {
   }
 }
 
+typedef RoomCallback = void Function(RoomID);
 class Room {
   final ServerSocket socket;
   final int roomCode;
   final List<User> users = [];
+  final RoomCallback onClosed;
   late RoomEntity currentEntity;  // lobby or game
 
-  Room(this.socket) :
-    roomCode = Random().nextInt(9998) + 1;  // [0, 9999]
+  Room(this.roomCode, this.socket, {required this.onClosed});
 
   StreamSubscription<WrappedPacket>? _packetSub;
   StreamSubscription<DisconnectionEvent>? _disconnectionSub;
@@ -44,7 +44,7 @@ class Room {
 
     _disconnectionSub = socket.disconnections
       .where((event) => event.roomCode == roomCode)
-      .listen(handleDisconnection);
+      .listen(_handleDisconnection);
 
     final lobby = LobbyServer(roomCode, socket);
     unawaited(lobby.gameStarted.then(startGame, onError: dispose));
@@ -55,8 +55,10 @@ class Room {
     await currentEntity.dispose();
     await _packetSub?.cancel();
     await _disconnectionSub?.cancel();
+    onClosed(roomCode);
   }
 
+  bool get isEmpty => users.isEmpty;
   User? getUser(String name) => users.firstWhereOrNull((other) => other.name == name);
 
   void handlePacket(WrappedPacket packet) {
@@ -86,12 +88,13 @@ class Room {
     return true;
   }
 
-  void handleDisconnection(DisconnectionEvent event) {
+  void _handleDisconnection(DisconnectionEvent event) {
     final user = getUser(event.user.name);
     if (user == null) return;
     if (!user.isConnected) return;
     user.isConnected = false;
     broadcastRoomDetails();
+    if (users.isEmpty) unawaited(dispose());
   }
 
   void broadcastRoomDetails() {

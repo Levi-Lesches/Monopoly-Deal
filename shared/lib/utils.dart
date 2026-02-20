@@ -80,7 +80,7 @@ extension SetUtils<E> on Set<E> {
 }
 
 extension StringUtils on String {
-  String? get nullIfEmpty => isEmpty ? null : this;
+  String? get nullIfEmpty => trim().isEmpty ? null : this;
 }
 
 T? safely<T>(T Function() func) {

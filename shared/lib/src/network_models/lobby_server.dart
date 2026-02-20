@@ -45,7 +45,7 @@ class LobbyServer extends RoomEntity {
       for (final (user, isReady) in users.records)
         user.name: isReady,
     });
-    final detailsPacket = NetworkPacket("lobby_members", details.toJson());
+    final detailsPacket = NetworkPacket(LobbyDetailsPacket.name, details.toJson());
     sendToAll(detailsPacket);
   }
 

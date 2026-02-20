@@ -60,7 +60,7 @@ class HomePage extends ReusableReactiveWidget<HomeModel> {
       label: const Text("New game"),
       icon: const Icon(Icons.replay),
       onPressed: () async {
-        router.go(Routes.lobby);
+        router.go(Routes.landing);
         await models.resetGame();
       },
     ),

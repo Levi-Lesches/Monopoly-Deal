@@ -126,7 +126,7 @@ class HomeModel extends DataModel with AnimationModel, GameChoices, HintsModel {
       chooser.cancel();
     }
     if (playCard) {
-      unawaited(client.requestState());
+      client.requestState();
     }
   }
 

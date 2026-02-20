@@ -9,17 +9,17 @@ import "src/pages/lobby.dart";
 class Routes {
   /// The route for the home page.
   static const game = "/game";
-  static const lobby = "/lobby";
+  static const landing = "/";
 }
 
 /// The router for the app.
 final router = GoRouter(
-  initialLocation: kDebugMode ? Routes.game : Routes.lobby,
+  initialLocation: kDebugMode ? Routes.game : Routes.landing,
   routes: [
     GoRoute(
-      path: Routes.lobby,
-      name: Routes.lobby,
-      builder: (_, _) => LobbyPage(),
+      path: Routes.landing,
+      name: Routes.landing,
+      builder: (_, _) => LandingPage(),
     ),
     GoRoute(
       path: Routes.game,

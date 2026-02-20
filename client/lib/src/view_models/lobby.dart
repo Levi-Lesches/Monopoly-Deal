@@ -1,73 +1,144 @@
 import "dart:async";
-
+import "package:flutter/foundation.dart";
 import "package:flutter/widgets.dart";
+
 import "package:mdeal/models.dart";
 import "package:mdeal/pages.dart";
-import "package:shared/network.dart";
-import "package:shared/online.dart";
-import "package:shared/utils.dart";
+import "package:shared/shared.dart";
 
 import "view_model.dart";
 
-class LobbyViewModel extends ViewModel {
-  static final addresses = <Uri>[
-    Uri.parse("wss://deal.forgot-semicolon.com/socket/"),
-    Uri.parse("ws://192.168.1.210:8040/socket"),
-    Uri.parse("ws://localhost:8040/socket"),
-  ];
+class LandingViewModel extends ViewModel {
+  static final Uri defaultUri = kDebugMode
+    ? Uri.parse("ws://localhost:8040")
+    : Uri.parse("wss://deal.forgot-semicolon.com/socket/");
 
-  final nameController = TextEditingController();
-  Map<String, bool> users = <String, bool>{};
-  ClientSocket? socket;
-  LobbyClient? client;
-  Uri address = addresses.first;
-
-  void updateAddress(Uri? value) {
-    if (value == null) return;
-    address = value;
-    notifyListeners();
-  }
+  // Page 0 = name/URI, 1=Room #, 2=Lobby
+  final pageController = PageController();
+  final usernameController = TextEditingController();
+  final uriController = TextEditingController();
+  final roomController = TextEditingController();
 
   @override
   Future<void> init() async {
-    nameController.addListener(notifyListeners);
+    uriController.text = uri.toString();
+    uriController.addListener(setUri);
+    usernameController.addListener(notifyListeners);
   }
 
   @override
   void dispose() {
+    pageController.dispose();
+    usernameController.dispose();
+    uriController.dispose();
+    roomController.dispose();
+    unawaited(client?.dispose());
+    unawaited(lobbySub?.cancel());
     super.dispose();
-    nameController.dispose();
   }
 
-  bool hasJoined = false;
-  Future<void> joinLobby() async {
-    final name = this.name;
-    if (name == null) return;
-    final user = User(name);
-    isLoading = true;
+  Uri uri = defaultUri;
+  String? uriError;
 
-    final uri = address;
-    socket = ClientWebSocket(uri, user);
-    await socket!.init();
+  String? _validateUrl(String text) {
+    final result = Uri.tryParse(text);
+    if (result == null) return "Not a valid URL";
+    const allowedSchemes = {"ws", "wss"};
+    if (!allowedSchemes.contains(result.scheme)) {
+      return "URL must point to a websocket (ws:// or ws://)";
+    }
+    return null;
+  }
 
-    client = LobbyClient(socket!);
-    await client!.init();
-    client!.lobbyUsers.listen(updateUsers);
-    try {
-      await client!.join();
-    } catch (error) {
-      errorText = error.toString();
-      isLoading = false;
+  void setUri() {
+    final text = uriController.text.nullIfEmpty;
+    if (text == null) {
+      uri = defaultUri;
+      uriError = null;
       notifyListeners();
       return;
     }
-    errorText = null;
-    hasJoined = true;
-    unawaited(client!.gameStarted.then((_) => startGame()));
-    isLoading = false;
+    uriError = _validateUrl(text);
     notifyListeners();
+    if (uriError == null) {
+      uri = Uri.parse(text);
+      notifyListeners();
+    }
   }
 
+  User? user;
+  ClientSocket? socket;
+  LobbyClient? client;
+  StreamSubscription<void>? lobbySub;
+
+  Future<void> gotoPage(int index) => pageController.animateToPage(
+    index,
+    curve: Curves.easeInQuart,
+    duration: const Duration(milliseconds: 250),
+  );
+
+  bool get canConnect => usernameController.text.nullIfEmpty != null;
+  Future<void> connect() async {
+    final username = usernameController.text.nullIfEmpty;
+    if (username == null) return;
+    user = User(username);
+    try {
+      socket = ClientWebSocket(uri, user!);
+      await socket!.init().timeout(const Duration(seconds: 2));
+      client = LobbyClient(socket!);
+      unawaited(client!.gameStarted.then(_startGame));
+      lobbySub = client!.lobbyUsers.listen(updateUsers);
+      client!.init();
+      errorText = null;
+      await gotoPage(1);
+    } catch (error) {
+      errorText = kDebugMode
+        ? "Error: $error"
+        : "Something went wrong. Check your URL and try again";
+    }
+  }
+
+  Future<void> backToName() async {
+    user = null;
+    await gotoPage(0);
+    await client?.dispose();
+    await socket?.dispose();
+  }
+
+  String? roomError;
+  int get roomCode => socket?.roomCode ?? 0;
+  int get unreadyCount => users.values.where((isReady) => !isReady).length;
+  Future<void> joinRoom() async {
+    final roomCode = int.tryParse(roomController.text);
+    if (roomCode == null) {
+      roomError = "Invalid number";
+      notifyListeners();
+      return;
+    } else if (!roomCode.isBetween(0001, 9999)) {
+      roomError = "0001-9999";
+      notifyListeners();
+      return;
+    }
+    try {
+      await client!.join(roomCode);
+      await gotoPage(2);
+    } on MDealError catch (error) {
+      roomError = error.toString();
+      notifyListeners();
+    }
+  }
+
+  Future<void> createRoom() async {
+    try {
+      await client!.join(null);
+      await gotoPage(2);
+    } on MDealError catch (error) {
+      roomError = error.toString();
+      notifyListeners();
+    }
+  }
+
+  Map<String, bool> users = <String, bool>{};
   void updateUsers(Map<String, bool> value) {
     users = value;
     notifyListeners();
@@ -75,22 +146,20 @@ class LobbyViewModel extends ViewModel {
 
   bool isReady = false;
   Future<void> toggleReady() async {
-    isLoading = true;
-    await client!.markReady(isReady: !isReady);
     isReady = !isReady;
-    isLoading = false;
+    client!.markReady(isReady: isReady);
     notifyListeners();
   }
 
-  Future<void> startGame() async {
+  Future<void> _startGame(_) async {
     await client?.dispose();
-    final gameClient = MDealClient(client!.socket);
-    await gameClient.init();
+    final gameClient = MDealClient(client!.socket, socket!.roomCode);
+    gameClient.init();
     await models.startGame(gameClient);
     router.goNamed(Routes.game);
   }
+}
 
-  String? get name => nameController.text.trim().nullIfEmpty;
-  bool get canJoin => name != null && !hasJoined;
-  bool get canReady => hasJoined;
+extension on int {
+  bool isBetween(int min, int max) => this > min && this < max;
 }
